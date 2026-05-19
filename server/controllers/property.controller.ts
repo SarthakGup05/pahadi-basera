@@ -44,7 +44,27 @@ export const getProperties = async (req: Request, res: Response) => {
 
 export const createProperty = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, rules, latitude, longitude, altitude, basePrice, type } = req.body;
+    const { 
+      title, 
+      description, 
+      rules, 
+      latitude, 
+      longitude, 
+      altitude, 
+      basePrice, 
+      type,
+      about,
+      space,
+      amenities,
+      checkInTime,
+      checkOutTime,
+      selfCheckIn,
+      maxGuests,
+      petsAllowed,
+      smokingPolicy,
+      securityDeposit,
+      cancellationPolicy
+    } = req.body;
     const user = req.user!; 
 
     if (user.role !== 'HOST' && user.role !== 'ADMIN') {
@@ -68,11 +88,22 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
         title,
         description,
         rules,
-        latitude,
-        longitude,
-        altitude,
-        basePrice,
-        type: normalizedType
+        latitude: parseFloat(latitude as string),
+        longitude: parseFloat(longitude as string),
+        altitude: parseFloat(altitude as string),
+        basePrice: parseFloat(basePrice as string),
+        type: normalizedType,
+        about,
+        space,
+        amenities: Array.isArray(amenities) ? amenities : undefined,
+        checkInTime,
+        checkOutTime,
+        selfCheckIn,
+        maxGuests: maxGuests !== undefined && maxGuests !== null ? parseInt(maxGuests as string) : undefined,
+        petsAllowed: petsAllowed !== undefined && petsAllowed !== null ? (petsAllowed === true || petsAllowed === 'true') : undefined,
+        smokingPolicy,
+        securityDeposit: securityDeposit !== undefined && securityDeposit !== null ? parseFloat(securityDeposit as string) : undefined,
+        cancellationPolicy
       }
     });
 
@@ -85,22 +116,42 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
 //update property
 export const updateProperty = async (req: AuthRequest, res: Response) => {
   try {
-    const { id, title, description, rules, latitude, longitude, altitude, basePrice, type } = req.body;
+    const { 
+      id, 
+      title, 
+      description, 
+      rules, 
+      latitude, 
+      longitude, 
+      altitude, 
+      basePrice, 
+      type,
+      about,
+      space,
+      amenities,
+      checkInTime,
+      checkOutTime,
+      selfCheckIn,
+      maxGuests,
+      petsAllowed,
+      smokingPolicy,
+      securityDeposit,
+      cancellationPolicy
+    } = req.body;
     const user = req.user!; 
 
     if (user.role !== 'HOST' && user.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Only registered hosts can update properties' });
     }
 
-    const updateData: any = {
-      title,
-      description,
-      rules,
-      latitude,
-      longitude,
-      altitude,
-      basePrice
-    };
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (rules !== undefined) updateData.rules = rules;
+    if (latitude !== undefined) updateData.latitude = parseFloat(latitude as string);
+    if (longitude !== undefined) updateData.longitude = parseFloat(longitude as string);
+    if (altitude !== undefined) updateData.altitude = parseFloat(altitude as string);
+    if (basePrice !== undefined) updateData.basePrice = parseFloat(basePrice as string);
 
     if (type) {
       const normalizedType = normalizePropertyType(type);
@@ -111,6 +162,26 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
       }
       updateData.type = normalizedType;
     }
+
+    if (about !== undefined) updateData.about = about;
+    if (space !== undefined) updateData.space = space;
+    if (amenities !== undefined) {
+      updateData.amenities = Array.isArray(amenities) ? amenities : [];
+    }
+    if (checkInTime !== undefined) updateData.checkInTime = checkInTime;
+    if (checkOutTime !== undefined) updateData.checkOutTime = checkOutTime;
+    if (selfCheckIn !== undefined) updateData.selfCheckIn = selfCheckIn;
+    if (maxGuests !== undefined) {
+      updateData.maxGuests = maxGuests !== null ? parseInt(maxGuests as string) : null;
+    }
+    if (petsAllowed !== undefined) {
+      updateData.petsAllowed = petsAllowed !== null ? (petsAllowed === true || petsAllowed === 'true') : null;
+    }
+    if (smokingPolicy !== undefined) updateData.smokingPolicy = smokingPolicy;
+    if (securityDeposit !== undefined) {
+      updateData.securityDeposit = securityDeposit !== null ? parseFloat(securityDeposit as string) : null;
+    }
+    if (cancellationPolicy !== undefined) updateData.cancellationPolicy = cancellationPolicy;
 
     const property = await prisma.property.update({
       where: { id },
@@ -127,22 +198,42 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
 //update property by id
 export const updatePropertyById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id, title, description, rules, latitude, longitude, altitude, basePrice, type } = req.body;
+    const { 
+      title, 
+      description, 
+      rules, 
+      latitude, 
+      longitude, 
+      altitude, 
+      basePrice, 
+      type,
+      about,
+      space,
+      amenities,
+      checkInTime,
+      checkOutTime,
+      selfCheckIn,
+      maxGuests,
+      petsAllowed,
+      smokingPolicy,
+      securityDeposit,
+      cancellationPolicy
+    } = req.body;
+    const id = req.params.id || req.body.id;
     const user = req.user!; 
 
     if (user.role !== 'HOST' && user.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Only registered hosts can update properties' });
     }
 
-    const updateData: any = {
-      title,
-      description,
-      rules,
-      latitude,
-      longitude,
-      altitude,
-      basePrice
-    };
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (rules !== undefined) updateData.rules = rules;
+    if (latitude !== undefined) updateData.latitude = parseFloat(latitude as string);
+    if (longitude !== undefined) updateData.longitude = parseFloat(longitude as string);
+    if (altitude !== undefined) updateData.altitude = parseFloat(altitude as string);
+    if (basePrice !== undefined) updateData.basePrice = parseFloat(basePrice as string);
 
     if (type) {
       const normalizedType = normalizePropertyType(type);
@@ -153,6 +244,26 @@ export const updatePropertyById = async (req: AuthRequest, res: Response) => {
       }
       updateData.type = normalizedType;
     }
+
+    if (about !== undefined) updateData.about = about;
+    if (space !== undefined) updateData.space = space;
+    if (amenities !== undefined) {
+      updateData.amenities = Array.isArray(amenities) ? amenities : [];
+    }
+    if (checkInTime !== undefined) updateData.checkInTime = checkInTime;
+    if (checkOutTime !== undefined) updateData.checkOutTime = checkOutTime;
+    if (selfCheckIn !== undefined) updateData.selfCheckIn = selfCheckIn;
+    if (maxGuests !== undefined) {
+      updateData.maxGuests = maxGuests !== null ? parseInt(maxGuests as string) : null;
+    }
+    if (petsAllowed !== undefined) {
+      updateData.petsAllowed = petsAllowed !== null ? (petsAllowed === true || petsAllowed === 'true') : null;
+    }
+    if (smokingPolicy !== undefined) updateData.smokingPolicy = smokingPolicy;
+    if (securityDeposit !== undefined) {
+      updateData.securityDeposit = securityDeposit !== null ? parseFloat(securityDeposit as string) : null;
+    }
+    if (cancellationPolicy !== undefined) updateData.cancellationPolicy = cancellationPolicy;
 
     const property = await prisma.property.update({
       where: { id },
