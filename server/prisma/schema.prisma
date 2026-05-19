@@ -48,6 +48,13 @@ enum PropertyType {
   APARTMENT
 }
 
+enum BookingStatus {
+  PENDING     // Waiting for Razorpay payment
+  CONFIRMED   // Payment successful
+  CANCELLED   // User or Host cancelled
+  COMPLETED   // Stay is over
+}
+
 // ------------------------------------------------------
 // MODELS
 // ------------------------------------------------------
@@ -77,7 +84,7 @@ model User {
   // ------------------------------------------------------
   refreshTokens RefreshToken[]
   properties    Property[]
-  bookings      Booking[]
+  guestBookings Booking[]      @relation("GuestBookings")
   reviews       Review[]
 }
 
@@ -122,6 +129,18 @@ model Property {
   description String @db.Text // Use Text for longer descriptions
   rules       String @db.Text // House rules and guidelines
   type        PropertyType   // The type of property (e.g., resort, villas, etc.)
+
+  about              String?  @db.Text
+  space              String?  @db.Text
+  amenities          String[] @default([])
+  checkInTime        String?
+  checkOutTime       String?
+  selfCheckIn        String?
+  maxGuests          Int?     @default(1)
+  petsAllowed        Boolean? @default(false)
+  smokingPolicy      String?
+  securityDeposit    Float?   @default(0)
+  cancellationPolicy String?  @db.Text
 
   // --- Geolocation ---
   latitude  Float
@@ -173,23 +192,51 @@ model Service {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  bookingServices BookingService[]
 }
 
-// Booking Model
 model Booking {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  propertyId String
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  id              String           @id @default(uuid())
+  
+  guestId         String
+  guest           User             @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Cascade)
+  
+  propertyId      String
+  property        Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  // Strict Timestamps
+  checkIn         DateTime
+  checkOut        DateTime
+  
+  // Financials (Computed Server-Side)
+  baseStayCost    Float            // basePrice * nights
+  servicesCost    Float            // total of selected add-ons
+  securityDeposit Float            @default(0)
+  totalCost       Float            // Grand total to charge Razorpay
+  
+  status          BookingStatus    @default(PENDING)
+  specialRequests String?          @db.Text
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
-  checkIn    DateTime
-  checkOut   DateTime
-  totalPrice Float
-  status     String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  // Mapped Services
+  selectedServices BookingService[]
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model BookingService {
+  id            String   @id @default(uuid())
+  
+  bookingId     String
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id])
+  
+  // Crucial: Snapshot the price at the exact moment of booking
+  priceAtTime   Float    
+  quantity      Int      @default(1) // e.g., 3 days of "Cook" service
 }
 
 // Review Model

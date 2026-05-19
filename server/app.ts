@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import 'express-async-errors'; // Handles async errors in express routes
 import authRoutes from './routes/auth.route.js';
 import propertyRoutes from './routes/property.route.js';
+import bookingRoutes from './routes/booking.route.js';
 
 import { errorHandler } from './middleware/error.middleware.js';
 
@@ -30,6 +31,7 @@ app.get('/', (req: Request, res: Response) => {
 // Route Middlewares
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
