@@ -447,3 +447,95 @@ export const getPopularProperties = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch properties', details: error.message });
   }
 };
+
+/**
+ * Calculates a detailed stay quotation for a user.
+ * Supports computing total cost both with and without a 5% tax.
+ * Note: Taxes are applied only to stay and service costs (refundable security deposits are tax-exempt).
+ */
+export const calculateQuotation = async (req: Request, res: Response) => {
+  try {
+    const { propertyId, checkIn, checkOut, selectedServices } = req.body;
+
+    if (!propertyId || !checkIn || !checkOut) {
+      return res.status(400).json({ error: 'propertyId, checkIn, and checkOut are required.' });
+    }
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+
+    if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid check-in or check-out date format.' });
+    }
+
+    if (checkInDate >= checkOutDate) {
+      return res.status(400).json({ error: 'Check-out date must be strictly after check-in date.' });
+    }
+
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      include: { services: true }
+    });
+
+    if (!property) {
+      return res.status(404).json({ error: 'Property not found.' });
+    }
+
+    // Calculate nights
+    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+    const basePricePerNight = property.basePrice;
+    const baseStayCost = basePricePerNight * nights;
+    const securityDeposit = property.securityDeposit || 0;
+
+    let servicesCost = 0;
+    const servicesBreakdown = [];
+
+    if (Array.isArray(selectedServices) && selectedServices.length > 0) {
+      for (const item of selectedServices) {
+        const { serviceId, quantity } = item;
+        const service = property.services.find(s => s.id === serviceId);
+
+        if (service) {
+          const parsedQty = quantity ? parseInt(quantity.toString(), 10) : 1;
+          const subtotal = service.pricePerUnit * parsedQty;
+          servicesCost += subtotal;
+
+          servicesBreakdown.push({
+            serviceId: service.id,
+            serviceType: service.serviceType,
+            pricePerUnit: service.pricePerUnit,
+            quantity: parsedQty,
+            subtotal
+          });
+        }
+      }
+    }
+
+    // Taxes (5%) are calculated on stay and service totals (security deposit is excluded)
+    const taxableAmount = baseStayCost + servicesCost;
+    const taxRate = 0.05;
+    const taxAmount = parseFloat((taxableAmount * taxRate).toFixed(2));
+
+    const totalWithoutTaxes = baseStayCost + servicesCost + securityDeposit;
+    const totalWithTaxes = totalWithoutTaxes + taxAmount;
+
+    return res.status(200).json({
+      propertyId,
+      title: property.title,
+      nights,
+      basePricePerNight,
+      baseStayCost,
+      securityDeposit,
+      servicesCost,
+      servicesBreakdown,
+      taxableAmount,
+      taxRate,
+      taxAmount,
+      totalWithoutTaxes,
+      totalWithTaxes
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to calculate quotation', details: error.message });
+  }
+};
+

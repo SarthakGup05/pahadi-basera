@@ -10,7 +10,8 @@ import {
   searchProperties,
   getPropertyById,
   getFeaturedProperties,
-  getPopularProperties
+  getPopularProperties,
+  calculateQuotation
 } from '../controllers/property.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 
@@ -22,6 +23,7 @@ router.get('/search-properties', searchProperties);
 router.get('/featured-properties', getFeaturedProperties);
 router.get('/popular-properties', getPopularProperties);
 router.get('/get-property/:id', getPropertyById);
+router.post('/calculate-quotation', calculateQuotation);
 
 // --- Protected Routes (Require Authentication) ---
 router.get('/my-properties', requireAuth, getMyProperties);
