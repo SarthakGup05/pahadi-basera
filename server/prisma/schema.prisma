@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------
+
+// Defined roles based on the platform's multi-role architecture
+enum Role {
+  ADMIN
+  HOST
+  GUEST
+  GUIDE
+  DRIVER
+  BLOGGER
+}
+
+// Status tracker for host/guest verification
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ServiceType {
+  STAY
+  KITCHEN
+  COOK
+  GUIDE
+}
+
+enum PropertyType {
+  RESORT
+  VILLAS
+  CASTLE
+  HOMESAYS
+  COTTAGE
+  GUEST_HOUSE
+  APARTMENT
+}
+
+// ------------------------------------------------------
+// MODELS
+// ------------------------------------------------------
+
+model User {
+  id String @id @default(uuid())
+
+  // --- Authentication Vectors ---
+  phoneNumber String @unique // Optional to allow email-only accounts
+
+  // Email/Password Login
+  email    String @unique
+  password String // Store the hashed password (e.g., using bcrypt), NEVER plain text
+
+  // --- Role-Based Access Control (RBAC) ---
+  role Role @default(GUEST)
+
+  // --- Verification Tracking ---
+  kycStatus KycStatus @default(PENDING)
+
+  // --- Standard Tracking Fields ---
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ------------------------------------------------------
+  // RELATIONS
+  // ------------------------------------------------------
+  refreshTokens RefreshToken[]
+  properties    Property[]
+  bookings      Booking[]
+  reviews       Review[]
+}
+
+// ------------------------------------------------------
+// Token Management
+// ------------------------------------------------------
+
+model RefreshToken {
+  id String @id @default(uuid())
+
+  // Encrypted or hashed token string
+  token String @unique
+
+  // The user this token belongs to
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Token validation state
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+
+  // Metadata for device/session tracking (optional but useful for management)
+  deviceInfo String?
+  ipAddress  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Core Property Model 
+model Property {
+  id String @id @default(uuid())
+
+  // --- Host Relation ---
+  hostId String
+  host   User   @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  // --- Basic Information ---
+  title       String
+  description String @db.Text // Use Text for longer descriptions
+  rules       String @db.Text // House rules and guidelines
+  type        PropertyType   // The type of property (e.g., resort, villas, etc.)
+
+  // --- Geolocation ---
+  latitude  Float
+  longitude Float
+  altitude  Float // Crucial for the Himalayan context 
+
+  // --- Pricing & Status ---
+  basePrice Float // The default price for the 'STAY' 
+  isActive  Boolean @default(false) // Toggle to publish/unpublish 
+
+  // --- Tracking ---
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isFeatured Boolean @default(false)
+  isPopular  Boolean @default(false)
+
+  // --- Relations ---
+  images   PropertyImage[]
+  services Service[] // Modular add-ons (Kitchen, Cook, Guide) [cite: 40, 67]
+  reviews  Review[]
+  bookings Booking[]
+}
+
+// Property Images (For AWS S3 / CloudFront media galleries) 
+model PropertyImage {
+  id String @id @default(uuid())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  url          String // The CDN URL for the image
+  isFeatured   Boolean @default(false) // True for the main cover photo
+  displayOrder Int     @default(0) // For sorting the gallery
+
+  createdAt DateTime @default(now())
+}
+
+// Modular Services / Add-ons 
+model Service {
+  id String @id @default(uuid())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  serviceType  ServiceType // STAY, KITCHEN, COOK, or GUIDE 
+  pricePerUnit Float // e.g., INR 500 / night 
+  isAvailable  Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Booking Model
+model Booking {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  checkIn    DateTime
+  checkOut   DateTime
+  totalPrice Float
+  status     String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Review Model
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  rating  Int // 1-5 stars
+  comment String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
