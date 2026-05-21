@@ -70,24 +70,35 @@ Added a comprehensive root `.gitignore` mapping to keep the repository clean of:
 
 ---
 
+### 6. Dynamic Quotation & Tax Calculator (`controllers/property.controller.ts`)
+Created a public endpoint (`POST /api/properties/calculate-quotation`) that enables users to request real-time pricing summaries before booking:
+* **Night Multiplication & Base Cost:** Computes stay cost based on check-in/out range.
+* **Modular Service Breakdowns:** Details every selected service with subtotal breakdowns.
+* **Smart Tax Calculations:** Calculates a customizable **5% VAT/GST tax** only on taxable items (base stay + extra services), keeping the refundable security deposit strictly tax-exempt.
+* **Transparency:** Outputs totals both **with and without taxes** to match high-end OTA booking experiences.
+
+---
+
 ## 📈 Current Project Health
 
-* **TypeScript Type Safety:** **100% Pass**. Running `npx tsc --noEmit` and `npm run build` compiles with zero errors or warnings.
-* **Prisma Engine Sync:** Successfully generated.
-* **Database Migration Status:** Up-to-date locally.
+* **TypeScript Type Safety:** **100% Pass**. Running `npx tsc --noEmit` compiles with zero errors or warnings.
+* **Prisma Engine Sync:** Fully migrated and synced using PostgreSQL adapter layers.
+* **Database Seeding Status:** Completed successfully with multi-role mock accounts and full booking records.
 
 ---
 
 ## 🚀 Next Steps / Recommendations
-1. **Apply Prisma Database Migration:** Run the migration command to apply the new details columns to your physical PostgreSQL database:
-   ```bash
-   npx prisma migrate dev --name add_property_details_fields
+1. **Test the Quotation API:** Fire up your API testing tool (Postman / Thunder Client) and send a `POST` request to `http://localhost:5000/api/properties/calculate-quotation` with:
+   ```json
+   {
+     "propertyId": "<PROPERTY_ID>",
+     "checkIn": "2026-06-01",
+     "checkOut": "2026-06-05",
+     "selectedServices": []
+   }
    ```
-2. **Execute Database Seeding:** Once migrated, seed the database to test the new attributes:
-   ```bash
-   npm run db:seed
-   ```
-3. **Run Dev Server:** Fire up the live environment:
+2. **Run Dev Server:** Start the development runtime:
    ```bash
    npm run dev
    ```
+
