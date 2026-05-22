@@ -9,7 +9,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-[#0d1412] text-zinc-400 border-t border-emerald-950/20 pt-20 pb-10 px-4 md:px-6 relative overflow-hidden">
+    <footer className="w-full bg-[#0d1412] text-zinc-400 border-t border-emerald-950/20 pt-16 pb-10 px-4 md:px-6 relative overflow-hidden">
       {/* Decorative mountain background shape */}
       <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-gradient-to-t from-emerald-950/10 to-transparent blur-[120px] pointer-events-none rounded-full" />
       
