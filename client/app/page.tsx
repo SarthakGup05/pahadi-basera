@@ -23,6 +23,9 @@ import ExploreRegion from "@/components/home/ExploreRegion";
 import FeaturedProperties from "@/components/home/FeaturedProperties";
 import WhyPahadiBasera from "@/components/WhypahadiBasera";
 import OurStory from "@/components/home/OurStory";
+import Packages from "@/components/home/Packages";
+import TaxiRental from "@/components/home/TaxiRental";
+import TravelCommunity from "@/components/home/TravelCommunity";
 
 export default function Home() {
   const featuredStays = [
@@ -66,20 +69,36 @@ export default function Home() {
       
       {/* Hero Section */}
       <HeroSection />
-      {/* Features Section */}
-      <FeaturesBadges />
-      {/* Regions */}
-      <ExploreRegion />
 
       {/* Our Story */}
       <OurStory />
 
       {/* Featured Properties */}
-    <FeaturedProperties />
+      <FeaturedProperties />
 
+      {/* Features Section */}
+      <FeaturesBadges />
+      
+      {/* Regions */}
+      <ExploreRegion />
+
+     
+
+      {/* Packages Tour Section */}
+      <Packages />
+
+      {/* Taxi & Hill Car Rental Section */}
+      <TaxiRental />
+
+      
       {/* The Pahadi Experience */}
-     <WhyPahadiBasera />
+      <WhyPahadiBasera />
+
+      {/* Travel Community & Blogs Section */}
+      <TravelCommunity />
       
     </div>
   );
 }
+
+
