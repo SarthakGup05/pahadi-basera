@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import CustomCursor from "@/components/CustomCursor";
+import Loader from "@/components/Loader";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,8 +26,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col loader-active" suppressHydrationWarning>
+        <Loader />
+        <CustomCursor />
         <Navbar />
         <main className="flex-1">
           {children}

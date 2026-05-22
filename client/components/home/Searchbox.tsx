@@ -2,28 +2,46 @@
 
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, MapPin, Calendar, Users, ChevronDown } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, ChevronDown, Plus, Minus } from 'lucide-react';
 
 const SearchBox = () => {
+    // Search State
     const [activeTab, setActiveTab] = useState('All Accommodation');
-    const tabs = ['All Accommodation', 'Villa', 'Hotel', 'Apartment', 'Home Stay'];
+    const [location, setLocation] = useState('');
+    const [checkIn, setCheckIn] = useState('');
+    const [checkOut, setCheckOut] = useState('');
+    const [guests, setGuests] = useState(1);
     
-    // Track focused input to apply a subtle highlight background to that specific section
+    // UI Interaction State
     const [focusedInput, setFocusedInput] = useState<string | null>(null);
+    
+    const tabs = ['All Accommodation', 'Home Stay', 'Villa', 'Apartment', 'Hotel', 'Cottage'];
+
+    // Dummy Search Handler
+    const handleSearch = () => {
+        alert(
+            `🚀 Searching for properties:\n\n` +
+            `Type: ${activeTab}\n` +
+            `Location: ${location || 'Anywhere'}\n` +
+            `Check In: ${checkIn || 'Any time'}\n` +
+            `Check Out: ${checkOut || 'Any time'}\n` +
+            `Guests: ${guests}`
+        );
+    };
 
     return (
-        <div className="w-full max-w-[850px] mx-auto transition-all duration-300 px-4">
+        <div className="w-full max-w-[950px] mx-auto transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] px-4 relative z-20">
 
-            {/* Premium Minimalist Tabs floating above (Desktop Only) */}
-            <div className="hidden md:flex items-center gap-5 mb-3 w-full justify-center px-4 md:px-0">
+            {/* Premium Glassmorphic Tabs (Tablet & Desktop) */}
+            <div className="hidden sm:flex flex-wrap items-center gap-2 mb-4 w-full justify-center px-4 lg:px-0">
                 {tabs.map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`text-xs font-semibold tracking-wide uppercase transition-all duration-200 cursor-pointer pb-1.5 border-b-2 flex-shrink-0 ${
+                        className={`relative text-[11px] font-bold tracking-widest uppercase transition-all duration-300 cursor-pointer px-4 py-2 rounded-full flex-shrink-0 ${
                             activeTab === tab
-                                ? 'text-white border-[#10b981]'
-                                : 'text-white/60 hover:text-white border-transparent'
+                                ? 'text-[#10b981] bg-white shadow-[0_4px_15px_rgba(0,0,0,0.05)] scale-105'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
                         }`}
                     >
                         {tab}
@@ -31,122 +49,160 @@ const SearchBox = () => {
                 ))}
             </div>
 
-            {/* Sleek Integrated App-Style Form container */}
-            <div className="flex flex-col md:flex-row bg-white rounded-[2rem] md:rounded-full p-5 md:p-2 pl-5 md:pl-6 shadow-[0_20px_50px_rgba(0,0,0,0.18)] border border-gray-100 md:border-white/20 gap-4 md:gap-0 cursor-text">
+            {/* Sleek Integrated Form Container */}
+            <div className="relative grid grid-cols-2 lg:flex lg:flex-row bg-white/95 backdrop-blur-xl rounded-[2rem] lg:rounded-full p-4 lg:p-2 lg:pl-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12)] border border-white/60 gap-3 lg:gap-0 transition-all duration-500">
                 
                 {/* Location Pill */}
                 <div 
-                  className={`w-full md:flex-1 flex items-center justify-between border md:border-0 border-gray-200/80 rounded-full md:rounded-none px-5 md:px-4 py-2.5 md:py-1.5 transition-all duration-300 ${
-                    focusedInput === 'location' ? 'bg-gray-50/80 border-[#10b981]' : 'bg-gray-50/20 md:bg-transparent hover:bg-gray-50/40'
+                  className={`relative z-10 col-span-2 lg:flex-[1.2] flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-6 py-3 lg:py-2 cursor-text transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
+                    focusedInput === 'location' 
+                      ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'location' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
                   }`}
                   onFocus={() => setFocusedInput('location')}
                   onBlur={() => setFocusedInput(null)}
                 >
                     <div className="flex flex-col flex-1">
-                        <label className="text-[9px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-[#10b981] hidden md:inline" />
+                        <label className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1.5 transition-colors duration-300 ${focusedInput === 'location' ? 'text-[#10b981]' : 'text-gray-500'}`}>
+                            <MapPin className={`w-3.5 h-3.5 hidden sm:inline transition-colors duration-300 ${focusedInput === 'location' ? 'text-[#10b981]' : 'text-gray-400 group-hover:text-[#10b981]/70'}`} />
                             Location
                         </label>
                         <Input
-                            placeholder="All Locations"
-                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-800"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            placeholder="Where to?"
+                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-900 truncate"
                         />
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 md:hidden ml-2" />
                 </div>
 
-                {/* Accommodation Type Pill (Mobile Only) */}
-                <div 
-                  className="w-full flex md:hidden items-center justify-between border border-gray-200/80 rounded-full px-5 py-2.5 bg-gray-50/20 transition-all duration-300"
-                >
+                {/* Smart Divider */}
+                <div className={`hidden lg:block w-[1px] h-10 bg-gray-200 my-auto transition-opacity duration-300 ${focusedInput === 'location' || focusedInput === 'checkin' ? 'opacity-0' : 'opacity-100'}`} />
+
+                {/* Accommodation Type Pill (Mobile Only - Replaced by tabs on sm/lg) */}
+                <div className="col-span-2 flex sm:hidden items-center justify-between border border-gray-100 rounded-2xl px-5 py-3 bg-gray-50/30 transition-all duration-300">
                     <div className="flex flex-col flex-1">
-                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
                             Accommodation Type
                         </label>
                         <Input
                             value={activeTab}
                             readOnly
-                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm font-semibold text-gray-800"
+                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm font-semibold text-gray-900 truncate cursor-default"
                         />
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
                 </div>
 
-                {/* Symmetrical Check-In & Check-Out Double Pill */}
-                <div className="w-full md:flex-[2] flex flex-row border md:border-0 border-gray-200/80 rounded-full md:rounded-none divide-x divide-gray-200/80 bg-gray-50/20 md:bg-transparent py-0">
-                    
-                    {/* Check In */}
-                    <div 
-                      className={`flex-1 flex items-center justify-between px-5 md:px-4 py-2.5 md:py-1.5 md:border-l md:border-gray-200/60 transition-all duration-300 ${
-                        focusedInput === 'checkin' ? 'bg-gray-50/80' : 'hover:bg-gray-50/40 md:hover:bg-transparent'
-                      }`}
-                      onFocus={() => setFocusedInput('checkin')}
-                      onBlur={() => setFocusedInput(null)}
-                    >
-                        <div className="flex flex-col flex-1">
-                            <label className="text-[9px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                                <Calendar className="w-3 h-3 text-[#10b981] hidden md:inline" />
-                                Check In
-                            </label>
-                            <Input
-                                placeholder="Add dates"
-                                className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-800"
-                            />
-                        </div>
-                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 md:hidden ml-2" />
-                    </div>
-
-                    {/* Check Out */}
-                    <div 
-                      className={`flex-1 flex items-center justify-between px-5 md:px-4 py-2.5 md:py-1.5 md:border-l md:border-gray-200/60 transition-all duration-300 ${
-                        focusedInput === 'checkout' ? 'bg-gray-50/80' : 'hover:bg-gray-50/40 md:hover:bg-transparent'
-                      }`}
-                      onFocus={() => setFocusedInput('checkout')}
-                      onBlur={() => setFocusedInput(null)}
-                    >
-                        <div className="flex flex-col flex-1">
-                            <label className="text-[9px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                                <Calendar className="w-3 h-3 text-[#10b981] hidden md:inline" />
-                                Check Out
-                            </label>
-                            <Input
-                                placeholder="Add dates"
-                                className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-800"
-                            />
-                        </div>
-                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 md:hidden ml-2" />
-                    </div>
-
-                </div>
-
-                {/* Guests Pill */}
+                {/* Check In */}
                 <div 
-                  className={`w-full md:flex-1 flex items-center justify-between border md:border-0 border-gray-200/80 rounded-full md:rounded-none px-5 md:px-4 py-2.5 md:py-1.5 md:border-l md:border-gray-200/60 transition-all duration-300 ${
-                    focusedInput === 'participant' ? 'bg-gray-50/80 border-[#10b981]' : 'bg-gray-50/20 md:bg-transparent hover:bg-gray-50/40'
+                  className={`relative z-10 col-span-1 lg:flex-1 flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-6 py-3 lg:py-2 cursor-text transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
+                    focusedInput === 'checkin' 
+                      ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'checkin' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
                   }`}
-                  onFocus={() => setFocusedInput('participant')}
+                  onFocus={() => setFocusedInput('checkin')}
                   onBlur={() => setFocusedInput(null)}
                 >
                     <div className="flex flex-col flex-1">
-                        <label className="text-[9px] font-bold text-gray-400 md:text-gray-500 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                            <Users className="w-3 h-3 text-[#10b981] hidden md:inline" />
-                            Add Guests
+                        <label className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1.5 transition-colors duration-300 ${focusedInput === 'checkin' ? 'text-[#10b981]' : 'text-gray-500'}`}>
+                            <Calendar className={`w-3.5 h-3.5 hidden sm:inline transition-colors duration-300 ${focusedInput === 'checkin' ? 'text-[#10b981]' : 'text-gray-400 group-hover:text-[#10b981]/70'}`} />
+                            Check In
                         </label>
                         <Input
-                            placeholder="1 Guest"
-                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-800"
+                            type="text"
+                            value={checkIn}
+                            onChange={(e) => setCheckIn(e.target.value)}
+                            placeholder="Add dates"
+                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-900 truncate"
                         />
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 md:hidden ml-2" />
+                </div>
+
+                {/* Smart Divider */}
+                <div className={`hidden lg:block w-[1px] h-10 bg-gray-200 my-auto transition-opacity duration-300 ${focusedInput === 'checkin' || focusedInput === 'checkout' ? 'opacity-0' : 'opacity-100'}`} />
+
+                {/* Check Out */}
+                <div 
+                  className={`relative z-10 col-span-1 lg:flex-1 flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-6 py-3 lg:py-2 cursor-text transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
+                    focusedInput === 'checkout' 
+                      ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'checkout' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
+                  }`}
+                  onFocus={() => setFocusedInput('checkout')}
+                  onBlur={() => setFocusedInput(null)}
+                >
+                    <div className="flex flex-col flex-1">
+                        <label className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1.5 transition-colors duration-300 ${focusedInput === 'checkout' ? 'text-[#10b981]' : 'text-gray-500'}`}>
+                            <Calendar className={`w-3.5 h-3.5 hidden sm:inline transition-colors duration-300 ${focusedInput === 'checkout' ? 'text-[#10b981]' : 'text-gray-400 group-hover:text-[#10b981]/70'}`} />
+                            Check Out
+                        </label>
+                        <Input
+                            type="text"
+                            value={checkOut}
+                            onChange={(e) => setCheckOut(e.target.value)}
+                            placeholder="Add dates"
+                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm placeholder:text-gray-400 font-semibold text-gray-900 truncate"
+                        />
+                    </div>
+                </div>
+
+                {/* Smart Divider */}
+                <div className={`hidden lg:block w-[1px] h-10 bg-gray-200 my-auto transition-opacity duration-300 ${focusedInput === 'checkout' || focusedInput === 'participant' ? 'opacity-0' : 'opacity-100'}`} />
+
+                {/* Inline Guests Counter Pill */}
+                <div 
+                  className={`relative z-10 col-span-1 lg:flex-[1.1] flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-4 py-3 lg:py-1.5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
+                    focusedInput === 'participant' 
+                      ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'participant' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
+                  }`}
+                  onMouseEnter={() => setFocusedInput('participant')}
+                  onMouseLeave={() => setFocusedInput(null)}
+                >
+                    <div className="flex flex-col flex-1 select-none">
+                        <label className={`text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5 transition-colors duration-300 ${focusedInput === 'participant' ? 'text-[#10b981]' : 'text-gray-500'}`}>
+                            <Users className={`w-3.5 h-3.5 hidden sm:inline transition-colors duration-300 ${focusedInput === 'participant' ? 'text-[#10b981]' : 'text-gray-400 group-hover:text-[#10b981]/70'}`} />
+                            Guests
+                        </label>
+                        
+                        {/* Inline Counter Controls */}
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={(e) => { e.preventDefault(); setGuests(Math.max(1, guests - 1)); }}
+                                disabled={guests <= 1}
+                                className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#10b981] hover:text-white hover:shadow-sm disabled:opacity-40 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 transition-all duration-200"
+                            >
+                                <Minus className="w-3 h-3" strokeWidth={3} />
+                            </button>
+                            
+                            <span className="w-4 text-center text-sm font-bold text-gray-900 tabular-nums">
+                                {guests}
+                            </span>
+                            
+                            <button 
+                                onClick={(e) => { e.preventDefault(); setGuests(guests + 1); }}
+                                className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#10b981] hover:text-white hover:shadow-sm transition-all duration-200"
+                            >
+                                <Plus className="w-3 h-3" strokeWidth={3} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Unified Premium Action Button */}
-                <button
-                    className="w-full md:w-12 h-12 rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white flex items-center justify-center gap-2 transition-all duration-500 ease-out shadow-md hover:shadow-[0_8px_25px_-5px_rgba(16,185,129,0.5)] hover:scale-105 md:hover:scale-110 hover:-translate-y-0.5 md:hover:rotate-12 active:scale-95 cursor-pointer flex-shrink-0 py-3.5 md:py-0 border-0"
-                >
-                    <Search className="w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110" />
-                    <span className="md:hidden tracking-wider font-semibold text-sm">Search</span>
-                </button>
+                <div className="p-1 col-span-1 lg:col-span-none lg:mt-0">
+                  <button
+                      onClick={handleSearch}
+                      className="relative z-20 w-full lg:w-[60px] h-14 lg:h-[60px] rounded-[1.25rem] lg:rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white flex items-center justify-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[0_4px_15px_rgba(16,185,129,0.4)] hover:shadow-[0_10px_30px_-5px_rgba(16,185,129,0.6)] lg:hover:scale-[1.15] lg:hover:-rotate-3 active:scale-95 cursor-pointer flex-shrink-0 border-0 group/btn overflow-hidden"
+                  >
+                      {/* Button highlight glint effect */}
+                      <div className="absolute inset-0 bg-white/20 translate-y-[-100%] group-hover/btn:translate-y-[100%] transition-transform duration-700 ease-in-out pointer-events-none"></div>
+                      
+                      <Search className="w-5 h-5 lg:w-6 lg:h-6 transition-transform duration-500 group-hover/btn:scale-110" strokeWidth={2.5} />
+                      <span className="lg:hidden tracking-widest font-bold text-sm uppercase">Search</span>
+                  </button>
+                </div>
 
             </div>
         </div>
