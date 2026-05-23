@@ -3,6 +3,7 @@
 import React from 'react';
 import { Star, Users, Bed, Bath, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const FeaturedProperties = () => {
   const properties = [
@@ -72,8 +73,9 @@ const FeaturedProperties = () => {
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
         {properties.map((property) => (
-          <div 
+          <Link 
             key={property.id} 
+            href={`/properties/${property.id}`}
             className="group flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.15)] hover:-translate-y-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer"
           >
             {/* Image Section */}
@@ -164,7 +166,7 @@ const FeaturedProperties = () => {
               </div>
 
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
