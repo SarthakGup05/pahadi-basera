@@ -2,20 +2,20 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { 
-  MapPin, 
-  Calendar, 
-  Users, 
-  Search, 
-  Flame, 
-  Utensils, 
-  Compass, 
-  Wifi, 
-  Star, 
+import {
+  MapPin,
+  Calendar,
+  Users,
+  Search,
+  Flame,
+  Utensils,
+  Compass,
+  Wifi,
+  Star,
   ArrowRight,
   Shield,
   Heart,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
 import HeroSection from "@/components/home/Hero";
 import FeaturesBadges from "@/components/home/FeatureBadges";
@@ -36,9 +36,10 @@ export default function Home() {
       price: "₹8,500",
       rating: "4.9",
       reviews: 124,
-      image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80",
+      image:
+        "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80",
       badge: "Best Seller",
-      amenities: ["Bonfire", "Mountain View", "Local Chef"]
+      amenities: ["Bonfire", "Mountain View", "Local Chef"],
     },
     {
       id: 2,
@@ -47,9 +48,10 @@ export default function Home() {
       price: "₹6,200",
       rating: "4.8",
       reviews: 98,
-      image: "https://images.unsplash.com/photo-1549693578-d683be217e58?auto=format&fit=crop&w=800&q=80",
+      image:
+        "https://images.unsplash.com/photo-1549693578-d683be217e58?auto=format&fit=crop&w=800&q=80",
       badge: "Cozy Escape",
-      amenities: ["Fireplace", "High-Speed Wi-Fi", "Pet Friendly"]
+      amenities: ["Fireplace", "High-Speed Wi-Fi", "Pet Friendly"],
     },
     {
       id: 3,
@@ -58,47 +60,33 @@ export default function Home() {
       price: "₹12,000",
       rating: "4.95",
       reviews: 76,
-      image: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80",
+      image:
+        "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80",
       badge: "Luxury Stay",
-      amenities: ["Private Deck", "Heating", "Stargazing"]
-    }
+      amenities: ["Private Deck", "Heating", "Stargazing"],
+    },
   ];
 
   return (
     <div className="bg-zinc-50 font-sans min-h-screen text-gray-800">
-      
       {/* Hero Section */}
       <HeroSection />
-
-      {/* Our Story */}
-      <OurStory />
-
-      {/* Featured Properties */}
-      <FeaturedProperties />
-
-      {/* Features Section */}
-      <FeaturesBadges />
-      
       {/* Regions */}
       <ExploreRegion />
-
-     
-
+      {/* Featured Properties */}
+      <FeaturedProperties />
+      {/* Our Story */}
+      <OurStory />
+      {/* Features Section */}
+      <FeaturesBadges />
       {/* Packages Tour Section */}
       <Packages />
-
       {/* Taxi & Hill Car Rental Section */}
       <TaxiRental />
-
-      
       {/* The Pahadi Experience */}
       <WhyPahadiBasera />
-
       {/* Travel Community & Blogs Section */}
       <TravelCommunity />
-      
     </div>
   );
 }
-
-
