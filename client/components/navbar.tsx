@@ -48,7 +48,7 @@ const Navbar = () => {
 
   const aboutDropdown = [
     { name: 'About the company', href: '/our-story' },
-    { name: 'Contact Us', href: '#contact' },
+    { name: 'Contact Us', href: '/contact' },
   ];
 
   return (
