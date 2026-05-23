@@ -1,12 +1,12 @@
-# 🏔️ Pahadi Basera - Backend Progress Report
+# 🏔️ Pahadi Basera - Full-Stack Progress Report
 
-This document outlines the architecture, database schema, controller updates, and endpoint configurations implemented in the **Pahadi Basera** backend service.
+This document outlines the architecture, database schema, endpoint configurations, and high-fidelity user interface layers implemented across both the backend service and the premium frontend client of **Pahadi Basera**.
 
 ---
 
 ## 🛠️ Summary of Accomplishments
 
-### 1. Database Schema Extensions (`prisma/schema.prisma`)
+### 1. Database Schema & Relational Integrity (`prisma/schema.prisma`)
 We updated and modernized the relational schema to support descriptive, highly-detailed property fields and robust enums:
 * **Property Type Enum:** Added a `PropertyType` enum supporting specific listing types:
   `RESORT`, `VILLAS`, `CASTLE`, `HOMESAYS` (Homestay), `COTTAGE`, `GUEST_HOUSE`, and `APARTMENT`.
@@ -23,54 +23,17 @@ We updated and modernized the relational schema to support descriptive, highly-d
 
 ---
 
-### 2. Controller Enhancements (`controllers/property.controller.ts`)
-The property logic was heavily upgraded to validate and process these advanced fields with bulletproof type safety:
+### 2. API Controllers & Routing Overhaul (`controllers/` & `routes/`)
+The server logic was heavily upgraded to validate and process advanced fields with absolute type safety:
 * **Text Normalization Helper:** Built a robust input parser `normalizePropertyType` that sanitizes flexible queries (e.g., `"guest house"` or `"villas"`) into matching capitalized enum keys (e.g., `GUEST_HOUSE`, `VILLAS`).
 * **Robust Creation Parsing:** Updated `createProperty` to safely parse mandatory floats, integers, and boolean states from incoming requests.
 * **Dynamic Property Updates:** Refactored `updateProperty` and `updatePropertyById` to construct their `updateData` objects dynamically. This ensures that only provided fields are modified, preventing TypeScript compiler errors and database overrides of omitted optional fields.
 * **Smart Listing Filters:** Enhanced standard listing (`getProperties`) and host listing (`getMyProperties`) to support optional filtering by `type` via standard query parameters (e.g. `GET /api/properties/get-all-properties?type=apartment`).
+* **Clean Endpoints Architecture:** Mounted dedicated public and protected routing layers under `/api/properties` in `app.ts`.
 
 ---
 
-### 3. API Routing Overhaul (`routes/property.route.ts` & `app.ts`)
-We created dedicated routers for property operations, cleanly segregating public discovery routes from protected administrative actions:
-* **Public Discovery Endpoints:**
-  * `GET /api/properties/get-all-properties` — Lists all active properties.
-  * `GET /api/properties/search-properties` — Performs text searching.
-  * `GET /api/properties/featured-properties` — Fetches highlighted destinations.
-  * `GET /api/properties/popular-properties` — Retrieves highest-rated stays.
-  * `GET /api/properties/get-property/:id` — Details a specific stay.
-* **Host & Admin Protected Endpoints (Require Auth):**
-  * `GET /api/properties/my-properties` — Lists properties owned by the active host.
-  * `POST /api/properties/create-property` — Adds a new property.
-  * `PUT /api/properties/update-property` — Updates a property by body ID.
-  * `PUT /api/properties/update-property/:id` — Updates a property by path ID.
-  * `DELETE /api/properties/delete-property` — Deletes a property by body ID.
-  * `DELETE /api/properties/delete-property/:id` — Deletes a property by path ID.
-* **Express Hook:** Mounted the router in `app.ts` under `/api/properties`.
-
----
-
-### 4. Database Seeding Script (`db/lib/seed.ts` & `package.json`)
-Created a clean database seeder to establish a complete testing playground:
-* **Mock User Profiles:** Seeds dedicated `HOST` and `GUEST` accounts with encrypted passwords using `bcryptjs`.
-* **Bohemian-themed Properties:** Seeds a hyper-realistic studio apartment stay (**Sereno Boho in Siolim, Goa**) fully loaded with 26 custom amenities (TV, Lift, Fridge, Cutlery, etc.), security deposits, cancel rules, and check-in codes.
-* **Sample Bookings & Reviews:** Populates sample reservations and 5-star reviews to bootstrap the dashboard state.
-* **Easy Execution:** Wired into npm scripts in `package.json` as `npm run db:seed`.
-
----
-
-### 5. Repository Protection (`.gitignore`)
-Added a comprehensive root `.gitignore` mapping to keep the repository clean of:
-* Build output binaries (`dist/`, `server/dist/`)
-* Third-party package maps (`node_modules/`, `.pnpm-store/`)
-* Generated database code (`server/generated/`)
-* Environment variables and secrets (`.env`, `*.env.*`)
-* IDE settings (`.vscode/`, `.idea/`) and OS trash directories (`.DS_Store`)
-
----
-
-### 6. Dynamic Quotation & Tax Calculator (`controllers/property.controller.ts`)
+### 3. Dynamic Quotation & Tax Calculator (`controllers/property.controller.ts`)
 Created a public endpoint (`POST /api/properties/calculate-quotation`) that enables users to request real-time pricing summaries before booking:
 * **Night Multiplication & Base Cost:** Computes stay cost based on check-in/out range.
 * **Modular Service Breakdowns:** Details every selected service with subtotal breakdowns.
@@ -79,26 +42,63 @@ Created a public endpoint (`POST /api/properties/calculate-quotation`) that enab
 
 ---
 
+### 4. Database Seeding Script (`db/lib/seed.ts` & `package.json`)
+Created a clean database seeder to establish a complete testing playground:
+* **Mock User Profiles:** Seeds dedicated `HOST` and `GUEST` accounts with encrypted passwords using `bcryptjs`.
+* **Bohemian-themed Properties:** Seeds a hyper-realistic studio apartment stay (**Sereno Boho in Siolim, Goa**) fully loaded with 26 custom amenities (TV, Lift, Fridge, Cutlery, etc.), security deposits, cancel rules, and check-in codes.
+* **Sample Bookings & Reviews:** Populates sample reservations and 5-star reviews to bootstrap the dashboard state.
+
+---
+
+### 5. Premium Custom Cursor (`client/components/CustomCursor.tsx`)
+Designed a highly interactive, hardware-accelerated custom cursor to provide an elite, bespoke feel:
+* **Dual-Layer Architecture:** Combines an inner precise tracking dot and an outer smooth trailing glass ring.
+* **Lag Trailing Effect:** Employs a linear interpolation (lerp) coefficient (`0.15`) via a high-frequency `requestAnimationFrame` loop, running smoothly at 60fps/120fps.
+* **Dynamic Hover & Click States:** Intercepts clicks and hovers on interactive components (`A`, `BUTTON`, `.cursor-pointer`) to scale the cursor, add subtle glass blur, and trigger a volumetric glow effect.
+* **Auto-Fallback & Responsive Rules:** Silently hides custom elements on touch devices and small screen resolutions (under 1024px) for perfect UX alignment.
+
+---
+
+### 6. Cinematic Page Loader (`client/components/Loader.tsx`)
+Created a premium website intro and loader to set a luxurious tone from the first pixel:
+* **Volumetric forest radial glows:** Immersive ambient lighting against a soothing cream background (`#fcfbf9`).
+* **Minimalist SVG Mountain Peaks:** Fine-line peaks and a dotted celestial sun animated with stroke-drawing keyframes.
+* **High-Performance 120fps Counter:** Uses direct DOM manipulation to update the counter and progress bar, preventing high-frequency React re-renders and keeping frame drops at absolute zero.
+* **Page Reveal Coordination:** Coordinates the exit transition, fading the overlay, and revealing the page with slide-ups and blur-out keyframes.
+
+---
+
+### 7. Experiential Packages & Transit Preview (`client/components/home/`)
+Built beautifully composed client layouts with micro-interactions and smooth layouts:
+* **Experiential Packages (`Packages.tsx`):** Renders a 3-column editorial grid showcasing signature itineraries (Chopta Summit Trek, Almora Wellness, Munsiyari Celestial Stargazing). Includes Ken Burns zoom animations, frosted-glass meta overlays, and micro-pills for package inclusions.
+* **Transit Fleet Preview (`TaxiRental.tsx`):** Spotlights local native AWD/4x4 car rental services (e.g. Mahindra Thar 4x4) with floating glassmorphic review badges, verified local driver profiles, and an interactive fleet explorer action.
+* **Why Pahadi Basera & Our Story (`WhypahadiBasera.tsx` & `OurStory.tsx`):** Overhauled interactive tabs, modern feature grids, and custom styling to represent high-altitude slow travel philosophy.
+
+---
+
+### 8. Travel Community & Mountain Journals (`client/components/home/TravelCommunity.tsx`)
+* **Interactive Traveler Journals:** Standardized editorial layout for mountain logs (Chopta winter solitudes, Almora secret orchards, Auli astro-photography peaks) featuring detailed tags, altitudes, and photographer credentials.
+* **Stunning Club Banner:** A striking dark-mode call-to-action banner for the **Pahadi Explorers Club** (12,000+ members). Built with glowing radial gradients, a micro-pattern backdrop, and an interactive WhatsApp & Discord invite form trigger.
+
+---
+
 ## 📈 Current Project Health
 
-* **TypeScript Type Safety:** **100% Pass**. Running `npx tsc --noEmit` compiles with zero errors or warnings.
+* **TypeScript Type Safety:** **100% Pass**. Both `/server` and `/client` codebases compile with zero warnings under TypeScript configurations.
 * **Prisma Engine Sync:** Fully migrated and synced using PostgreSQL adapter layers.
-* **Database Seeding Status:** Completed successfully with multi-role mock accounts and full booking records.
+* **Design Consistency:** Cohesive high-end styling utilizing modern HSL color palettes, custom typographic scales (Google Fonts), smooth gradients, and reduced vertical padding limits (maximum `py-16` across sections).
 
 ---
 
 ## 🚀 Next Steps / Recommendations
-1. **Test the Quotation API:** Fire up your API testing tool (Postman / Thunder Client) and send a `POST` request to `http://localhost:5000/api/properties/calculate-quotation` with:
-   ```json
-   {
-     "propertyId": "<PROPERTY_ID>",
-     "checkIn": "2026-06-01",
-     "checkOut": "2026-06-05",
-     "selectedServices": []
-   }
-   ```
-2. **Run Dev Server:** Start the development runtime:
+1. **Fire Up the Dev Runtimes:**
    ```bash
-   npm run dev
+   # Start the backend server
+   cd server && npm run dev
+   
+   # Start the Next.js client
+   cd client && npm run dev
    ```
-
+2. **Review the Calculators:** 
+   * Test the tax-exempt security deposits on the Dynamic Quotation API (`POST /api/properties/calculate-quotation`).
+   * Explore the interactive booking modals wired into the frontend packages.

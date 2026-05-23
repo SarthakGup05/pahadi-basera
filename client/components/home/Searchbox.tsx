@@ -14,6 +14,7 @@ const SearchBox = () => {
     
     // UI Interaction State
     const [focusedInput, setFocusedInput] = useState<string | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     
     const tabs = ['All Accommodation', 'Home Stay', 'Villa', 'Apartment', 'Hotel', 'Cottage'];
 
@@ -80,18 +81,49 @@ const SearchBox = () => {
                 <div className={`hidden lg:block w-[1px] h-10 bg-gray-200 my-auto transition-opacity duration-300 ${focusedInput === 'location' || focusedInput === 'checkin' ? 'opacity-0' : 'opacity-100'}`} />
 
                 {/* Accommodation Type Pill (Mobile Only - Replaced by tabs on sm/lg) */}
-                <div className="col-span-2 flex sm:hidden items-center justify-between border border-gray-100 rounded-2xl px-5 py-3 bg-gray-50/30 transition-all duration-300">
-                    <div className="flex flex-col flex-1">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
-                            Accommodation Type
-                        </label>
-                        <Input
-                            value={activeTab}
-                            readOnly
-                            className="border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent text-sm font-semibold text-gray-900 truncate cursor-default"
-                        />
+                <div className="relative col-span-2 flex sm:hidden flex-col">
+                    <div 
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="flex items-center justify-between border border-gray-100 rounded-2xl px-5 py-3 bg-gray-50/30 transition-all duration-300 cursor-pointer hover:bg-gray-50/60"
+                    >
+                        <div className="flex flex-col flex-1">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5 cursor-pointer">
+                                Accommodation Type
+                            </label>
+                            <span className="text-sm font-semibold text-gray-900 truncate">
+                                {activeTab}
+                            </span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 ml-2 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </div>
-                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
+
+                    {/* Smooth Collapsible Dropdown Menu Options */}
+                    <div 
+                        className={`w-full overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                            isDropdownOpen 
+                                ? 'max-h-[300px] opacity-100 mt-2' 
+                                : 'max-h-0 opacity-0 mt-0 pointer-events-none'
+                        }`}
+                    >
+                        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-2 flex flex-col gap-1 shadow-inner">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => {
+                                        setActiveTab(tab);
+                                        setIsDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 cursor-pointer ${
+                                        activeTab === tab
+                                            ? 'text-[#10b981] bg-emerald-50/50 shadow-sm'
+                                            : 'text-gray-700 hover:bg-gray-200/50'
+                                    }`}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Check In */}
