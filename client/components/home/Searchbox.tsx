@@ -51,14 +51,14 @@ const SearchBox = () => {
             </div>
 
             {/* Sleek Integrated Form Container */}
-            <div className="relative grid grid-cols-2 lg:flex lg:flex-row bg-white/95 backdrop-blur-xl rounded-[2rem] lg:rounded-full p-4 lg:p-2 lg:pl-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12)] border border-white/60 gap-3 lg:gap-0 transition-all duration-500">
+            <div className="relative grid grid-cols-2 lg:flex lg:flex-row bg-white sm:bg-white/95 sm:backdrop-blur-xl rounded-[2rem] lg:rounded-full p-4 lg:p-2 lg:pl-2 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.12)] border border-white/60 gap-3 lg:gap-0 transition-all duration-500">
                 
                 {/* Location Pill */}
                 <div 
                   className={`relative z-10 col-span-2 lg:flex-[1.2] flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-6 py-3 lg:py-2 cursor-text transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
                     focusedInput === 'location' 
                       ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
-                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'location' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'location' ? 'opacity-70' : 'opacity-100'}`
                   }`}
                   onFocus={() => setFocusedInput('location')}
                   onBlur={() => setFocusedInput(null)}
@@ -99,7 +99,7 @@ const SearchBox = () => {
 
                     {/* Smooth Collapsible Dropdown Menu Options */}
                     <div 
-                        className={`w-full overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                        className={`w-full overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-[max-height,opacity] ${
                             isDropdownOpen 
                                 ? 'max-h-[300px] opacity-100 mt-2' 
                                 : 'max-h-0 opacity-0 mt-0 pointer-events-none'
@@ -131,7 +131,7 @@ const SearchBox = () => {
                   className={`relative z-10 col-span-1 lg:flex-1 flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-6 py-3 lg:py-2 cursor-text transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
                     focusedInput === 'checkin' 
                       ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
-                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'checkin' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'checkin' ? 'opacity-70' : 'opacity-100'}`
                   }`}
                   onFocus={() => setFocusedInput('checkin')}
                   onBlur={() => setFocusedInput(null)}
@@ -159,7 +159,7 @@ const SearchBox = () => {
                   className={`relative z-10 col-span-1 lg:flex-1 flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-6 py-3 lg:py-2 cursor-text transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
                     focusedInput === 'checkout' 
                       ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
-                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'checkout' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'checkout' ? 'opacity-70' : 'opacity-100'}`
                   }`}
                   onFocus={() => setFocusedInput('checkout')}
                   onBlur={() => setFocusedInput(null)}
@@ -187,7 +187,7 @@ const SearchBox = () => {
                   className={`relative z-10 col-span-1 lg:flex-[1.1] flex items-center justify-between rounded-2xl lg:rounded-full px-5 lg:px-4 py-3 lg:py-1.5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group ${
                     focusedInput === 'participant' 
                       ? 'bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] scale-[1.02] lg:scale-105 ring-1 ring-gray-100' 
-                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'participant' ? 'opacity-60 grayscale-[20%]' : 'opacity-100'}`
+                      : `hover:bg-gray-50/80 ${focusedInput && focusedInput !== 'participant' ? 'opacity-70' : 'opacity-100'}`
                   }`}
                   onMouseEnter={() => setFocusedInput('participant')}
                   onMouseLeave={() => setFocusedInput(null)}
