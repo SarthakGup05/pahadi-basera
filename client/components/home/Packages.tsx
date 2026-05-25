@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { 
   Clock, 
   MapPin, 
@@ -252,11 +253,14 @@ const Packages = () => {
         {/* View All Packages Footer */}
         <div className="mt-12 flex justify-center">
           <Button 
+            asChild
             variant="outline"
             className="group/all rounded-full bg-transparent border-gray-200 text-gray-700 hover:bg-white hover:border-emerald-200 hover:text-[#10b981] px-8 h-12 text-[11px] font-bold tracking-widest uppercase shadow-sm hover:shadow-md transition-all duration-300"
           >
-            Explore All Packages
-            <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover/all:translate-x-1" />
+            <Link href="/packages" className="flex items-center">
+              Explore All Packages
+              <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover/all:translate-x-1" />
+            </Link>
           </Button>
         </div>
 
