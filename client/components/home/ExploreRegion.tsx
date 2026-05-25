@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Home, ArrowUpRight } from 'lucide-react';
+import Link from 'next/link';
 
 const ExploreRegion = () => {
   const regions = [
@@ -103,9 +104,10 @@ const ExploreRegion = () => {
         {/* Symmetrical Luxury Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {regions.map((region) => (
-            <div 
+            <Link 
               key={region.id}
-              className="group relative overflow-hidden rounded-[2.5rem] cursor-pointer aspect-[3/4.5] bg-zinc-900 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.2)] transform-gpu hover:-translate-y-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              href={`/regions/${region.id}`}
+              className="group relative overflow-hidden rounded-[2.5rem] cursor-pointer aspect-[3/4.5] bg-zinc-900 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.2)] transform-gpu hover:-translate-y-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] block"
             >
               {/* Background Image with Cinematic Zoom */}
               <img 
@@ -153,7 +155,7 @@ const ExploreRegion = () => {
                 </div>
               </div>
 
-            </div>
+            </Link>
           ))}
         </div>
 
