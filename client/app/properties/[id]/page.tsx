@@ -3,68 +3,138 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Star, 
-  Users, 
-  Bed, 
-  Bath, 
-  CheckCircle2, 
-  Calendar, 
-  DollarSign, 
-  ShieldAlert, 
-  ChefHat, 
-  MapPin,
-  Flame,
-  Coffee,
-  Sparkles,
-  ArrowRight,
-  Compass,
-  Info
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import Banner from '@/components/ui/Banner';
 
-// Mock data matching the properties and seeded items
-const propertiesCatalog = {
-  '1': {
-    title: "Oakwood Premium Chalet",
-    location: "Manali, Himachal Pradesh",
-    pricePerNight: 8500,
-    rating: "4.9",
-    reviewsCount: 124,
-    badge: "Best Seller",
-    bgImage: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920&auto=format&fit=crop",
-    about: "Perched on a quiet cedar ridge in Manali, Uttarakhand. Features floor-to-ceiling wilderness views, a native stone fireplace, stargazing decks, and private slow gastronomy chef service.",
-    space: "Experience glass-walled bedrooms looking straight onto snow-capped peaks, bohemian decor styled with handwoven local rugs, private balconies, and dedicated high-altitude heating systems.",
-    maxGuests: 6,
-    bedrooms: 3,
-    bathrooms: 3,
-    securityDeposit: 3000,
-    checkInTime: "2:00 PM",
-    checkOutTime: "11:00 AM",
-    selfCheckIn: "Self check-in with private secure lockbox",
-    petsAllowed: true,
-    smokingPolicy: "Balcony only, no indoor smoking",
-    cancellationPolicy: "Super flexible - 100% refund up to 72 hours before check-in",
-    amenities: [
-      "High-speed Wi-Fi", 
-      "Fireplace", 
-      "Central Heating", 
-      "Balcony w/ Mountain View", 
-      "Local organic tea bar", 
-      "Private stargazing telescope",
-      "Organic toiletries",
-      "Hair dryer",
-      "Washing machine"
-    ],
-    services: [
-      { id: 'chef', serviceType: 'LOCAL_CHEF', pricePerUnit: 2500, label: 'Private Gastronomy Chef (Per Day)' },
-      { id: 'sauna', serviceType: 'FOREST_SAUNA', pricePerUnit: 1500, label: 'Forest Pine Sauna Session (Per Session)' },
-      { id: 'guide', serviceType: 'NATIVE_GUIDE', pricePerUnit: 3500, label: 'Certified Alpine Trekking Guide (Per Day)' }
-    ]
-  }
+import { Button } from '@/components/ui/button';
+import Banner from '@/components/ui/Banner';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+
+import { propertiesCatalog, PropertyItem } from '@/lib/propertiesData';
+
+// Import our highly modular page-specific subcomponents
+import PropertyGallery from '@/components/property-detail/PropertyGallery';
+import LightboxModal from '@/components/property-detail/LightboxModal';
+import PropertyDetailsCard from '@/components/property-detail/PropertyDetailsCard';
+import AmenitiesSection from '@/components/property-detail/AmenitiesSection';
+import GuidelinesSection from '@/components/property-detail/GuidelinesSection';
+import ReviewsSection from '@/components/property-detail/ReviewsSection';
+import BillingSection from '@/components/property-detail/BillingSection';
+
+// Create a safe lookup Map from propertiesCatalog to mitigate security findings
+const propertiesMap = new Map<string, PropertyItem>(
+  Object.entries(propertiesCatalog)
+);
+
+// Detailed photo sets mapping per property ID to offer hyper-realistic visual fidelity and local context
+const propertyGalleryMaps: Record<string, string[]> = {
+  '1': [
+    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=1920&auto=format&fit=crop', // Oakwood front facade
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop', // Cozy chalet suite
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop', // Pine stone fireplace
+    'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop', // Cozy deodar wood bedroom
+    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop', // Luxurious slate bathroom
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=800&auto=format&fit=crop', // Mountain breakfast patio
+    'https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?q=80&w=800&auto=format&fit=crop'  // Forest stargazing deck
+  ],
+  '2': [
+    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1920&auto=format&fit=crop', // Boho studio front
+    'https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=800&auto=format&fit=crop', // Bright boho living room
+    'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop', // Cozy tropical bedroom
+    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop', // Palm-fringed balcony
+    'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=800&auto=format&fit=crop', // Minimalist design kitchen
+    'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop', // Sunny shared pool
+    'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop'  // Sunlit reading nook
+  ],
+  '3': [
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=1920&auto=format&fit=crop', // Resort facade
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop', // Elite resort lobby
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=800&auto=format&fit=crop', // Panoramic glass lounge
+    'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop', // Volumetric indoor pool
+    'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800&auto=format&fit=crop', // Premium massage spa
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop', // Fine dining restaurant
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=800&auto=format&fit=crop'  // Royal master suite
+  ],
+  '4': [
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1920&auto=format&fit=crop', // Cabin facade
+    'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=800&auto=format&fit=crop', // Pinewood double-height A-frame
+    'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?q=80&w=800&auto=format&fit=crop', // Stone fireplace lounge
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop', // Rustic wood dining
+    'https://images.unsplash.com/photo-1508849789987-4e5333c12b78?q=80&w=800&auto=format&fit=crop', // Forest view loft bed
+    'https://images.unsplash.com/photo-1526494770280-14fd43d7f6b3?q=80&w=800&auto=format&fit=crop', // Evening bonfire setting
+    'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop'  // Sunrise balcony deck
+  ],
+  '5': [
+    'https://images.unsplash.com/photo-1508849789987-4e5333c12b78?q=80&w=1920&auto=format&fit=crop', // Castle exterior
+    'https://images.unsplash.com/photo-1590059132669-7f67aa64b8c6?q=80&w=800&auto=format&fit=crop', // Antique wooden courtyard
+    'https://images.unsplash.com/photo-1508849789987-4e5333c12b78?q=80&w=800&auto=format&fit=crop', // Royal carved wood door
+    'https://images.unsplash.com/photo-1585983224974-084a8e065e76?q=80&w=800&auto=format&fit=crop', // Vintage corridor
+    'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=800&auto=format&fit=crop', // Heritage bedroom suite
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop', // Stone carving details
+    'https://images.unsplash.com/photo-1546412414-e1885261b952?q=80&w=800&auto=format&fit=crop'  // Historic fort exterior
+  ],
+  '6': [
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1920&auto=format&fit=crop', // Orchard home
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=800&auto=format&fit=crop', // Blooming apple orchard
+    'https://images.unsplash.com/photo-1500076656116-558758c991c1?q=80&w=800&auto=format&fit=crop', // Mountain farm house porch
+    'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800&auto=format&fit=crop', // Warm family dining hall
+    'https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=800&auto=format&fit=crop', // Traditional attic bed
+    'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?q=80&w=800&auto=format&fit=crop', // Wood fired clay oven
+    'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=800&auto=format&fit=crop'  // Rural deodar walking trail
+  ],
+  '7': [
+    'https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?q=80&w=1920&auto=format&fit=crop', // Cottage riverside
+    'https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?q=80&w=800&auto=format&fit=crop', // Dreamy A-frame loft
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800&auto=format&fit=crop', // Rushing river balcony
+    'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=800&auto=format&fit=crop', // Outdoor hammock under pines
+    'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop', // Glass ceiling stargazing
+    'https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=800&auto=format&fit=crop', // Wood-scented micro kitchen
+    'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=800&auto=format&fit=crop'  // Cozy rain view terrace
+  ],
+  '8': [
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1920&auto=format&fit=crop', // Guest house exterior
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=800&auto=format&fit=crop', // Sunlit clean bedroom
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=800&auto=format&fit=crop', // Shared rooftop café terrace
+    'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop', // Simple mountain-view balcony
+    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop', // Tidy modern bathroom
+    'https://images.unsplash.com/photo-1506084868230-bb9d95c24759?q=80&w=800&auto=format&fit=crop', // Tea & coffee counter
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop'  // Green valley surroundings
+  ],
+  'tungnath-eco-glamp': [
+    'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=1920&auto=format&fit=crop', // Glamping exterior
+    'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=800&auto=format&fit=crop', // Geodesic dome interior
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop', // Snow peak sunset terrace
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop', // Warm indoor fireplace heater
+    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop', // High-powered telescope setup
+    'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop', // Warm traditional dining pod
+    'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?q=80&w=800&auto=format&fit=crop'  // Pristine meadow camp deck
+  ],
+  'panchachuli-stone-lodge': [
+    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=1920&auto=format&fit=crop', // Stone lodge
+    'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop', // Hand-crafted Kumaoni stone facade
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop', // Cozy stone fireplace room
+    'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=800&auto=format&fit=crop', // Panoramic observatory glass deck
+    'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop', // Traditional hand-woven blankets bedding
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=800&auto=format&fit=crop', // Organic herbal tea library lounge
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop'  // Epic snow ridge mountain view
+  ],
+  'nanda-devi-ski-chalet': [
+    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=1920&auto=format&fit=crop', // Ski chalet
+    'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=800&auto=format&fit=crop', // Snowbound wooden ski chalet
+    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop', // Indoor warm cedar dry sauna
+    'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=800&auto=format&fit=crop', // Volumetric alpine hot tub
+    'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop', // Luxury bedroom under snow peaks
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=800&auto=format&fit=crop', // Hot cocoa fireplace lounge
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=800&auto=format&fit=crop'  // Spectacular ski slope view
+  ],
+  'trishul-heritage-homestead': [
+    'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1920&auto=format&fit=crop', // Heritage home front
+    'https://images.unsplash.com/photo-1590059132669-7f67aa64b8c6?q=80&w=800&auto=format&fit=crop', // 80-year ancestral slate courtyard
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800&auto=format&fit=crop', // Hand-carved deodar doors bedroom
+    'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?q=80&w=800&auto=format&fit=crop', // Traditional clay stove kitchen
+    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop', // Mountain panorama yoga deck
+    'https://images.unsplash.com/photo-1508849789987-4e5333c12b78?q=80&w=800&auto=format&fit=crop', // Kumaoni organic tea gardens
+    'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800&auto=format&fit=crop'  // Warm local family welcome hall
+  ]
 };
 
 export default function PropertyDetailPage() {
@@ -73,32 +143,93 @@ export default function PropertyDetailPage() {
   const id = params.id as string;
   
   // Resolve property or default to Oakwood (ID 1)
-  const property = propertiesCatalog[id as keyof typeof propertiesCatalog] || propertiesCatalog['1'];
+  const property = propertiesMap.get(id) || propertiesCatalog['1'];
 
   // Quotation States
   const [checkIn, setCheckIn] = useState('2026-06-01');
   const [checkOut, setCheckOut] = useState('2026-06-05');
-  const [selectedServices, setSelectedServices] = useState<{ [key: string]: boolean }>({});
+  const [selectedServices, setSelectedServices] = useState<Map<string, boolean>>(new Map());
   const [quotation, setQuotation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+
+  // Date Range Picker State initialized with default dates
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date('2026-06-01'),
+    to: new Date('2026-06-05')
+  });
+
+  // Keep string checkIn/checkOut synchronized with dateRange picker selection
+  useEffect(() => {
+    if (dateRange?.from) {
+      setCheckIn(format(dateRange.from, 'yyyy-MM-dd'));
+    }
+    if (dateRange?.to) {
+      setCheckOut(format(dateRange.to, 'yyyy-MM-dd'));
+    }
+  }, [dateRange]);
+
+  // Gallery Interactive State
+  const [activePhotoIdx, setActivePhotoIdx] = useState<number | null>(null);
 
   // Breadcrumbs
   const breadcrumbs = [
     { label: 'Home', href: '/' },
-    { label: 'Destinations', href: '#destinations' },
-    { label: property.location.split(',')[0], href: '#location' },
+    { label: 'Destinations', href: '/properties' },
+    { label: property.location.split(',')[0], href: '/properties' },
     { label: property.title, isCurrent: true }
+  ];
+
+  // Resolve dynamic, property-specific photo gallery or fallback to Oakwood chalet gallery
+  const resolvedImages = propertyGalleryMaps[property.id] || propertyGalleryMaps['1'];
+  
+  // Guarantee the first photo in the gallery is always the property's specific background cover image
+  const galleryImages = [
+    property.bgImage,
+    ...resolvedImages.slice(1)
+  ];
+
+  // Mock Detailed Chronicles / Reviews from seasonal high-end mountain travelers
+  const mockReviews = [
+    {
+      id: 1,
+      author: 'Rohit Sharma',
+      role: 'Alpinist & Writer',
+      date: 'May 2026',
+      rating: 5,
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      comment: 'An absolute slice of heaven. The deodar wood fragrance inside the chalet, the cracking fireplace, and the colossal view of Nanda Devi peak at sunrise were spellbinding. The native chef prepared the most delicious traditional Kumaoni soybean soup.'
+    },
+    {
+      id: 2,
+      author: 'Anjali Verma',
+      role: 'Slow Travel Enthusiast',
+      date: 'April 2026',
+      rating: 5,
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+      comment: 'Everything was immaculate. Self check-in was seamless, the heated mattresses made freezing alpine nights extremely cozy, and the telescope provided crystal clear ring views of Saturn under a zero-light pollution sky. Highly recommend the pine sauna!'
+    },
+    {
+      id: 3,
+      author: 'Kabir Mehta',
+      role: 'Landscape Photographer',
+      date: 'March 2026',
+      rating: 4.8,
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+      comment: 'Stunning architecture. The blend of local slate stone-carving with modern panoramic glass windows is a masterpiece. The hospitality was incredibly warm. Rested perfectly on Day 1 to acclimate and enjoyed hiking along the organic tea trails.'
+    }
   ];
 
   // Call dynamic backend quotation API
   const calculateQuote = async () => {
+    if (!dateRange?.from || !dateRange?.to) {
+      setQuotation(null);
+      return;
+    }
     setIsLoading(true);
-    setErrorMsg('');
     try {
       // Compile selected services array
-      const servicesPayload = Object.keys(selectedServices)
-        .filter(key => selectedServices[key])
+      const servicesPayload = Array.from(selectedServices.keys())
+        .filter(key => selectedServices.get(key) === true)
         .map(key => ({
           serviceId: key,
           quantity: 1
@@ -136,7 +267,7 @@ export default function PropertyDetailPage() {
       const servicesBreakdown: any[] = [];
       
       property.services.forEach(s => {
-        if (selectedServices[s.id]) {
+        if (selectedServices.get(s.id) === true) {
           servicesCost += s.pricePerUnit;
           servicesBreakdown.push({
             serviceType: s.serviceType,
@@ -171,20 +302,21 @@ export default function PropertyDetailPage() {
   }, [checkIn, checkOut, selectedServices]);
 
   const handleToggleService = (serviceId: string) => {
-    setSelectedServices(prev => ({
-      ...prev,
-      [serviceId]: !prev[serviceId]
-    }));
+    setSelectedServices(prev => {
+      const next = new Map(prev);
+      next.set(serviceId, !prev.get(serviceId));
+      return next;
+    });
   };
 
   return (
-    <div className="bg-zinc-50 min-h-screen pb-20 font-sans text-gray-800">
+    <div className="bg-zinc-50 min-h-screen pb-24 font-sans text-gray-800 antialiased relative">
       
-      {/* Cinematic Top Header utilizing Style 1 */}
+      {/* Cinematic Top Header */}
       <Banner
         title={property.title}
         subtitle={property.about}
-        badge={property.badge}
+        badge={property.badge || undefined}
         bgImage={property.bgImage}
         height="lg"
         overlayOpacity="medium"
@@ -193,14 +325,22 @@ export default function PropertyDetailPage() {
         <Button 
           asChild 
           variant="outline" 
-          className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 px-6 gap-2 transition-all duration-300 h-10 text-xs font-bold uppercase tracking-widest pointer-events-auto"
+          className="rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 px-6 gap-2 transition-all duration-300 h-10 text-xs font-bold uppercase tracking-widest pointer-events-auto cursor-pointer"
         >
-          <Link href="/">
-            <ArrowLeft className="w-4 h-4" /> Return to catalog
+          <Link href="/properties">
+            ← Return to catalog
           </Link>
         </Button>
       </Banner>
 
+      {/* 2. PREMIUM SEAMLESS & RESPONSIVE GALLERY SECTION */}
+      <PropertyGallery 
+        property={property}
+        galleryImages={galleryImages}
+        onPhotoClick={setActivePhotoIdx}
+      />
+
+      {/* Main Container */}
       <div className="max-w-[1250px] mx-auto px-6 mt-12 sm:mt-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
           
@@ -208,226 +348,46 @@ export default function PropertyDetailPage() {
           <div className="lg:col-span-7 flex flex-col gap-10">
             
             {/* Stay Description Card */}
-            <div className="bg-white border border-gray-100 rounded-[2rem] p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 tracking-wide flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#10b981]" /> The Basera Philosophy
-              </h2>
-              <p className="text-gray-600 font-light leading-relaxed mb-6">
-                {property.about}
-              </p>
-              
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-3">Living Spaces</h3>
-              <p className="text-gray-500 font-light leading-relaxed mb-6 text-xs sm:text-sm">
-                {property.space}
-              </p>
-
-              {/* Specs Grid */}
-              <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-6">
-                <div className="flex flex-col items-center justify-center bg-gray-50/80 border border-gray-100 rounded-2xl p-4">
-                  <Users className="w-5 h-5 text-[#10b981] mb-2" />
-                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold">Max Guests</span>
-                  <span className="text-sm font-bold text-gray-800 mt-1">{property.maxGuests} guests</span>
-                </div>
-                <div className="flex flex-col items-center justify-center bg-gray-50/80 border border-gray-100 rounded-2xl p-4">
-                  <Bed className="w-5 h-5 text-[#10b981] mb-2" />
-                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold">Bedrooms</span>
-                  <span className="text-sm font-bold text-gray-800 mt-1">{property.bedrooms} beds</span>
-                </div>
-                <div className="flex flex-col items-center justify-center bg-gray-50/80 border border-gray-100 rounded-2xl p-4">
-                  <Bath className="w-5 h-5 text-[#10b981] mb-2" />
-                  <span className="text-xs text-gray-400 uppercase tracking-widest font-bold">Bathrooms</span>
-                  <span className="text-sm font-bold text-gray-800 mt-1">{property.bathrooms} baths</span>
-                </div>
-              </div>
-            </div>
+            <PropertyDetailsCard property={property} />
 
             {/* Premium Custom Amenities */}
-            <div className="bg-white border border-gray-100 rounded-[2rem] p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 tracking-wide flex items-center gap-2">
-                <Flame className="w-5 h-5 text-[#10b981]" /> High-Altitude Amenities
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {property.amenities.map((amenity, idx) => (
-                  <div key={idx} className="flex items-center gap-3 text-sm text-gray-600 font-medium bg-gray-50/60 hover:bg-emerald-50/30 border border-gray-100 hover:border-emerald-100/50 rounded-xl px-4 py-3 transition-colors duration-300">
-                    <CheckCircle2 className="w-4 h-4 text-[#10b981] flex-shrink-0" strokeWidth={2.5} />
-                    <span>{amenity}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <AmenitiesSection property={property} />
 
             {/* Guidelines & Policies */}
-            <div className="bg-white border border-gray-100 rounded-[2rem] p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 tracking-wide flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-[#10b981]" /> House Guidelines & Policies
-              </h2>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start gap-3.5 pb-4 border-b border-gray-100">
-                  <div className="bg-emerald-50 border border-emerald-100 text-[#10b981] rounded-xl p-2.5 flex-shrink-0">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 mb-1 tracking-wide">Check-In / Out Times</h4>
-                    <p className="text-xs font-light text-gray-500 leading-relaxed">
-                      Check-in is active after **{property.checkInTime}**. Standard checkout must conclude before **{property.checkOutTime}**.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3.5 pb-4 border-b border-gray-100">
-                  <div className="bg-emerald-50 border border-emerald-100 text-[#10b981] rounded-xl p-2.5 flex-shrink-0">
-                    <Coffee className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 mb-1 tracking-wide">Self Check-In</h4>
-                    <p className="text-xs font-light text-gray-500 leading-relaxed">{property.selfCheckIn}</p>
-                  </div>
-                </div>
+            <GuidelinesSection property={property} />
 
-                <div className="flex items-start gap-3.5 pb-4 border-b border-gray-100">
-                  <div className="bg-emerald-50 border border-emerald-100 text-[#10b981] rounded-xl p-2.5 flex-shrink-0">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 mb-1 tracking-wide">Pets & Smoking Policy</h4>
-                    <p className="text-xs font-light text-gray-500 leading-relaxed font-semibold text-stone-600">
-                      {property.petsAllowed ? "💚 Pets are warmly welcomed." : "🚫 Pets are not permitted."} | {property.smokingPolicy}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3.5">
-                  <div className="bg-emerald-50 border border-emerald-100 text-[#10b981] rounded-xl p-2.5 flex-shrink-0">
-                    <ShieldAlert className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900 mb-1 tracking-wide">Cancellation & Refund Tier</h4>
-                    <p className="text-xs font-light text-gray-500 leading-relaxed">{property.cancellationPolicy}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* delicate Property Reviews Component */}
+            <ReviewsSection property={property} reviews={mockReviews} />
 
           </div>
 
           {/* Right Column: Dynamic Quotation & Booking Calculator Card */}
-          <div className="lg:col-span-5 sticky top-28 bg-white border border-gray-100 rounded-[2rem] p-6 sm:p-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.06)] hover:border-emerald-100/50 transition-all duration-500">
-            <span className="block text-[9px] font-bold text-emerald-500 uppercase tracking-[0.2em] mb-1">Interactive Billing</span>
-            <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-6">
-              Experiential <span className="font-normal italic text-[#10b981]">Quotation</span>
-            </h3>
-
-            {/* Inputs: Check In & Out */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="flex flex-col border border-gray-100 rounded-xl px-3 py-2 bg-gray-50/50">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Check In</label>
-                <input 
-                  type="date" 
-                  value={checkIn}
-                  onChange={(e) => setCheckIn(e.target.value)}
-                  className="bg-transparent border-0 outline-0 p-0 text-xs font-bold text-gray-800"
-                />
-              </div>
-              <div className="flex flex-col border border-gray-100 rounded-xl px-3 py-2 bg-gray-50/50">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Check Out</label>
-                <input 
-                  type="date" 
-                  value={checkOut}
-                  onChange={(e) => setCheckOut(e.target.value)}
-                  className="bg-transparent border-0 outline-0 p-0 text-xs font-bold text-gray-800"
-                />
-              </div>
-            </div>
-
-            {/* Selected Services Counter */}
-            <div className="flex flex-col gap-3 mb-6">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Select Experiential Services</label>
-              {property.services.map((service) => (
-                <div 
-                  key={service.id}
-                  onClick={() => handleToggleService(service.id)}
-                  className={`flex items-center justify-between border rounded-xl p-3.5 cursor-pointer transition-all duration-300 ${
-                    selectedServices[service.id]
-                      ? 'border-[#10b981] bg-emerald-50/20 shadow-sm'
-                      : 'border-gray-100 hover:border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                      selectedServices[service.id] ? 'bg-[#10b981] text-white' : 'bg-gray-100 text-gray-400'
-                    }`}>
-                      {service.id === 'chef' ? <ChefHat className="w-4 h-4" /> : service.id === 'sauna' ? <Flame className="w-4 h-4" /> : <Compass className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <span className="block text-xs font-bold text-gray-800">{service.label}</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-extrabold text-gray-900">₹{service.pricePerUnit}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Calculation Breakdowns */}
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-10 gap-3 border-t border-gray-100 pt-6">
-                <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Recalculating quote...</span>
-              </div>
-            ) : quotation ? (
-              <div className="flex flex-col border-t border-gray-100 pt-6 animate-fade-in">
-                <div className="flex items-center justify-between text-xs font-medium text-gray-600 mb-3">
-                  <span>Base Stay ({quotation.nights} nights)</span>
-                  <span className="font-bold text-gray-900">₹{quotation.baseStayCost}</span>
-                </div>
-
-                {quotation.servicesCost > 0 && (
-                  <div className="flex items-center justify-between text-xs font-medium text-gray-600 mb-3">
-                    <span>Experiential Services Subtotal</span>
-                    <span className="font-bold text-gray-900">₹{quotation.servicesCost}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-xs font-medium text-gray-600 mb-3">
-                  <span>Refundable Damage Deposit</span>
-                  <span className="font-bold text-gray-900">₹{quotation.securityDeposit}</span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-medium text-[#10b981] mb-5 pb-5 border-b border-gray-100">
-                  <span className="flex items-center gap-1"><Info className="w-3.5 h-3.5" /> Est. GST/Tax (5%)</span>
-                  <span className="font-bold">₹{quotation.taxAmount}</span>
-                </div>
-
-                {/* Subtotal without taxes */}
-                <div className="flex items-center justify-between text-xs text-gray-400 uppercase tracking-wider mb-2">
-                  <span>Subtotal without Taxes</span>
-                  <span className="font-medium">₹{quotation.totalWithoutTaxes}</span>
-                </div>
-
-                {/* Total with taxes */}
-                <div className="flex items-end justify-between mb-8">
-                  <div>
-                    <span className="block text-xs font-bold text-gray-900 uppercase tracking-wider">Total Booking Price</span>
-                    <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Includes refundable deposit</span>
-                  </div>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-[#10b981] leading-none">
-                    ₹{quotation.totalWithTaxes}
-                  </span>
-                </div>
-
-                {/* Proceed Checkout Trigger */}
-                <Button 
-                  onClick={() => alert(`🏔️ Proceeding to reservation checkout!\nGrand Total: ₹${quotation.totalWithTaxes}\nRefundable damage protection is secured.`)}
-                  className="w-full rounded-2xl bg-zinc-900 hover:bg-[#10b981] text-white py-6 text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2 shadow-lg hover:shadow-[0_8px_30px_rgba(16,185,129,0.3)] transition-all duration-500 border-0 h-13"
-                >
-                  Confirm Stay Reservation <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
-            ) : null}
-
-          </div>
+          <BillingSection 
+            property={property}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            selectedServices={selectedServices}
+            onToggleService={handleToggleService}
+            quotation={quotation}
+            isLoading={isLoading}
+          />
 
         </div>
       </div>
+
+      {/* 4. PREMIUM FULLSCREEN LIGHTBOX SLIDESHOW MODAL */}
+      {activePhotoIdx !== null && (
+        <LightboxModal 
+          property={property}
+          galleryImages={galleryImages}
+          activePhotoIdx={activePhotoIdx}
+          onClose={() => setActivePhotoIdx(null)}
+          onPrev={() => setActivePhotoIdx(prev => (prev !== null ? (prev - 1 + galleryImages.length) % galleryImages.length : null))}
+          onNext={() => setActivePhotoIdx(prev => (prev !== null ? (prev + 1) % galleryImages.length : null))}
+          onThumbnailClick={setActivePhotoIdx}
+        />
+      )}
+
     </div>
   );
 }
