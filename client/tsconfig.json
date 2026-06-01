@@ -1,34 +1,58 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
+    // ── Target & Module ────────────────────────────────────────────────────────
+    // ES2022 enables native class fields, top-level await, Error.cause, etc.
+    // Bundler resolution is correct for Next.js (no need for Node16/NodeNext)
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "jsx": "react-jsx",
-    "incremental": true,
+    // ── Strictness ─────────────────────────────────────────────────────────────
+    // Keep full strict mode — catches real bugs at compile time
+    "strict": true,
+    "noUncheckedIndexedAccess": false, // too noisy for this codebase, opt-in later
+    "noImplicitOverride": true, // require explicit `override` keyword
+    "exactOptionalPropertyTypes": false, // optional — enable when you're ready
+    // ── Interop & Compatibility ───────────────────────────────────────────────
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "skipLibCheck": true, // trust third-party .d.ts files
+    // ── Build Performance ──────────────────────────────────────────────────────
+    "isolatedModules": true, // required by Next.js SWC / Turbopack
+    "noEmit": true, // Next.js handles emit via SWC — tsc is type-check only
+    "incremental": true, // cache type-check results between runs
+    "tsBuildInfoFile": ".next/cache/tsconfig.tsbuildinfo", // keep build info inside .next (gitignored)
+    // ── Paths ─────────────────────────────────────────────────────────────────
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    // ── Next.js Plugin ────────────────────────────────────────────────────────
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
+    ]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.mts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".next/cache"
+  ]
 }
