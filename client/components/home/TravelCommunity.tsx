@@ -122,7 +122,7 @@ const TravelCommunity = () => {
               className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer"
             >
               {/* Card Images Segment */}
-              <div className="relative aspect-[16/11] p-2.5 pb-0">
+              <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
                 <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden shadow-sm bg-zinc-100">
 
                   {/* Subtle vignette gradient */}

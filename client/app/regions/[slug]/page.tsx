@@ -276,7 +276,7 @@ export default function RegionDetailPage() {
                 href={`/properties/${stay.id}`}
                 className="group flex flex-col bg-white rounded-[2rem] border border-stone-200/50 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-500 cursor-pointer"
               >
-                <div className="relative aspect-[4/3] p-2.5 pb-0">
+                <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
                   <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm">
                     <img 
                       src={stay.image} 
@@ -348,7 +348,7 @@ export default function RegionDetailPage() {
                 href={`/packages/${pkg.id}`}
                 className="group flex flex-col bg-white rounded-[2rem] border border-stone-200/50 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-500 cursor-pointer"
               >
-                <div className="relative aspect-[16/10] p-2.5 pb-0">
+                <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
                   <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm">
                     <img 
                       src={pkg.image} 
@@ -371,7 +371,7 @@ export default function RegionDetailPage() {
                     {pkg.title}
                   </h3>
 
-                  <p className="text-[11px] font-light text-stone-500 leading-relaxed mb-4 line-clamp-2">
+                  <p className="text-[11px] font-light text-stone-500 leading-relaxed mb-4 line-clamp-2 h-[36px]">
                     {pkg.description}
                   </p>
 

@@ -35,7 +35,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Baseras', href: '/#properties' },
+    { name: 'Baseras', href: '/properties' },
     { name: 'Packages', href: '/packages' },
     { name: 'Explore Regions', href: '/regions' },
     { name: 'Our Agents', href: '/#agents' },

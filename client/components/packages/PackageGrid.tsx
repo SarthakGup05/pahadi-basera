@@ -178,7 +178,7 @@ export default function PackageGrid({
               className="group flex flex-col bg-white rounded-[2rem] border border-stone-200/50 overflow-hidden shadow-[0_8px_30px_-15px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_-10px_rgba(16,185,129,0.12)] hover:-translate-y-2 hover:border-emerald-100/60 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer relative"
             >
               {/* Card Top Image & badging */}
-              <div className="relative aspect-[16/10] p-2.5 pb-0">
+              <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
                 <div className="relative w-full h-full rounded-[1.25rem] overflow-hidden shadow-sm">
                   
                   {/* Vignette Overlay */}
@@ -239,7 +239,7 @@ export default function PackageGrid({
                   {pkg.title}
                 </h3>
 
-                <p className="text-[11px] font-light text-stone-500 leading-relaxed mb-3 line-clamp-3">
+                <p className="text-[11px] font-light text-stone-500 leading-relaxed mb-3 line-clamp-3 h-[54px]">
                   {pkg.description}
                 </p>
 

@@ -121,7 +121,7 @@ const OurStory = () => {
                 asChild
                 className="relative rounded-full bg-gray-900 hover:bg-[#10b981] text-white px-8 py-6 text-[11px] tracking-widest uppercase font-bold shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-105 hover:-translate-y-1 hover:shadow-[0_15px_30px_-10px_rgba(16,185,129,0.5)] active:scale-95 border-0 h-12 group/btn overflow-hidden"
               >
-                <Link href="#properties" className="flex items-center gap-2 relative z-10">
+                <Link href="/properties" className="flex items-center gap-2 relative z-10">
                   Explore Baseras
                   <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
                 </Link>
