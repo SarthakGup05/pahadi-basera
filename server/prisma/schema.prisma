@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -36,6 +36,9 @@ enum ServiceType {
   KITCHEN
   COOK
   GUIDE
+  LOCAL_CHEF
+  FOREST_SAUNA
+  NATIVE_GUIDE
 }
 
 enum PropertyType {
@@ -129,6 +132,9 @@ model Property {
   description String @db.Text // Use Text for longer descriptions
   rules       String @db.Text // House rules and guidelines
   type        PropertyType   // The type of property (e.g., resort, villas, etc.)
+  location    String?
+  bedrooms    Int?           @default(1)
+  bathrooms   Int?           @default(1)
 
   about              String?  @db.Text
   space              String?  @db.Text
@@ -188,6 +194,7 @@ model Service {
 
   serviceType  ServiceType // STAY, KITCHEN, COOK, or GUIDE 
   pricePerUnit Float // e.g., INR 500 / night 
+  label        String?
   isAvailable  Boolean     @default(true)
 
   createdAt DateTime @default(now())
@@ -252,4 +259,61 @@ model Review {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------
+// BLOG & COMMUNITY MODELS
+// ------------------------------------------------------
+
+model BlogPost {
+  id               String   @id
+  title            String
+  excerpt          String
+  content          String   @db.Text
+  altitude         String
+  duration         String
+  views            String
+  tags             String[] @default([])
+  difficulty       String
+  bestSeason       String
+  gearList         String[] @default([])
+  routeCoordinates Json     // Array of { name: String, alt: String }
+  images           String[] @default([])
+  authorName       String
+  authorRole       String
+  authorAvatar     String
+  createdAt        DateTime @default(now())
+}
+
+model CommunityTrail {
+  id          String   @id
+  title       String
+  location    String
+  altitude    String
+  difficulty  String
+  description String   @db.Text
+  author      String
+  coordinates String
+  createdAt   DateTime @default(now())
+}
+
+model CommunityThread {
+  id           String   @id
+  title        String
+  category     String
+  replies      Int      @default(0)
+  upvotes      Int      @default(1)
+  authorName   String
+  authorAvatar String
+  createdAt    DateTime @default(now())
+}
+
+model LocalRecipe {
+  id          String   @id
+  name        String
+  image       String
+  origin      String
+  ingredients String[] @default([])
+  steps       String[] @default([])
+  createdAt   DateTime @default(now())
 }
