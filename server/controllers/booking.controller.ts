@@ -76,7 +76,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       if (Array.isArray(selectedServices) && selectedServices.length > 0) {
         for (const item of selectedServices) {
           const { serviceId, quantity } = item;
-          const service = property.services.find(s => s.id === serviceId);
+          const service = property.services.find(s => s.id === serviceId || s.id === `${propertyId}-${serviceId}`);
 
           if (!service) {
             throw new Error(`SERVICE_NOT_FOUND:${serviceId}`);
@@ -90,7 +90,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
           servicesCost += serviceCost;
 
           servicesDataToCreate.push({
-            serviceId,
+            serviceId: service.id,
             priceAtTime: service.pricePerUnit,
             quantity: parsedQty
           });

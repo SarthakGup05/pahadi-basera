@@ -53,6 +53,9 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
       altitude, 
       basePrice, 
       type,
+      location,
+      bedrooms,
+      bathrooms,
       about,
       space,
       amenities,
@@ -93,6 +96,9 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
         altitude: parseFloat(altitude as string),
         basePrice: parseFloat(basePrice as string),
         type: normalizedType,
+        location,
+        bedrooms: bedrooms !== undefined && bedrooms !== null ? parseInt(bedrooms as string) : undefined,
+        bathrooms: bathrooms !== undefined && bathrooms !== null ? parseInt(bathrooms as string) : undefined,
         about,
         space,
         amenities: Array.isArray(amenities) ? amenities : undefined,
@@ -126,6 +132,9 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
       altitude, 
       basePrice, 
       type,
+      location,
+      bedrooms,
+      bathrooms,
       about,
       space,
       amenities,
@@ -161,6 +170,14 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
         });
       }
       updateData.type = normalizedType;
+    }
+
+    if (location !== undefined) updateData.location = location;
+    if (bedrooms !== undefined) {
+      updateData.bedrooms = bedrooms !== null ? parseInt(bedrooms as string) : null;
+    }
+    if (bathrooms !== undefined) {
+      updateData.bathrooms = bathrooms !== null ? parseInt(bathrooms as string) : null;
     }
 
     if (about !== undefined) updateData.about = about;
@@ -207,6 +224,9 @@ export const updatePropertyById = async (req: AuthRequest, res: Response) => {
       altitude, 
       basePrice, 
       type,
+      location,
+      bedrooms,
+      bathrooms,
       about,
       space,
       amenities,
@@ -243,6 +263,14 @@ export const updatePropertyById = async (req: AuthRequest, res: Response) => {
         });
       }
       updateData.type = normalizedType;
+    }
+
+    if (location !== undefined) updateData.location = location;
+    if (bedrooms !== undefined) {
+      updateData.bedrooms = bedrooms !== null ? parseInt(bedrooms as string) : null;
+    }
+    if (bathrooms !== undefined) {
+      updateData.bathrooms = bathrooms !== null ? parseInt(bathrooms as string) : null;
     }
 
     if (about !== undefined) updateData.about = about;
@@ -493,7 +521,7 @@ export const calculateQuotation = async (req: Request, res: Response) => {
     if (Array.isArray(selectedServices) && selectedServices.length > 0) {
       for (const item of selectedServices) {
         const { serviceId, quantity } = item;
-        const service = property.services.find(s => s.id === serviceId);
+        const service = property.services.find(s => s.id === serviceId || s.id === `${propertyId}-${serviceId}`);
 
         if (service) {
           const parsedQty = quantity ? parseInt(quantity.toString(), 10) : 1;
