@@ -9,6 +9,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const blogLogs = [
   {
@@ -115,11 +116,12 @@ const TravelCommunity = () => {
         </div>
 
         {/* 3-Column Blog Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-24 text-left">
           {blogLogs.map((log) => (
-            <div
+            <Link
               key={log.id}
-              className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer"
+              href={`/blog/${log.id}`}
+              className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
             >
               {/* Card Images Segment */}
               <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
@@ -138,7 +140,7 @@ const TravelCommunity = () => {
                   {/* Top Stats badges */}
                   <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
                     <span className="px-3 py-1.5 bg-white/10 backdrop-blur-md text-white text-[9px] font-bold tracking-widest uppercase rounded-lg border border-white/20 shadow-sm">
-                      {log.views}
+                      {log.views} views
                     </span>
                     <span className="text-[9px] font-bold tracking-widest text-emerald-300 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-sm">
                       {log.duration}
@@ -195,23 +197,10 @@ const TravelCommunity = () => {
                       <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">{log.author.role}</p>
                     </div>
                   </div>
-
-                  {/* Fine-line minimalist Social Links */}
-                  {/* <div className="flex items-center gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                    <a href={log.author.socials.instagram} className="w-8 h-8 rounded-full bg-gray-50 hover:bg-[#10b981] hover:text-white flex items-center justify-center text-gray-400 transition-all duration-300 hover:scale-110">
-                      <Instagram className="w-3.5 h-3.5" />
-                    </a>
-                    <a href={log.author.socials.twitter} className="w-8 h-8 rounded-full bg-gray-50 hover:bg-[#10b981] hover:text-white flex items-center justify-center text-gray-400 transition-all duration-300 hover:scale-110">
-                      <Twitter className="w-3.5 h-3.5" />
-                    </a>
-                    <a href={log.author.socials.substack} className="w-8 h-8 rounded-full bg-gray-50 hover:bg-[#10b981] hover:text-white flex items-center justify-center text-gray-400 transition-all duration-300 hover:scale-110">
-                      <Globe className="w-3.5 h-3.5" />
-                    </a>
-                  </div> */}
                 </div>
 
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 

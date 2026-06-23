@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ChevronDown, ArrowRight, Car, Users } from 'lucide-react';
+import { Menu, X, ChevronDown, ArrowRight, Car, Users, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
@@ -42,8 +42,9 @@ const Navbar = () => {
   ];
 
   const servicesDropdown = [
-    { name: 'Taxi & Car Rental', href: '#taxi', icon: Car },
-    { name: 'Travel Community & Blogs', href: '#community', icon: Users },
+    { name: 'Taxi & Car Rental', href: '/#taxi', icon: Car },
+    { name: 'Travelers Community', href: '/community', icon: Users },
+    { name: 'Expedition Blogs', href: '/blog', icon: BookOpen },
   ];
 
   const aboutDropdown = [
