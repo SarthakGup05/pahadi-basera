@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Clock, 
@@ -20,7 +20,8 @@ import {
   Check,
   ShieldCheck,
   Plus,
-  Minus
+  Minus,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +32,7 @@ import {
   DialogTitle,
   DialogFooter
 } from '@/components/ui/dialog';
-import { packagesList, PackageItem } from '@/lib/packagesData';
+import { PackageItem } from '@/lib/packagesData';
 
 // Dynamic icon mapping helper
 const getIconComponent = (name: string) => {
@@ -64,6 +65,25 @@ export default function PackageGrid({
   vibe,
   onReset
 }: PackageGridProps) {
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/packages/get-all-packages');
+        if (!res.ok) throw new Error('Failed to retrieve package listings');
+        const data = await res.json();
+        setPackages(data);
+      } catch (err) {
+        console.error('Error fetching packages from DB:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPackages();
+  }, []);
+
   // Booking Dialog states
   const [selectedPkg, setSelectedPkg] = useState<PackageItem | null>(null);
   const [travelers, setTravelers] = useState<number>(Math.max(1, guests));
@@ -77,7 +97,7 @@ export default function PackageGrid({
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   // Dynamic Filtering Logic
-  const filteredPackages = packagesList.filter(pkg => {
+  const filteredPackages = packages.filter(pkg => {
     // 1. Region match
     if (region !== 'All' && pkg.region !== region) return false;
 
@@ -147,6 +167,15 @@ export default function PackageGrid({
     e.preventDefault();
     setBookingSuccess(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full py-24 flex flex-col items-center justify-center font-sans">
+        <Loader2 className="w-8.5 h-8.5 text-emerald-500 animate-spin mb-4" />
+        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Unveiling Alpine Journeys...</p>
+      </div>
+    );
+  }
 
   const quote = calculateQuotation();
 

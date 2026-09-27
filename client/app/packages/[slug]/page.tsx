@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import Banner from '@/components/ui/Banner';
 import { Button } from '@/components/ui/button';
-import { packagesList, PackageItem } from '@/lib/packagesData';
+import { PackageItem } from '@/lib/packagesData';
 
 // Dynamic icon mapping helper
 const getIconComponent = (name: string) => {
@@ -59,10 +59,17 @@ export default function PackageDetailPage() {
 
   useEffect(() => {
     setMounted(true);
-    const foundPkg = packagesList.find(p => p.id === slug);
-    if (foundPkg) {
-      setPkg(foundPkg);
-    }
+    const fetchPkg = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/packages/get-package/${slug}`);
+        if (!res.ok) throw new Error('Failed to fetch package detail');
+        const data = await res.json();
+        setPkg(data);
+      } catch (err) {
+        console.error('Error loading package detail:', err);
+      }
+    };
+    fetchPkg();
 
     // Determine today's date string for min date boundary
     const today = new Date();

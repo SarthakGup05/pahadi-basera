@@ -160,17 +160,21 @@ export default function BlogDetailPage() {
             
             {/* Header info */}
             <div className="flex items-center justify-between pb-6 border-b border-stone-100 mb-8 flex-wrap gap-4">
-              <div className="flex items-center gap-3">
+              <Link
+                href={`/community/creator/${blog.author.name.toLowerCase().replace(/\s+/g, '-')}`}
+                className="flex items-center gap-3 group/author"
+                title="View Creator Profile"
+              >
                 <img
                   src={blog.author.avatar}
                   alt={blog.author.name}
-                  className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-500/20"
+                  className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-500/20 group-hover/author:ring-emerald-500 transition-all"
                 />
                 <div>
-                  <p className="text-sm font-bold text-stone-900 leading-tight mb-0.5">{blog.author.name}</p>
+                  <p className="text-sm font-bold text-stone-900 leading-tight mb-0.5 group-hover/author:text-emerald-700 transition-colors">{blog.author.name}</p>
                   <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-none">{blog.author.role}</p>
                 </div>
-              </div>
+              </Link>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2">

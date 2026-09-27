@@ -20,6 +20,10 @@ export interface BlogItem {
   bestSeason: string;
   gearList: string[];
   routeCoordinates: { name: string; alt: string }[];
+  isVerifiedCreator?: boolean;
+  taggedPropertyId?: string;
+  likesCount?: number;
+  authorReferralCode?: string;
 }
 
 export interface CommunityTrail {
@@ -104,7 +108,11 @@ export const blogLogs: BlogItem[] = [
       { name: 'Deoria Tal camp', alt: '2,438m' },
       { name: 'Chopta Meadows', alt: '2,680m' },
       { name: 'Tungnath Temple Peak', alt: '3,680m' }
-    ]
+    ],
+    isVerifiedCreator: true,
+    taggedPropertyId: '1',
+    likesCount: 142,
+    authorReferralCode: 'AARAV8'
   },
   {
     id: 'almora-retreat',
@@ -142,7 +150,11 @@ export const blogLogs: BlogItem[] = [
       { name: 'Almora Market Base', alt: '1,600m' },
       { name: 'Eco-Orchard Ridge', alt: '1,720m' },
       { name: 'Pine Forest Trail', alt: '1,650m' }
-    ]
+    ],
+    isVerifiedCreator: true,
+    taggedPropertyId: '2',
+    likesCount: 98,
+    authorReferralCode: 'PRIYANKA8'
   },
   {
     id: 'auli-slopes',
@@ -183,7 +195,11 @@ export const blogLogs: BlogItem[] = [
       { name: 'Joshimath Base', alt: '1,875m' },
       { name: 'Auli Ski Slopes', alt: '2,500m' },
       { name: 'Gorson Bugyal Ridge', alt: '3,050m' }
-    ]
+    ],
+    isVerifiedCreator: true,
+    taggedPropertyId: '3',
+    likesCount: 215,
+    authorReferralCode: 'VIKRAM8'
   },
   {
     id: 'munsiyari-secrets',
@@ -221,7 +237,11 @@ export const blogLogs: BlogItem[] = [
       { name: 'Balati Bend starting point', alt: '2,450m' },
       { name: 'Khaliya Alpine Meadow', alt: '3,250m' },
       { name: 'Khaliya Peak Summit', alt: '3,500m' }
-    ]
+    ],
+    isVerifiedCreator: true,
+    taggedPropertyId: '4',
+    likesCount: 176,
+    authorReferralCode: 'VIKRAM8'
   }
 ];
 
