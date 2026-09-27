@@ -2,10 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Mail, Phone, MapPin, ArrowUpRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Mail, Phone, MapPin, ArrowUpRight, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Footer = () => {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) return null;
   const currentYear = new Date().getFullYear();
 
   return (
@@ -58,6 +61,10 @@ const Footer = () => {
           </h4>
           <nav className="flex flex-col gap-3">
             <Link href="/" className="text-sm font-light hover:text-white transition-colors">Home</Link>
+            <Link href="/community" className="text-sm font-light text-emerald-400 hover:text-white transition-colors flex items-center gap-1.5">
+              <span>Travelers Community</span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-1.5 py-0.2 rounded-full border border-emerald-800/40">Hub</span>
+            </Link>
             <Link href="#properties" className="text-sm font-light hover:text-white transition-colors">Featured Baseras</Link>
             <Link href="#regions" className="text-sm font-light hover:text-white transition-colors">Explore Regions</Link>
             <Link href="#experiences" className="text-sm font-light hover:text-white transition-colors">Pahadi Experience</Link>
@@ -85,18 +92,29 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Become a Host Column */}
+        {/* Community & Host Column */}
         <div className="flex flex-col gap-6">
           <h4 className="text-xs uppercase tracking-[0.25em] font-semibold text-white">
-            Share Your Basera
+            Community & Hosting
           </h4>
           <p className="text-sm font-light text-zinc-500 leading-relaxed">
-            Earn extra income and share the mountain lifestyle by listing your authentic Himalayan home with our premium community.
+            Connect with verified Himalayan trekkers, share stories, or list your authentic mountain home with us.
           </p>
-          <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
             <Button
               asChild
-              className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white px-6 py-5 text-xs tracking-widest uppercase font-light shadow-md transition-all duration-300 flex items-center gap-2 group border-0 h-10"
+              className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white px-6 py-5 text-xs tracking-widest uppercase font-semibold shadow-md transition-all duration-300 flex items-center justify-center gap-2 group border-0 h-10"
+            >
+              <Link href="/community/join">
+                <Users className="w-3.5 h-3.5" />
+                Join Community
+                <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-full border-white/10 hover:border-[#10b981] bg-white/5 hover:bg-white/10 text-white px-6 py-5 text-xs tracking-widest uppercase font-light transition-all duration-300 flex items-center justify-center gap-2 group h-10"
             >
               <Link href="#become-host">
                 Become a Host

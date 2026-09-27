@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown, ArrowRight, Car, Users, BookOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
@@ -33,12 +34,13 @@ const Navbar = () => {
     }
   }, [mobileMenuOpen]);
 
+  if (pathname?.startsWith('/admin')) return null;
+
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Baseras', href: '/properties' },
     { name: 'Packages', href: '/packages' },
     { name: 'Explore Regions', href: '/regions' },
-    { name: 'Our Agents', href: '/#agents' },
   ];
 
   const servicesDropdown = [
@@ -52,12 +54,16 @@ const Navbar = () => {
     { name: 'Contact Us', href: '/contact' },
   ];
 
+  const isLightPage = pathname?.startsWith('/community');
+  const isNavSolid = isScrolled || isLightPage;
+  const hasDarkText = isNavSolid || mobileMenuOpen;
+
   return (
     <>
       <header
         className={`fixed top-0 w-full z-50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${
-          isScrolled
-            ? 'bg-white/90 backdrop-blur-xl border-b border-gray-100 py-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)]'
+          isNavSolid
+            ? 'bg-white/95 backdrop-blur-xl border-b border-gray-100 py-3 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06)]'
             : 'bg-transparent py-5 border-b border-white/10'
         }`}
       >
@@ -67,7 +73,7 @@ const Navbar = () => {
           <Link href="/" className="flex items-center gap-2 group relative z-50 flex-shrink-0 w-auto md:w-[200px]">
             <span 
               className={`text-xl font-light tracking-[0.2em] uppercase transition-colors duration-500 whitespace-nowrap ${
-                isScrolled || mobileMenuOpen ? 'text-gray-900' : 'text-white'
+                hasDarkText ? 'text-gray-900' : 'text-white'
               }`}
             >
               Pahadi <span className="font-semibold text-[#10b981] group-hover:text-[#0e9f6e] transition-colors">Basera</span>
@@ -81,7 +87,7 @@ const Navbar = () => {
                 key={link.name}
                 href={link.href}
                 className={`relative text-[10px] xl:text-[11px] tracking-wider uppercase font-bold whitespace-nowrap transition-colors duration-300 py-1 group/link ${
-                  isScrolled ? 'text-gray-500 hover:text-gray-900' : 'text-white/80 hover:text-white'
+                  hasDarkText ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
                 }`}
               >
                 {link.name}
@@ -94,7 +100,7 @@ const Navbar = () => {
             <div className="relative group/services">
               <button 
                 className={`flex items-center gap-1.5 text-[10px] xl:text-[11px] tracking-wider uppercase font-bold whitespace-nowrap transition-colors duration-300 py-4 -my-4 ${
-                  isScrolled ? 'text-gray-500 group-hover/services:text-gray-900' : 'text-white/80 group-hover/services:text-white'
+                  hasDarkText ? 'text-gray-600 group-hover/services:text-gray-900' : 'text-white/80 group-hover/services:text-white'
                 }`}
               >
                 Services
@@ -131,7 +137,7 @@ const Navbar = () => {
             <div className="relative group/dropdown">
               <button 
                 className={`flex items-center gap-1.5 text-[10px] xl:text-[11px] tracking-wider uppercase font-bold whitespace-nowrap transition-colors duration-300 py-4 -my-4 ${
-                  isScrolled ? 'text-gray-500 group-hover/dropdown:text-gray-900' : 'text-white/80 group-hover/dropdown:text-white'
+                  hasDarkText ? 'text-gray-600 group-hover/dropdown:text-gray-900' : 'text-white/80 group-hover/dropdown:text-white'
                 }`}
               >
                 About
@@ -159,40 +165,26 @@ const Navbar = () => {
             </div>
           </nav>
 
-          {/* CTA & Mobile Menu Toggle - Pinned to Right */}
-          <div className="flex items-center justify-end gap-4 lg:gap-5 relative z-50 flex-shrink-0 w-auto md:w-[280px]">
+          {/* Right Mobile Menu Toggle & Desktop Action */}
+          <div className="flex items-center justify-end relative z-50 flex-shrink-0 w-auto md:w-[220px] gap-3">
+            {/* Desktop Join Community Button */}
             <Link
-              href="#become-host"
-              className={`hidden xl:inline-block text-[10px] xl:text-[11px] tracking-wider uppercase font-bold whitespace-nowrap transition-colors duration-300 hover:text-[#10b981] ${
-                isScrolled ? 'text-gray-900' : 'text-white'
+              href="/community/join"
+              className={`hidden lg:inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] uppercase tracking-wider font-semibold transition-all duration-300 shadow-sm ${
+                hasDarkText
+                  ? 'bg-[#10b981] hover:bg-[#0e9f6e] text-white shadow-emerald-500/20'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/25 backdrop-blur-md'
               }`}
             >
-              Become a Host
+              <Users className="w-3.5 h-3.5" />
+              Join Community
             </Link>
-            
-            <span className={`hidden xl:inline-block w-[1px] h-4 transition-colors duration-500 ${isScrolled ? 'bg-gray-200' : 'bg-white/20'}`} />
-            
-            <Link
-              href="#login"
-              className={`hidden md:inline-block text-[10px] xl:text-[11px] tracking-wider uppercase font-bold whitespace-nowrap transition-colors duration-300 hover:text-[#10b981] ${
-                isScrolled ? 'text-gray-900' : 'text-white'
-              }`}
-            >
-              Login
-            </Link>
-            
-            <Button
-              asChild
-              className={`hidden sm:inline-flex rounded-full px-5 lg:px-7 text-[10px] xl:text-[11px] tracking-wider uppercase font-bold whitespace-nowrap h-9 lg:h-10 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] bg-[#10b981] hover:bg-[#0e9f6e] text-white shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] hover:-translate-y-0.5 active:scale-95 border-0`}
-            >
-              <Link href="#signup">Sign Up</Link>
-            </Button>
 
             {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className={`lg:hidden p-2 -mr-2 rounded-full transition-all duration-300 flex items-center justify-center ${
-                isScrolled || mobileMenuOpen ? 'text-gray-900 hover:bg-gray-100' : 'text-white hover:bg-white/10'
+                hasDarkText ? 'text-gray-900 hover:bg-gray-100' : 'text-white hover:bg-white/10'
               }`}
               aria-label="Toggle menu"
             >
@@ -296,43 +288,21 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Become a Host (Mobile) */}
-          <Link
-            href="#become-host"
-            onClick={() => setMobileMenuOpen(false)}
+          {/* Mobile Join Community Button */}
+          <div 
+            className={`mt-4 pt-3 transition-all duration-500 ${mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             style={{ transitionDelay: `${mobileMenuOpen ? (navLinks.length + 2) * 50 : 0}ms` }}
-            className={`text-sm tracking-[0.2em] uppercase font-bold text-gray-900 hover:text-[#10b981] py-4 transition-all duration-500 border-b border-gray-100 ${
-              mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
           >
-            Become a Host
-          </Link>
+            <Link
+              href="/community/join"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 bg-[#10b981] hover:bg-[#0e9f6e] text-white rounded-xl text-xs uppercase tracking-wider font-bold shadow-md shadow-emerald-500/20 transition-all active:scale-[0.98]"
+            >
+              <Users className="w-4 h-4" />
+              Join Community
+            </Link>
+          </div>
         </nav>
-        
-        {/* Mobile Bottom Actions */}
-        <div 
-          className={`flex flex-col gap-3 mt-auto w-full transition-all duration-500 delay-300 ${
-            mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <Button
-            asChild
-            variant="outline"
-            className="rounded-full border-gray-200 text-gray-900 py-6 text-xs tracking-widest uppercase font-bold hover:bg-gray-50 h-12"
-          >
-            <Link href="#login" onClick={() => setMobileMenuOpen(false)}>
-              Login
-            </Link>
-          </Button>
-          <Button
-            asChild
-            className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white py-6 text-xs tracking-widest uppercase font-bold shadow-[0_8px_20px_-6px_rgba(16,185,129,0.4)] h-12 border-0"
-          >
-            <Link href="#signup" onClick={() => setMobileMenuOpen(false)}>
-              Sign Up
-            </Link>
-          </Button>
-        </div>
       </div>
     </>
   );

@@ -71,10 +71,10 @@ export default function Home() {
     <div className="bg-zinc-50 font-sans min-h-screen text-gray-800">
       {/* Hero Section */}
       <HeroSection />
+      {/* Featured Properties (Immediate Stay Discovery with Categories) */}
+      <FeaturedProperties />
       {/* Regions */}
       <ExploreRegion />
-      {/* Featured Properties */}
-      <FeaturedProperties />
       {/* Our Story */}
       <OurStory />
       {/* Features Section */}

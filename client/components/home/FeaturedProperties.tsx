@@ -1,153 +1,246 @@
 'use client';
 
-import React from 'react';
-import { Star, Users, Bed, Bath, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { propertiesList } from '@/lib/propertiesData';
+import { 
+  Star, 
+  Users, 
+  Bed, 
+  Bath, 
+  ArrowRight, 
+  Heart, 
+  Sparkles, 
+  Home, 
+  Trees, 
+  Mountain, 
+  Coffee,
+  Compass,
+  MapPin
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { propertiesList, PropertyItem } from '@/lib/propertiesData';
+
+const CATEGORIES = [
+  { id: 'ALL', name: 'All Baseras', icon: Sparkles },
+  { id: 'RESORT', name: 'Alpine Chalets', icon: Home },
+  { id: 'COTTAGE', name: 'Pine Cottages', icon: Trees },
+  { id: 'VILLAS', name: 'Valley Villas', icon: Compass },
+  { id: 'HOMESAYS', name: 'Native Homestays', icon: Coffee },
+  { id: 'APARTMENT', name: 'Glamping & Pods', icon: Mountain },
+];
 
 const FeaturedProperties = () => {
-  // Grab the first 4 active featured properties
-  const properties = propertiesList
-    .filter((p) => p.isFeatured && p.isActive)
-    .slice(0, 4);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [properties, setProperties] = useState<PropertyItem[]>(() => {
+    return propertiesList.filter((p) => p.isFeatured && p.isActive);
+  });
+
+  // Try fetching live properties from Supabase backend with fallback
+  useEffect(() => {
+    const fetchLiveProperties = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/properties/get-all-properties');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            // Map live DB properties to expected item structure if needed
+            const mapped = data.map((p: any) => ({
+              id: p.id,
+              title: p.title,
+              description: p.description,
+              location: p.location || 'Himalayan Ridge',
+              pricePerNight: p.basePrice || 6500,
+              rating: '4.9',
+              reviewsCount: p.reviews?.length || 24,
+              badge: p.isFeatured ? 'Guest Favourite' : null,
+              image: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
+              altitude: p.altitude || 2100,
+              maxGuests: p.maxGuests || 4,
+              bedrooms: p.bedrooms || 2,
+              bathrooms: p.bathrooms || 2,
+              type: p.type || 'COTTAGE',
+              isActive: p.isActive,
+              isFeatured: p.isFeatured,
+            }));
+            setProperties(mapped as any);
+          }
+        }
+      } catch (e) {
+        // Fall back gracefully to static mock catalog
+      }
+    };
+    fetchLiveProperties();
+  }, []);
+
+  const toggleFavorite = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFavorites(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const filteredProperties = properties.filter((p) => {
+    if (selectedCategory === 'ALL') return true;
+    return p.type === selectedCategory;
+  });
 
   return (
-    <section className="py-16 w-full max-w-[1400px] mx-auto px-4 md:px-8 font-sans" id="properties">
+    <section className="py-20 w-full max-w-[1400px] mx-auto px-4 md:px-8 font-sans" id="properties">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+      {/* Header with Title and "Explore All" button */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-[#1a1a1a] tracking-tight mb-2">
-            Featured Baseras
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#10b981]">
+              Curated Sanctuaries
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-stone-900 tracking-tight">
+            Featured <span className="font-serif italic font-normal text-[#10b981]">Baseras</span>
           </h2>
-          <p className="text-gray-500 font-medium">Discover our most exclusive stays in off beat Himalayas</p>
+          <p className="text-sm text-stone-500 font-normal mt-1">
+            Handpicked mountain homes with authentic local hospitality, roaring hearths, and panoramic valley views.
+          </p>
         </div>
+
+        <Button 
+          asChild
+          variant="outline"
+          className="rounded-full border-stone-200 text-stone-700 hover:text-stone-900 hover:bg-stone-50 text-xs font-semibold px-5 py-2.5 self-start md:self-auto cursor-pointer"
+        >
+          <Link href="/properties" className="flex items-center gap-1.5">
+            Explore All 12 Stays <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+          </Link>
+        </Button>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-        {properties.map((property) => (
-          <Link 
-            key={property.id} 
-            href={`/properties/${property.id}`}
-            className="group flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.15)] hover:-translate-y-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer"
-          >
-            {/* Image Section */}
-            <div className="w-full h-48 sm:h-52 shrink-0 relative p-3 pb-0">
-              <div className="relative w-full h-full rounded-xl overflow-hidden shadow-sm">
-                
-                {/* Subtle Image Gradient Overlay for Depth */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40 z-10 opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
+      {/* Airbnb-style Horizontal Category Filter Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 scrollbar-none border-b border-stone-200/70 select-none">
+        {CATEGORIES.map((cat) => {
+          const Icon = cat.icon;
+          const isSelected = selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap text-xs font-medium ${
+                isSelected 
+                  ? 'bg-stone-900 text-white shadow-sm' 
+                  : 'bg-stone-100/70 text-stone-600 hover:bg-stone-200/60 hover:text-stone-900'
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#10b981]' : 'text-stone-500'}`} />
+              <span>{cat.name}</span>
+            </button>
+          );
+        })}
+      </div>
 
+      {/* Luxury Property Cards Grid (Airbnb Style) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+        {filteredProperties.slice(0, 8).map((property) => {
+          const isLiked = favorites[property.id];
+          return (
+            <Link 
+              key={property.id} 
+              href={`/properties/${property.id}`}
+              className="group flex flex-col cursor-pointer transition-all duration-300"
+            >
+              {/* Image Container */}
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden relative bg-stone-100 shadow-sm border border-stone-200/50">
                 <img 
                   src={property.image} 
                   alt={property.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  loading="lazy"
                 />
                 
-                {/* Glassmorphic Badge */}
-                {property.badge && (
-                  <span className="absolute top-3 left-3 px-3 py-1.5 bg-white/90 backdrop-blur-md text-[#10b981] text-xs font-bold rounded-lg shadow-sm z-20 border border-white/20 transition-transform duration-300 group-hover:scale-105">
-                    {property.badge}
+                {/* Floating Guest Favourite Pill */}
+                <div className="absolute top-3 left-3 z-10">
+                  <span className="px-2.5 py-1 bg-white/95 backdrop-blur-md text-stone-800 text-[11px] font-bold rounded-full shadow-xs border border-white/60">
+                    {property.badge || 'Guest Favourite'}
                   </span>
-                )}
+                </div>
+
+                {/* Floating Wishlist Heart */}
+                <button
+                  type="button"
+                  onClick={(e) => toggleFavorite(e, property.id)}
+                  className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/20 backdrop-blur-md text-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all cursor-pointer border border-white/20"
+                  aria-label="Save to wishlist"
+                >
+                  <Heart 
+                    className={`w-4 h-4 transition-colors ${
+                      isLiked ? 'fill-[#10b981] text-[#10b981]' : 'text-white fill-black/20'
+                    }`} 
+                  />
+                </button>
 
                 {/* Elevation Badge */}
                 {property.altitude > 100 && (
-                  <span className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium rounded z-20 border border-white/10">
+                  <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-stone-900/70 backdrop-blur-sm text-stone-200 text-[10px] font-medium rounded-md border border-white/10">
                     🏔️ {property.altitude.toLocaleString()}m
                   </span>
                 )}
               </div>
-            </div>
 
-            {/* Card Content */}
-            <div className="p-5 flex flex-col flex-1 bg-gradient-to-b from-white to-gray-50/50">
-              
-              {/* Location & Rating */}
-              <div className="flex items-center justify-between text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-                <span>{property.location}</span>
-                {property.rating && (
-                  <div className="flex items-center gap-1 bg-yellow-50 px-1.5 py-0.5 rounded text-yellow-600">
-                    <Star className="w-3.5 h-3.5 fill-current" />
-                    <span>{property.rating}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Title */}
-              <h3 className="text-gray-900 group-hover:text-[#10b981] transition-colors duration-300 font-semibold text-base leading-snug mb-4 line-clamp-2 min-h-[2.5rem]">
-                {property.title}
-              </h3>
-
-              {/* Spacing to push bottom content down */}
-              <div className="flex-1"></div>
-
-              {/* Capacity Specs */}
-              <div className="flex items-center gap-2 text-[13px] font-medium text-gray-700 mb-5 flex-wrap">
-                <div className="flex items-center gap-1.5 bg-gray-100/80 px-2 py-1 rounded-md group-hover:bg-[#10b981]/10 group-hover:text-[#0e9f6e] transition-colors duration-300">
-                  <Users className="w-4 h-4 opacity-70" />
-                  <span>{property.maxGuests} Guests</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-gray-100/80 px-2 py-1 rounded-md group-hover:bg-[#10b981]/10 group-hover:text-[#0e9f6e] transition-colors duration-300">
-                  <Bed className="w-4 h-4 opacity-70" />
-                  <span>{property.bedrooms} Beds</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-gray-100/80 px-2 py-1 rounded-md group-hover:bg-[#10b981]/10 group-hover:text-[#0e9f6e] transition-colors duration-300">
-                  <Bath className="w-4 h-4 opacity-70" />
-                  <span>{property.bathrooms} Baths</span>
-                </div>
-              </div>
-
-              {/* Footer / Price */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div className="flex flex-col">
-                  <span className="text-[11px] text-gray-400 uppercase tracking-wide font-semibold">Starting at</span>
-                  <div className="text-gray-900">
-                    <span className="font-bold text-base">₹{property.pricePerNight.toLocaleString('en-IN')}</span>
-                    <span className="text-xs text-gray-500 font-medium">/night</span>
-                  </div>
-                </div>
-                
-                <Button 
-                  className="group/btn relative overflow-hidden bg-[#10b981] hover:bg-[#0e9f6e] text-white rounded-xl px-4 h-9 text-xs font-semibold flex items-center gap-1.5 shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] transition-all duration-300 ease-out hover:-translate-y-0.5 border-0"
-                >
-                  <span className="relative z-10 flex items-center gap-1.5">
-                    Details 
-                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+              {/* Property Details */}
+              <div className="mt-3 flex flex-col space-y-1">
+                {/* Location & Star Rating */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-stone-900 truncate">
+                    {property.location}
                   </span>
-                </Button>
-              </div>
+                  <div className="flex items-center gap-1 shrink-0 font-medium text-stone-800">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{property.rating || '4.9'}</span>
+                    <span className="text-stone-400 font-normal">({property.reviewsCount || 24})</span>
+                  </div>
+                </div>
 
-            </div>
-          </Link>
-        ))}
+                {/* Title */}
+                <h3 className="text-sm font-normal text-stone-600 truncate group-hover:text-stone-900 transition-colors">
+                  {property.title}
+                </h3>
+
+                {/* Specs Pill */}
+                <div className="flex items-center gap-1.5 text-[11px] text-stone-400">
+                  <span>{property.maxGuests || 4} Guests</span>
+                  <span>•</span>
+                  <span>{property.bedrooms || 2} Beds</span>
+                  <span>•</span>
+                  <span>Mountain View</span>
+                </div>
+
+                {/* Price Display */}
+                <div className="pt-1 flex items-baseline gap-1 text-stone-900">
+                  <span className="font-bold text-sm tracking-tight">
+                    ₹{property.pricePerNight.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-xs text-stone-500 font-normal">night</span>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Bottom Controls */}
-      <div className="flex items-center justify-between pt-4">
-        {/* Navigation Arrows */}
-        <div className="flex items-center gap-3">
-          <button className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 cursor-not-allowed border border-gray-100 transition-colors">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button className="w-12 h-12 rounded-full bg-[#10b981] hover:bg-[#0e9f6e] active:scale-95 transition-all duration-300 ease-out flex items-center justify-center text-white shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] cursor-pointer hover:-translate-y-0.5">
-            <ChevronRight className="w-6 h-6" />
+      {filteredProperties.length === 0 && (
+        <div className="text-center py-16 bg-stone-50 rounded-2xl border border-stone-200/80">
+          <p className="text-sm font-semibold text-stone-700">No properties in this category currently.</p>
+          <p className="text-xs text-stone-400 mt-1">Try selecting &apos;All Baseras&apos; to view all available mountain stays.</p>
+          <button
+            onClick={() => setSelectedCategory('ALL')}
+            className="mt-4 px-4 py-2 bg-stone-900 text-white rounded-xl text-xs font-semibold cursor-pointer"
+          >
+            Show All Stays
           </button>
         </div>
-
-        {/* Explore Button */}
-        <Link href="/properties">
-          <Button 
-            variant="secondary" 
-            className="group/explore bg-white hover:bg-gray-50 text-gray-800 rounded-full px-6 h-12 font-semibold text-sm flex items-center gap-2 transition-all duration-300 ease-out shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
-          >
-            Explore all properties 
-            <ArrowRight className="w-4 h-4 text-[#10b981] transition-transform duration-300 group-hover/explore:translate-x-1" />
-          </Button>
-        </Link>
-      </div>
+      )}
 
     </section>
   );

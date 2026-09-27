@@ -86,18 +86,18 @@ const HeroSection = () => {
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-[6.5rem] leading-[1.05] font-light mb-6 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-fade-in duration-1000">
-            Find your favorite <br/>
+          <h1 className="text-4xl sm:text-6xl md:text-[6.2rem] leading-[1.05] font-light mb-6 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-fade-in duration-1000">
+            Find your mountain <br/>
             <span className="italic font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70 relative">
-              place
+              sanctuary
               <svg className="absolute w-full h-4 -bottom-1 left-0 text-[#10b981]/60" viewBox="0 0 100 12" preserveAspectRatio="none">
                 <path d="M0,10 Q50,0 100,10" stroke="currentColor" strokeWidth="4" fill="none" />
               </svg>
             </span> here.
           </h1>
           
-          <p className="text-sm sm:text-base md:text-xl font-medium text-white/80 drop-shadow-md max-w-2xl animate-fade-in duration-1000 delay-200">
-            Discover curated sanctuaries and exclusive prices for over 2 million handpicked properties worldwide.
+          <p className="text-sm sm:text-base md:text-xl font-normal text-white/90 drop-shadow-md max-w-2xl animate-fade-in duration-1000 delay-200">
+            Curated high-altitude chalets, pine-forest cottages, and native homestays across the serene ridges of Himachal & Uttarakhand.
           </p>
         </div>
 
