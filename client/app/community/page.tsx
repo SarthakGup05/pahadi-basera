@@ -1,55 +1,51 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
-  Users, 
+  Mountain, 
   MapPin, 
   Compass, 
-  MessageSquare, 
-  Flame, 
-  Plus, 
   Search, 
   ArrowUpRight, 
-  ChevronRight, 
-  FolderHeart, 
-  Heart,
-  MessageCircle,
-  Clock,
-  Sparkles,
-  BookOpen
+  Heart, 
+  MessageCircle, 
+  Share2, 
+  Bookmark, 
+  Sparkles, 
+  ShieldCheck, 
+  Check, 
+  Tag, 
+  PenTool, 
+  Copy, 
+  CheckCheck, 
+  Image as ImageIcon, 
+  Utensils, 
+  ChevronRight,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import Banner from '@/components/ui/Banner';
-import { 
-  Tabs, 
-  TabsList, 
-  TabsTrigger, 
-  TabsContent 
-} from '@/components/ui/tabs';
-import { 
-  Dialog, 
-  DialogTrigger, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription, 
-  DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog';
 import { 
   communityTrails, 
-  communityMembers, 
   communityThreads, 
-  localRecipes,
-  CommunityThread,
-  CommunityTrail,
-  LocalRecipe
+  localRecipes, 
+  blogLogs, 
+  BlogItem, 
+  CommunityThread, 
+  CommunityTrail, 
+  LocalRecipe 
 } from '@/lib/blogData';
+import { propertiesList } from '@/lib/propertiesData';
+import CreatorKycModal from '@/components/community/CreatorKycModal';
+import CreateStoryModal from '@/components/community/CreateStoryModal';
+import CreatorDashboardModal from '@/components/community/CreatorDashboardModal';
+import { toast } from 'sonner';
 
-// Helper to format time ago for threads
-const formatTimeAgo = (dateString: string) => {
+// Format relative time
+const formatTimeAgo = (dateString?: string) => {
+  if (!dateString) return '2h ago';
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -61,546 +57,928 @@ const formatTimeAgo = (dateString: string) => {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days === 1) return 'Yesterday';
-  return `${days} days ago`;
+  return `${days}d ago`;
 };
 
 export default function CommunityHubPage() {
+  const router = useRouter();
+  const [stories, setStories] = useState<BlogItem[]>([]);
   const [threads, setThreads] = useState<CommunityThread[]>([]);
   const [trails, setTrails] = useState<CommunityTrail[]>([]);
   const [recipes, setRecipes] = useState<LocalRecipe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('trails');
 
-  // Discussion Form States
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState<'Gear' | 'Routes' | 'Homestays' | 'Permits'>('Routes');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // Active filter tab: 'stories' | 'homestays' | 'trails' | 'recipes'
+  const [activeTab, setActiveTab] = useState<'stories' | 'homestays' | 'trails' | 'recipes'>('stories');
+
+  // Creator state
+  const [creatorProfile, setCreatorProfile] = useState<any>(null);
+  const [isKycModalOpen, setIsKycModalOpen] = useState(false);
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  // Social interactions
+  const [likedMap, setLikedMap] = useState<Record<string, boolean>>({});
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [savedMap, setSavedMap] = useState<Record<string, boolean>>({});
+  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
+  const [replyInput, setReplyInput] = useState('');
+  const [storyReplies, setStoryReplies] = useState<Record<string, Array<{ author: string; text: string; time: string }>>>({});
+
+  // Field note composer
+  const [noteContent, setNoteContent] = useState('');
+  const [noteAltitude, setNoteAltitude] = useState('2,400m');
+  const [noteStayId, setNoteStayId] = useState(propertiesList[0]?.id || '1');
+  const [noteImage, setNoteImage] = useState('');
+  const [showImageField, setShowImageField] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  // Search & following
+  const [searchQuery, setSearchQuery] = useState('');
+  const [followingMap, setFollowingMap] = useState<Record<string, boolean>>({
+    'aarav_semwal': true,
+    'tenzing_norbu': false,
+    'meera_joshi': false
+  });
+
+  // Helper to slugify creator names for full page routes
+  const getCreatorSlug = (authorName: string) => {
+    return authorName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+  };
 
   useEffect(() => {
-    async function fetchCommunityData() {
-      // 1. Fetch Trails
+    // 1. Check local creator profile
+    const saved = localStorage.getItem('pb_creator_profile');
+    if (saved) {
       try {
-        const res = await fetch('http://localhost:5000/api/community/trails');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setTrails(data);
-          } else {
-            setTrails(communityTrails);
-          }
-        } else {
-          setTrails(communityTrails);
-        }
-      } catch (err) {
-        console.error('Failed to fetch trails, using fallback:', err);
-        setTrails(communityTrails);
+        setCreatorProfile(JSON.parse(saved));
+      } catch (e) {
+        // ignore
       }
+    }
 
-      // 2. Fetch Recipes
+    async function loadData() {
       try {
-        const res = await fetch('http://localhost:5000/api/community/recipes');
+        const res = await fetch('http://localhost:5000/api/blogs');
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
-            setRecipes(data);
-          } else {
-            setRecipes(localRecipes);
-          }
-        } else {
-          setRecipes(localRecipes);
-        }
-      } catch (err) {
-        console.error('Failed to fetch recipes, using fallback:', err);
-        setRecipes(localRecipes);
-      }
-
-      // 3. Fetch Threads
-      try {
-        const res = await fetch('http://localhost:5000/api/community/threads');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const mapped = data.map((t: any) => ({
-              id: t.id,
-              title: t.title,
-              author: { name: t.authorName, avatar: t.authorAvatar },
-              category: t.category as any,
-              replies: t.replies,
-              upvotes: t.upvotes,
-              timeAgo: formatTimeAgo(t.createdAt)
+            const mapped: BlogItem[] = data.map((b: any) => ({
+              id: b.id,
+              title: b.title,
+              excerpt: b.excerpt,
+              content: b.content,
+              altitude: b.altitude || '2,400m',
+              duration: b.duration || '3 Days',
+              difficulty: (b.difficulty as any) || 'Moderate',
+              bestSeason: b.bestSeason || 'Autumn',
+              images: Array.isArray(b.images) && b.images.length > 0 ? b.images : [
+                'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop'
+              ],
+              views: b.views || '1.4K',
+              tags: b.tags || ['SlowLiving', 'Himalayas'],
+              gearList: b.gearList || [],
+              routeCoordinates: b.routeCoordinates || [],
+              author: {
+                name: b.authorName || b.authorUser?.fullName || 'Aarav Semwal',
+                role: b.authorRole || 'Verified Himalayan Creator',
+                avatar: b.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+                socials: { instagram: '#', twitter: '#', substack: '#' }
+              },
+              isVerifiedCreator: b.isVerifiedCreator ?? true,
+              taggedPropertyId: b.taggedPropertyId || '1',
+              likesCount: b.likesCount || 38,
+              authorReferralCode: b.authorUser?.referralCode || 'HIMALAYA8'
             }));
-            setThreads(mapped);
+            setStories(mapped);
           } else {
-            setThreads(communityThreads);
+            setStories(blogLogs);
           }
         } else {
-          setThreads(communityThreads);
+          setStories(blogLogs);
         }
-      } catch (err) {
-        console.error('Failed to fetch threads, using fallback:', err);
-        setThreads(communityThreads);
+      } catch (e) {
+        setStories(blogLogs);
       }
 
+      setThreads(communityThreads);
+      setTrails(communityTrails);
+      setRecipes(localRecipes);
       setLoading(false);
     }
 
-    fetchCommunityData();
+    loadData();
   }, []);
 
-  // Upvote helper
-  const handleUpvote = async (id: string) => {
-    // Optimistic UI update
-    setThreads(prev => prev.map(t => {
-      if (t.id === id) {
-        return { ...t, upvotes: t.upvotes + 1 };
-      }
-      return t;
+  const handleLike = (id: string, initial: number) => {
+    const isLiked = likedMap[id] ?? false;
+    const count = likeCounts[id] ?? initial;
+
+    setLikedMap(prev => ({ ...prev, [id]: !isLiked }));
+    setLikeCounts(prev => ({ ...prev, [id]: isLiked ? count - 1 : count + 1 }));
+
+    if (!isLiked) {
+      toast.success('Appreciated story');
+      fetch(`http://localhost:5000/api/blogs/${id}/like`, { method: 'POST' }).catch(() => {});
+    }
+  };
+
+  const handleBookmark = (id: string) => {
+    const saved = savedMap[id] ?? false;
+    setSavedMap(prev => ({ ...prev, [id]: !saved }));
+    toast.success(saved ? 'Removed from saved' : 'Saved to your mountain journal');
+  };
+
+  const handleShare = (story: BlogItem) => {
+    const url = `${window.location.origin}/community#${story.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Story link copied to clipboard');
+  };
+
+  const handleSendReply = (storyId: string) => {
+    if (!replyInput.trim()) return;
+
+    const reply = {
+      author: creatorProfile?.fullName || 'Fellow Explorer',
+      text: replyInput.trim(),
+      time: 'Just now'
+    };
+
+    setStoryReplies(prev => ({
+      ...prev,
+      [storyId]: [...(prev[storyId] || []), reply]
     }));
 
-    try {
-      await fetch(`http://localhost:5000/api/community/threads/${id}/upvote`, {
-        method: 'POST'
-      });
-    } catch (err) {
-      console.error('Failed to upvote thread in API:', err);
-    }
+    setReplyInput('');
+    toast.success('Note reply added');
   };
 
-  // Submit discussion
-  const handleCreateThread = async (e: React.FormEvent) => {
+  const handlePublishNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!noteContent.trim()) return;
 
-    const payload = {
-      title: newTitle,
-      category: newCategory,
-      authorName: 'Guest Explorer',
-      authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=50&q=80'
-    };
+    setIsPublishing(true);
+    const authorName = creatorProfile?.fullName || 'Mountain Explorer';
+    const authorRefCode = creatorProfile?.referralCode || 'HIMALAYA8';
 
-    // Optimistic / immediate add to state
-    const tempId = `thread-${Date.now()}`;
-    const newThreadLocal: CommunityThread = {
-      id: tempId,
-      title: newTitle,
+    const newStory: BlogItem = {
+      id: `note-${Date.now()}`,
+      title: noteContent.slice(0, 60),
+      excerpt: noteContent,
+      content: noteContent,
+      altitude: noteAltitude,
+      duration: 'Slow Travel',
+      difficulty: 'Moderate',
+      bestSeason: 'All Season',
+      images: noteImage ? [noteImage] : [
+        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+      ],
+      views: '1',
+      tags: ['FieldNote', 'SlowLiving'],
+      gearList: [],
+      routeCoordinates: [],
       author: {
-        name: payload.authorName,
-        avatar: payload.authorAvatar
+        name: authorName,
+        role: 'Himalayan Explorer',
+        avatar: creatorProfile?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        socials: { instagram: '#', twitter: '#', substack: '#' }
       },
-      category: newCategory,
-      replies: 0,
-      upvotes: 1,
-      timeAgo: 'Just now'
+      isVerifiedCreator: true,
+      taggedPropertyId: noteStayId,
+      likesCount: 1,
+      authorReferralCode: authorRefCode
     };
 
-    setThreads(prev => [newThreadLocal, ...prev]);
-    setNewTitle('');
-    setIsDialogOpen(false);
-    setActiveTab('discussions');
+    setStories(prev => [newStory, ...prev]);
+    setNoteContent('');
+    setNoteImage('');
+    setShowImageField(false);
+    setIsPublishing(false);
+    toast.success('Your Himalayan note has been published!');
 
     try {
-      const res = await fetch('http://localhost:5000/api/community/threads', {
+      await fetch('http://localhost:5000/api/blogs', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newStory.title,
+          excerpt: newStory.excerpt,
+          content: newStory.content,
+          altitude: newStory.altitude,
+          images: newStory.images,
+          authorName: newStory.author.name,
+          taggedPropertyId: newStory.taggedPropertyId
+        })
       });
-      if (res.ok) {
-        const created = await res.json();
-        setThreads(prev => prev.map(t => t.id === tempId ? {
-          id: created.id,
-          title: created.title,
-          category: created.category as any,
-          replies: created.replies,
-          upvotes: created.upvotes,
-          author: {
-            name: created.authorName,
-            avatar: created.authorAvatar
-          },
-          timeAgo: 'Just now'
-        } : t));
-      }
-    } catch (err) {
-      console.error('Failed to save new thread to API:', err);
+    } catch (e) {
+      // offline fallback
     }
   };
 
-  const breadcrumbs = [
-    { label: 'Home', href: '/' },
-    { label: 'Community', isCurrent: true }
-  ];
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCodeCopied(true);
+    toast.success(`Referral code ${code} copied!`);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-4 border-dashed border-[#10b981] animate-spin" />
+      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-stone-300 border-t-[#10b981] animate-spin" />
       </div>
     );
   }
 
+  const filteredStories = stories.filter(s => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      s.title.toLowerCase().includes(q) ||
+      s.excerpt.toLowerCase().includes(q) ||
+      s.author.name.toLowerCase().includes(q) ||
+      s.tags?.some(t => t.toLowerCase().includes(q))
+    );
+  });
+
   return (
-    <div className="bg-zinc-50 min-h-screen pb-24 font-sans text-gray-800 antialiased selection:bg-emerald-500 selection:text-white relative">
+    <div className="min-h-screen bg-[#fafaf7] text-stone-900 font-sans selection:bg-[#10b981] selection:text-white">
       
-      {/* Banner */}
-      <Banner
-        title="Explorers Community"
-        subtitle="Welcome to the high-altitude slow travel guild. Share trail coordinates, find trekking partners, exchange local recipes, and keep mountain heritage alive."
-        bgImage="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80"
-        height="md"
-        badge="Pahadi Explorers Club"
-        breadcrumbItems={breadcrumbs}
-      />
-
-      <div className="max-w-[1250px] mx-auto px-6 mt-12 sm:mt-16">
-        
-        {/* Live Guild Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white border border-gray-200/60 rounded-[2rem] p-6 sm:p-8 shadow-sm mb-16 relative overflow-hidden">
-          {/* Subtle noise pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none" />
-          
-          <div className="flex flex-col p-4 text-center md:text-left relative z-10 border-r border-gray-150 last:border-0">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center justify-center md:justify-start gap-1">
-              <Users className="w-3.5 h-3.5 text-[#10b981]" /> Active Explorers
-            </span>
-            <span className="text-3xl font-extrabold text-gray-900 leading-none">12,450+</span>
+      {/* Editorial Header Section */}
+      <section className="pt-28 pb-12 px-4 sm:px-6 border-b border-stone-200/80 bg-white">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+              <Compass className="w-3.5 h-3.5 text-[#10b981]" />
+              Himalayan Slow Travel Guild
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 tracking-tight">
+              Field Notes & Mountain Stories
+            </h1>
+            <p className="text-stone-500 text-sm sm:text-base leading-relaxed font-light">
+              A community of authentic Himalayan explorers, storytellers, and homestay hosts sharing slow travel diaries, altitude logs, and local culture.
+            </p>
           </div>
 
-          <div className="flex flex-col p-4 text-center md:text-left relative z-10 md:border-r border-gray-150 last:border-0">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center justify-center md:justify-start gap-1">
-              <MapPin className="w-3.5 h-3.5 text-[#10b981]" /> Mapped Trails
-            </span>
-            <span className="text-3xl font-extrabold text-gray-900 leading-none">158</span>
-          </div>
-
-          <div className="flex flex-col p-4 text-center md:text-left relative z-10 border-r border-gray-150 last:border-0">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center justify-center md:justify-start gap-1">
-              <Compass className="w-3.5 h-3.5 text-[#10b981]" /> Certified Guides
-            </span>
-            <span className="text-3xl font-extrabold text-gray-900 leading-none">42</span>
-          </div>
-
-          <div className="flex flex-col p-4 text-center md:text-left relative z-10">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center justify-center md:justify-start gap-1">
-              <MessageSquare className="w-3.5 h-3.5 text-[#10b981]" /> Thread Logs
-            </span>
-            <span className="text-3xl font-extrabold text-gray-900 leading-none">1,290+</span>
+          <div className="flex items-center gap-3 shrink-0">
+            {creatorProfile?.isVerified ? (
+              <Button
+                onClick={() => setIsDashboardModalOpen(true)}
+                variant="outline"
+                className="rounded-full border-stone-300 text-stone-700 hover:bg-stone-50 text-xs font-semibold px-5 h-11"
+              >
+                Creator Ledger
+              </Button>
+            ) : (
+              <Button
+                asChild
+                className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white text-xs font-semibold px-6 h-11 shadow-sm"
+              >
+                <Link href="/community/join" className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" />
+                  Become a Creator
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
+      </section>
 
-        {/* Tabs Control Area */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-gray-200 pb-5">
-            <TabsList className="bg-gray-100/80 p-1.5 rounded-2xl flex flex-wrap gap-1 max-w-full">
-              <TabsTrigger value="trails" className="rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                Trails & Maps
-              </TabsTrigger>
-              <TabsTrigger value="members" className="rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                Chasers Board
-              </TabsTrigger>
-              <TabsTrigger value="discussions" className="rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                Forum Threads
-              </TabsTrigger>
-              <TabsTrigger value="recipes" className="rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                Pahadi Kitchen
-              </TabsTrigger>
-            </TabsList>
+      {/* Main Grid: Feed (Left) & Minimal Travel Sidebar (Right) */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        
+        {/* Creator Referral Bar if Verified */}
+        {creatorProfile?.isVerified && (
+          <div className="mb-8 p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#10b981] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                <Check className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-emerald-900 block">
+                  Verified Creator: {creatorProfile.fullName}
+                </span>
+                <span className="text-[11px] text-emerald-700">
+                  Your readers get 5% OFF and you earn 8% commission on homestay bookings.
+                </span>
+              </div>
+            </div>
 
-            {/* Start discussion CTA trigger */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="rounded-xl bg-zinc-950 hover:bg-[#10b981] text-white px-5 h-11 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors border-0 cursor-pointer shadow-md hover:shadow-lg">
-                  <Plus className="w-4 h-4" /> Start Discussion
-                </Button>
-              </DialogTrigger>
-              
-              <DialogContent className="max-w-md bg-white border border-gray-150 rounded-2xl p-6 shadow-2xl text-left">
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="text-xl font-bold text-gray-950 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#10b981] animate-pulse" /> Launch New Thread
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-gray-500 font-light leading-relaxed">
-                    Ask questions about trails, gear recommendations, permits, or homestays. The community usually responds within an hour.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleCreateThread} className="space-y-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Question / Discussion Title</label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. Is Jalori Pass walkable without cleats in late Nov?"
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      required
-                      className="h-11 border-gray-200 rounded-xl text-sm"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</label>
-                    <select
-                      value={newCategory}
-                      onChange={(e: any) => setNewCategory(e.target.value)}
-                      className="h-11 border border-gray-200 bg-gray-50/50 rounded-xl px-3 text-sm font-medium outline-none focus:border-[#10b981] focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-                    >
-                      <option value="Routes">Routes & Maps</option>
-                      <option value="Gear">Alpine Gear</option>
-                      <option value="Homestays">Homestay Stays</option>
-                      <option value="Permits">Border Permits</option>
-                    </select>
-                  </div>
-
-                  <DialogFooter className="pt-4 gap-2 flex flex-row justify-end items-center">
-                    <DialogClose asChild>
-                      <Button type="button" variant="outline" className="rounded-xl border-gray-200 text-gray-700 h-10 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                        Cancel
-                      </Button>
-                    </DialogClose>
-                    <Button type="submit" className="rounded-xl bg-[#10b981] hover:bg-[#0e9f6e] text-white h-10 px-5 text-xs font-bold uppercase tracking-wider border-0 cursor-pointer shadow-sm">
-                      Post Thread
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-stone-500">Your Code:</span>
+              <button
+                onClick={() => copyCode(creatorProfile.referralCode || 'HIMALAYA8')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-xs font-mono font-bold text-emerald-800 hover:bg-emerald-50 transition-all cursor-pointer"
+              >
+                <span>{creatorProfile.referralCode || 'HIMALAYA8'}</span>
+                {codeCopied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-stone-400" />}
+              </button>
+            </div>
           </div>
+        )}
 
-          {/* TAB CONTENT: Trails */}
-          <TabsContent value="trails">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {trails.map((trail) => (
-                <div 
-                  key={trail.id}
-                  className="group flex flex-col bg-white rounded-[2rem] border border-gray-200/70 p-6 shadow-sm text-left hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="px-2.5 py-1 bg-emerald-50 text-[#10b981] text-[10px] font-bold tracking-wider uppercase rounded-lg border border-emerald-100/50">
-                      {trail.location.split(',')[0]}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                      trail.difficulty === 'Easy' ? 'bg-green-50 text-green-700' :
-                      trail.difficulty === 'Moderate' ? 'bg-amber-50 text-amber-700' :
-                      'bg-rose-50 text-rose-700'
-                    }`}>{trail.difficulty}</span>
-                  </div>
-
-                  <h4 className="font-bold text-gray-900 text-lg leading-snug group-hover:text-emerald-600 transition-colors mb-2">
-                    {trail.title}
-                  </h4>
-
-                  <p className="text-gray-500 text-xs font-light leading-relaxed mb-6">
-                    {trail.description}
-                  </p>
-
-                  <div className="flex-1" />
-
-                  <div className="border-t border-gray-100 pt-4 flex flex-col gap-2 mt-auto">
-                    <div className="flex items-center justify-between text-[11px] font-medium text-gray-600">
-                      <span>Coordinates:</span>
-                      <span className="font-mono text-gray-900">{trail.coordinates}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] font-medium text-gray-600">
-                      <span>Mapped By:</span>
-                      <span className="font-bold text-stone-900">{trail.author}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Main Content Area (8 Cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Filter Navigation Tabs */}
+            <div className="flex items-center gap-2 pb-1 overflow-x-auto border-b border-stone-200/70">
+              <button
+                onClick={() => setActiveTab('stories')}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  activeTab === 'stories'
+                    ? 'bg-stone-900 text-white'
+                    : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+              >
+                Field Notes
+              </button>
+              <button
+                onClick={() => setActiveTab('homestays')}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  activeTab === 'homestays'
+                    ? 'bg-stone-900 text-white'
+                    : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+              >
+                Slow-Stay Reviews
+              </button>
+              <button
+                onClick={() => setActiveTab('trails')}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  activeTab === 'trails'
+                    ? 'bg-stone-900 text-white'
+                    : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+              >
+                Trail Coordinates
+              </button>
+              <button
+                onClick={() => setActiveTab('recipes')}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  activeTab === 'recipes'
+                    ? 'bg-stone-900 text-white'
+                    : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+              >
+                Pahadi Kitchen
+              </button>
             </div>
-          </TabsContent>
 
-          {/* TAB CONTENT: Members */}
-          <TabsContent value="members">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {communityMembers.map((member) => (
-                <div 
-                  key={member.id}
-                  className="group flex flex-col bg-white rounded-[2rem] border border-gray-200/70 p-6 shadow-sm text-left hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <img 
-                      src={member.avatar} 
-                      alt={member.name}
-                      className="w-14 h-14 rounded-full object-cover ring-2 ring-emerald-500/20"
+            {/* Field Note Composer (Clean & Tasteful) */}
+            {activeTab === 'stories' && (
+              <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-full bg-stone-100 border border-stone-200 text-stone-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                    {creatorProfile?.fullName ? creatorProfile.fullName.slice(0, 2).toUpperCase() : 'PB'}
+                  </div>
+                  <div className="flex-1">
+                    <textarea
+                      rows={showImageField ? 2 : 3}
+                      placeholder="Share a quiet mountain thought, morning ridge view, or trail update..."
+                      value={noteContent}
+                      onChange={(e) => setNoteContent(e.target.value)}
+                      className="w-full text-xs sm:text-sm text-stone-800 placeholder:text-stone-400 border-0 focus:ring-0 p-0 resize-none outline-none leading-relaxed"
                     />
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-base leading-tight mb-1">{member.name}</h4>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${member.badgeColor}`}>
-                        {member.badge}
-                      </span>
-                    </div>
-                  </div>
 
-                  <p className="text-gray-500 text-xs font-light leading-relaxed mb-6">
-                    {member.bio}
-                  </p>
+                    {/* Image URL toggle */}
+                    {showImageField && (
+                      <div className="mt-2 mb-2">
+                        <Input
+                          type="text"
+                          placeholder="Paste image link from Unsplash or trail camera..."
+                          value={noteImage}
+                          onChange={(e) => setNoteImage(e.target.value)}
+                          className="text-xs h-9 border-stone-200 rounded-xl"
+                        />
+                      </div>
+                    )}
 
-                  <div className="flex-1" />
+                    {/* Metadata tags */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
+                      <div className="flex items-center gap-1 text-[11px] text-stone-500">
+                        <Mountain className="w-3.5 h-3.5 text-[#10b981]" />
+                        <select
+                          value={noteAltitude}
+                          onChange={(e) => setNoteAltitude(e.target.value)}
+                          className="bg-stone-50 border border-stone-200 rounded-lg px-2 py-0.5 text-[11px] text-stone-700 outline-none cursor-pointer"
+                        >
+                          <option value="1,800m">1,800m (Mukteshwar)</option>
+                          <option value="2,400m">2,400m (Jibhi Ridge)</option>
+                          <option value="3,200m">3,200m (Jalori Pass)</option>
+                          <option value="4,100m">4,100m (High Ridge)</option>
+                        </select>
+                      </div>
 
-                  <div className="border-t border-gray-100 pt-4 flex items-center justify-between mt-auto">
-                    <span className="text-[11px] font-medium text-gray-500">Expeditions Logged:</span>
-                    <span className="text-sm font-extrabold text-[#10b981]">{member.tripsCount} runs</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* TAB CONTENT: Discussions */}
-          <TabsContent value="discussions">
-            <div className="bg-white border border-gray-200/60 rounded-3xl p-5 shadow-sm space-y-4">
-              {threads.map((thread) => (
-                <div 
-                  key={thread.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-100 hover:border-emerald-100/50 hover:bg-emerald-50/5 rounded-2xl transition-all duration-300 text-left"
-                >
-                  <div className="flex items-start gap-4">
-                    <img 
-                      src={thread.author.avatar} 
-                      alt={thread.author.name}
-                      className="w-10 h-10 rounded-full object-cover shrink-0 mt-0.5"
-                    />
-                    <div className="space-y-1">
-                      <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50/50 border border-emerald-100/50 rounded-md px-2 py-0.5 uppercase tracking-widest">
-                        {thread.category}
-                      </span>
-                      <h4 className="font-bold text-gray-900 text-sm leading-snug sm:text-base hover:text-emerald-600 transition-colors">
-                        {thread.title}
-                      </h4>
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        By {thread.author.name} &bull; {thread.timeAgo}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                    <button 
-                      onClick={() => handleUpvote(thread.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-200 text-xs font-bold text-gray-700 hover:text-emerald-600 transition-all cursor-pointer"
-                    >
-                      <Heart className="w-3.5 h-3.5 fill-rose-500 stroke-rose-500" />
-                      <span>{thread.upvotes}</span>
-                    </button>
-                    <span className="flex items-center gap-1.5 text-xs text-gray-500 font-semibold bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                      <MessageCircle className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{thread.replies}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* TAB CONTENT: Recipes */}
-          <TabsContent value="recipes">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {recipes.map((recipe) => (
-                <div 
-                  key={recipe.id}
-                  className="group grid grid-cols-1 sm:grid-cols-12 bg-white rounded-[2rem] border border-gray-200/70 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 text-left"
-                >
-                  <div className="sm:col-span-5 h-44 sm:h-full relative shrink-0">
-                    <img 
-                      src={recipe.image} 
-                      alt={recipe.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 left-3 z-20">
-                      <span className="px-2.5 py-1 bg-black/40 backdrop-blur-md text-white text-[9px] font-bold tracking-widest uppercase rounded-lg border border-white/10 shadow-sm">
-                        {recipe.origin}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="sm:col-span-7 p-6 flex flex-col justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-lg leading-snug group-hover:text-emerald-600 transition-colors mb-4">
-                        {recipe.name}
-                      </h4>
-
-                      <div className="mb-4">
-                        <span className="block text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ingredients</span>
-                        <ul className="grid grid-cols-1 gap-1 text-[11px] text-gray-600 font-light">
-                          {recipe.ingredients.slice(0, 4).map((ing, i) => (
-                            <li key={i} className="flex items-center gap-1.5 truncate">
-                              <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0" />
-                              <span className="truncate">{ing}</span>
-                            </li>
+                      <div className="flex items-center gap-1 text-[11px] text-stone-500 ml-2">
+                        <Tag className="w-3.5 h-3.5 text-[#10b981]" />
+                        <select
+                          value={noteStayId}
+                          onChange={(e) => setNoteStayId(e.target.value)}
+                          className="bg-stone-50 border border-stone-200 rounded-lg px-2 py-0.5 text-[11px] text-stone-700 outline-none cursor-pointer max-w-[160px] truncate"
+                        >
+                          {propertiesList.map(p => (
+                            <option key={p.id} value={p.id}>{p.title}</option>
                           ))}
-                        </ul>
+                        </select>
                       </div>
                     </div>
 
-                    <div className="border-t border-stone-100 pt-4 flex items-center justify-between mt-auto">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Method: {recipe.steps.length} steps</span>
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors cursor-pointer group/read">
-                            Cook Recipe <ArrowUpRight className="w-3.5 h-3.5 group-hover/read:translate-x-0.5 group-hover/read:-translate-y-0.5 transition-transform" />
-                          </button>
-                        </DialogTrigger>
-                        
-                        <DialogContent className="max-w-lg bg-white border border-gray-150 rounded-2xl p-6 shadow-2xl text-left">
-                          <DialogHeader className="mb-6">
-                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-md px-2.5 py-1 w-fit uppercase tracking-widest mb-2">
-                              {recipe.origin} Traditional Dish
-                            </span>
-                            <DialogTitle className="text-2xl font-light text-gray-900">
-                              How to cook <span className="font-semibold italic text-[#10b981]">{recipe.name}</span>
-                            </DialogTitle>
-                          </DialogHeader>
+                    {/* Submit Bar */}
+                    <div className="flex items-center justify-between pt-3 mt-2 border-t border-stone-100">
+                      <button
+                        type="button"
+                        onClick={() => setShowImageField(!showImageField)}
+                        className="text-xs font-semibold text-stone-500 hover:text-stone-800 flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5 text-[#10b981]" />
+                        <span>{showImageField ? 'Hide Photo' : 'Attach Photo'}</span>
+                      </button>
 
-                          <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
-                            {/* Ingredients */}
-                            <div>
-                              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Full Ingredient Checklist</span>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {recipe.ingredients.map((ing, i) => (
-                                  <div key={i} className="flex items-center gap-2 text-xs text-gray-700 font-light">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] shrink-0" />
-                                    <span>{ing}</span>
-                                  </div>
-                                ))}
-                              </div>
+                      <Button
+                        onClick={handlePublishNote}
+                        disabled={!noteContent.trim() || isPublishing}
+                        className="bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-semibold px-5 h-9 cursor-pointer shadow-sm"
+                      >
+                        {isPublishing ? 'Sharing...' : 'Share Note'}
+                      </Button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 1: Stories & Field Notes Feed */}
+            {activeTab === 'stories' && (
+              <div className="space-y-6">
+                {filteredStories.map((story) => {
+                  const isLiked = likedMap[story.id] ?? false;
+                  const likes = likeCounts[story.id] ?? (story.likesCount || 38);
+                  const isSaved = savedMap[story.id] ?? false;
+                  const taggedStay = propertiesList.find(p => p.id === story.taggedPropertyId) || propertiesList[0];
+                  const replies = storyReplies[story.id] || [];
+
+                  return (
+                    <article 
+                      key={story.id} 
+                      id={story.id}
+                      className="bg-white border border-stone-200/90 rounded-2xl p-5 sm:p-6 shadow-sm hover:border-stone-300 transition-all space-y-4"
+                    >
+                      {/* Author Header (Direct link to creator profile - no account needed) */}
+                      <div className="flex items-center justify-between">
+                        <Link 
+                          href={`/community/creator/${getCreatorSlug(story.author.name)}`}
+                          className="flex items-center gap-3 group/author"
+                          title={`View ${story.author.name}'s Profile`}
+                        >
+                          <img
+                            src={story.author.avatar}
+                            alt={story.author.name}
+                            className="w-10 h-10 rounded-full object-cover ring-1 ring-stone-200 group-hover/author:ring-[#10b981] transition-all"
+                          />
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <h3 className="text-xs sm:text-sm font-bold text-stone-900 group-hover/author:text-emerald-700 transition-colors">
+                                {story.author.name}
+                              </h3>
+                              <span className="w-4 h-4 rounded-full bg-[#10b981] text-white flex items-center justify-center shrink-0" title="Verified Creator">
+                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              </span>
                             </div>
+                            <span className="text-[11px] text-stone-400 font-light block">
+                              {story.author.role} &bull; {formatTimeAgo(story.duration)}
+                            </span>
+                          </div>
+                        </Link>
 
-                            {/* Preparation Steps */}
-                            <div>
-                              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">Preparation Steps</span>
-                              <div className="space-y-4">
-                                {recipe.steps.map((step, idx) => (
-                                  <div key={idx} className="flex gap-3">
-                                    <span className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 text-[#10b981] text-[10px] font-bold flex items-center justify-center shrink-0">
-                                      {idx + 1}
-                                    </span>
-                                    <p className="text-xs text-gray-650 leading-relaxed font-light">{step}</p>
-                                  </div>
-                                ))}
-                              </div>
+                        <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 flex items-center gap-1">
+                          <Mountain className="w-3 h-3 text-[#10b981]" />
+                          {story.altitude}
+                        </span>
+                      </div>
+
+                      {/* Story Text (Clickable to read full story on full page) */}
+                      <Link 
+                        href={`/blog/${story.id}`}
+                        className="block text-xs sm:text-sm text-stone-700 leading-relaxed font-light group/text"
+                        title="Click to read full dispatch"
+                      >
+                        <h4 className="font-bold text-stone-900 text-sm mb-1 group-hover/text:text-emerald-700 transition-colors">
+                          {story.title}
+                        </h4>
+                        <p className="whitespace-pre-line line-clamp-3">
+                          {story.excerpt || story.content}
+                        </p>
+                      </Link>
+
+                      {/* High-res Travel Photo (Clickable to view full story) */}
+                      {story.images && story.images.length > 0 && (
+                        <Link 
+                          href={`/blog/${story.id}`}
+                          className="block rounded-2xl overflow-hidden border border-stone-100 max-h-[380px] group/photo"
+                          title="Click to view full story and photography"
+                        >
+                          <img
+                            src={story.images[0]}
+                            alt={story.title}
+                            className="w-full h-full object-cover group-hover/photo:scale-[1.01] transition-transform duration-500"
+                          />
+                        </Link>
+                      )}
+
+                      {/* Tagged Homestay Mini-Card (Tasteful Travel Style) */}
+                      {taggedStay && (
+                        <div className="bg-[#fafaf7] border border-stone-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={taggedStay.bgImage || taggedStay.image}
+                              alt={taggedStay.title}
+                              className="w-14 h-14 rounded-lg object-cover shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-bold text-[#10b981] uppercase tracking-wider block">
+                                Recommended Stay
+                              </span>
+                              <h4 className="text-xs font-bold text-stone-900 truncate">
+                                {taggedStay.title}
+                              </h4>
+                              <p className="text-[11px] text-stone-500 truncate">
+                                {taggedStay.location} &bull; ₹{taggedStay.pricePerNight?.toLocaleString('en-IN')}/night
+                              </p>
                             </div>
                           </div>
 
-                          <DialogFooter className="pt-6 border-t border-gray-100">
-                            <DialogClose asChild>
-                              <Button className="rounded-xl bg-zinc-900 hover:bg-[#10b981] text-white h-10 px-6 text-xs font-bold uppercase tracking-wider cursor-pointer border-0">
-                                Got it
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200">
+                            <span className="text-[11px] text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              Code {story.authorReferralCode || 'HIMALAYA8'} (5% OFF)
+                            </span>
+                            <Link
+                              href={`/properties/${taggedStay.id}?ref=${story.authorReferralCode || 'HIMALAYA8'}`}
+                              className="text-xs font-bold text-stone-900 hover:text-[#10b981] flex items-center gap-1 transition-colors"
+                            >
+                              Explore <ArrowUpRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Minimal Social Action Bar */}
+                      <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-xs text-stone-500">
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => handleLike(story.id, story.likesCount || 38)}
+                            className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
+                              isLiked ? 'text-rose-600 font-semibold' : 'hover:text-rose-600'
+                            }`}
+                          >
+                            <Heart className={`w-4 h-4 ${isLiked ? 'fill-rose-500 stroke-rose-500' : ''}`} />
+                            <span>{likes}</span>
+                          </button>
+
+                          <button
+                            onClick={() => setActiveReplyId(activeReplyId === story.id ? null : story.id)}
+                            className="flex items-center gap-1.5 hover:text-stone-900 transition-colors cursor-pointer"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span>{replies.length} replies</span>
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/blog/${story.id}`}
+                            className="text-[11px] font-semibold text-stone-600 hover:text-emerald-700 flex items-center gap-1 transition-colors mr-1"
+                            title="Read Full Dispatch on dedicated page"
+                          >
+                            <span>Read Dispatch</span>
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </Link>
+
+                          <button
+                            onClick={() => handleBookmark(story.id)}
+                            className={`hover:text-stone-900 transition-colors cursor-pointer ${
+                              isSaved ? 'text-[#10b981]' : ''
+                            }`}
+                            title="Save Note"
+                          >
+                            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-[#10b981] stroke-[#10b981]' : ''}`} />
+                          </button>
+
+                          <button
+                            onClick={() => handleShare(story)}
+                            className="hover:text-stone-900 transition-colors cursor-pointer"
+                            title="Share"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expandable Replies Thread */}
+                      {activeReplyId === story.id && (
+                        <div className="pt-3 border-t border-stone-100 space-y-3">
+                          {replies.map((r, i) => (
+                            <div key={i} className="flex gap-2.5 text-xs bg-stone-50 p-2.5 rounded-xl">
+                              <span className="font-bold text-stone-900">{r.author}:</span>
+                              <span className="text-stone-600 font-light">{r.text}</span>
+                            </div>
+                          ))}
+
+                          <div className="flex gap-2">
+                            <Input
+                              type="text"
+                              placeholder="Write a response..."
+                              value={replyInput}
+                              onChange={(e) => setReplyInput(e.target.value)}
+                              className="text-xs h-9 border-stone-200 rounded-xl"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSendReply(story.id);
+                              }}
+                            />
+                            <Button
+                              onClick={() => handleSendReply(story.id)}
+                              className="bg-stone-900 hover:bg-stone-800 text-white text-xs rounded-xl px-4 h-9 cursor-pointer"
+                            >
+                              Reply
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* TAB 2: Homestay Reviews */}
+            {activeTab === 'homestays' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {propertiesList.slice(0, 6).map(prop => (
+                  <div key={prop.id} className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                    <img src={prop.bgImage || prop.image} alt={prop.title} className="w-full h-44 object-cover" />
+                    <div className="p-4 space-y-2">
+                      <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">{prop.location}</span>
+                      <h4 className="text-sm font-bold text-stone-900">{prop.title}</h4>
+                      <p className="text-xs text-stone-500 font-light line-clamp-2">{prop.description}</p>
+                      <div className="pt-2 flex items-center justify-between border-t border-stone-100">
+                        <span className="text-xs font-semibold text-stone-900">₹{prop.pricePerNight?.toLocaleString('en-IN')}/night</span>
+                        <Link href={`/properties/${prop.id}`} className="text-xs font-bold text-[#10b981] hover:underline flex items-center gap-1">
+                          View Homestay <ArrowUpRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
+                ))}
+              </div>
+            )}
 
-        </Tabs>
+            {/* TAB 3: Trails */}
+            {activeTab === 'trails' && (
+              <div className="space-y-4">
+                {trails.map(trail => (
+                  <div key={trail.id} className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-sm space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">{trail.location}</span>
+                        <h4 className="text-base font-bold text-stone-900">{trail.title}</h4>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {trail.difficulty}
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-600 font-light leading-relaxed">{trail.description}</p>
+                    <div className="pt-2 flex items-center justify-between text-xs text-stone-500 border-t border-stone-100">
+                      <span>Altitude: <strong className="text-stone-800">{trail.altitude}</strong></span>
+                      <span>Documented by: <strong className="text-stone-800">{trail.author}</strong></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* TAB 4: Recipes */}
+            {activeTab === 'recipes' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {recipes.map(recipe => (
+                  <div key={recipe.id} className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                    <img src={recipe.image} alt={recipe.name} className="w-full h-40 object-cover" />
+                    <div className="p-4 space-y-2">
+                      <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">{recipe.origin}</span>
+                      <h4 className="text-sm font-bold text-stone-900">{recipe.name}</h4>
+                      <p className="text-xs text-stone-500 font-light line-clamp-2">{recipe.steps?.[0]}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+
+          {/* Right Travel Companion Column (4 Cols) */}
+          <aside className="lg:col-span-4 space-y-6">
+            
+            {/* Search Box */}
+            <div className="bg-white border border-stone-200/90 rounded-2xl p-3 shadow-sm relative">
+              <Search className="w-4 h-4 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Input
+                type="text"
+                placeholder="Search valleys, notes, trails..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-transparent border-0 focus:ring-0 text-xs text-stone-800 placeholder:text-stone-400 h-9"
+              />
+            </div>
+
+            {/* Creator Guild Card (Tasteful Light Theme) */}
+            {!creatorProfile?.isVerified && (
+              <div className="bg-emerald-50/60 border border-emerald-200/70 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                  <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Creator Program</span>
+                </div>
+                <h3 className="text-sm font-bold text-stone-900">
+                  Earn 8% Commission on Stays
+                </h3>
+                <p className="text-xs text-stone-600 leading-relaxed font-light">
+                  Authenticate your travel identity via DigiLocker to write stories, share trail maps, and earn direct UPI commission.
+                </p>
+                <Button
+                  asChild
+                  className="w-full bg-[#10b981] hover:bg-[#0e9f6e] text-white text-xs font-semibold rounded-xl h-10 shadow-sm"
+                >
+                  <Link href="/community/join">
+                    Apply for Creator Status →
+                  </Link>
+                </Button>
+              </div>
+            )}
+
+            {/* Featured Slow-Travel Authors */}
+            <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                Featured Mountain Authors
+              </h3>
+              <div className="space-y-3">
+                {/* Author 1 */}
+                <div className="flex items-center justify-between gap-2">
+                  <Link 
+                    href="/community/creator/aarav-semwal"
+                    className="flex items-center gap-2.5 min-w-0 group/author"
+                    title="View Aarav Semwal's Full Profile"
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"
+                      alt="Aarav"
+                      className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-stone-200 group-hover/author:ring-[#10b981] transition-all"
+                    />
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-stone-900 block truncate group-hover/author:text-emerald-700 transition-colors">Aarav Semwal</span>
+                      <span className="text-[10px] text-stone-400 block truncate">Garhwal Ridges</span>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setFollowingMap(p => ({ ...p, aarav_semwal: !p.aarav_semwal }));
+                      toast.success(followingMap.aarav_semwal ? 'Unfollowed Aarav' : 'Following Aarav');
+                    }}
+                    className={`text-xs font-semibold px-3 py-1 rounded-full transition-all cursor-pointer ${
+                      followingMap.aarav_semwal
+                        ? 'bg-stone-100 text-stone-700'
+                        : 'bg-stone-900 text-white'
+                    }`}
+                  >
+                    {followingMap.aarav_semwal ? 'Following' : 'Follow'}
+                  </button>
+                </div>
+
+                {/* Author 2 */}
+                <div className="flex items-center justify-between gap-2">
+                  <Link 
+                    href="/community/creator/tenzing-norbu"
+                    className="flex items-center gap-2.5 min-w-0 group/author"
+                    title="View Tenzing Norbu's Full Profile"
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&q=80"
+                      alt="Tenzing"
+                      className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-stone-200 group-hover/author:ring-[#10b981] transition-all"
+                    />
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-stone-900 block truncate group-hover/author:text-emerald-700 transition-colors">Tenzing Norbu</span>
+                      <span className="text-[10px] text-stone-400 block truncate">High Altitude Trails</span>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setFollowingMap(p => ({ ...p, tenzing_norbu: !p.tenzing_norbu }));
+                      toast.success(followingMap.tenzing_norbu ? 'Unfollowed Tenzing' : 'Following Tenzing');
+                    }}
+                    className={`text-xs font-semibold px-3 py-1 rounded-full transition-all cursor-pointer ${
+                      followingMap.tenzing_norbu
+                        ? 'bg-stone-100 text-stone-700'
+                        : 'bg-stone-900 text-white'
+                    }`}
+                  >
+                    {followingMap.tenzing_norbu ? 'Following' : 'Follow'}
+                  </button>
+                </div>
+
+                {/* Author 3 */}
+                <div className="flex items-center justify-between gap-2">
+                  <Link 
+                    href="/community/creator/meera-joshi"
+                    className="flex items-center gap-2.5 min-w-0 group/author"
+                    title="View Meera Joshi's Full Profile"
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80"
+                      alt="Meera"
+                      className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-stone-200 group-hover/author:ring-[#10b981] transition-all"
+                    />
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-stone-900 block truncate group-hover/author:text-emerald-700 transition-colors">Meera Joshi</span>
+                      <span className="text-[10px] text-stone-400 block truncate">Kumaon Heritage</span>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setFollowingMap(p => ({ ...p, meera_joshi: !p.meera_joshi }));
+                      toast.success(followingMap.meera_joshi ? 'Unfollowed Meera' : 'Following Meera');
+                    }}
+                    className={`text-xs font-semibold px-3 py-1 rounded-full transition-all cursor-pointer ${
+                      followingMap.meera_joshi
+                        ? 'bg-stone-100 text-stone-700'
+                        : 'bg-stone-900 text-white'
+                    }`}
+                  >
+                    {followingMap.meera_joshi ? 'Following' : 'Follow'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Popular Himalayan Valleys */}
+            <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-sm space-y-3">
+              <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                Popular Mountain Valleys
+              </h3>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {['#Mukteshwar', '#JibhiValley', '#KasolTrails', '#ChoptaMeadows', '#KumaonHeritage', '#SlowTravel'].map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => setSearchQuery(tag.replace('#', ''))}
+                    className="px-2.5 py-1 rounded-lg bg-stone-50 border border-stone-200 text-stone-600 hover:text-stone-900 hover:border-stone-300 transition-colors cursor-pointer"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Leave No Trace Guild Principle */}
+            <div className="p-4 rounded-2xl bg-stone-100/70 border border-stone-200/60 text-xs text-stone-500 leading-relaxed font-light">
+              <span className="font-semibold text-stone-800 block mb-1">Mountain Etiquette</span>
+              Respect village customs, avoid single-use plastics, and leave the Himalayan trails quieter than you found them.
+            </div>
+
+          </aside>
+
+        </div>
 
       </div>
+
+      {/* Creator Modals (Only for creator onboarding, posting, and dashboard) */}
+
+      {/* Creator Modals */}
+      <CreatorKycModal
+        isOpen={isKycModalOpen}
+        onClose={() => setIsKycModalOpen(false)}
+        onSuccess={(data) => {
+          setCreatorProfile(data);
+          localStorage.setItem('pb_creator_profile', JSON.stringify(data));
+          setIsKycModalOpen(false);
+          toast.success('KYC Approved! Creator privileges unlocked.');
+        }}
+      />
+
+      <CreateStoryModal
+        isOpen={isStoryModalOpen}
+        onClose={() => setIsStoryModalOpen(false)}
+        creatorProfile={creatorProfile}
+        onPostCreated={(newStory) => {
+          setStories(prev => [newStory, ...prev]);
+        }}
+      />
+
+      <CreatorDashboardModal
+        isOpen={isDashboardModalOpen}
+        onClose={() => setIsDashboardModalOpen(false)}
+        creatorProfile={creatorProfile}
+      />
 
     </div>
   );
