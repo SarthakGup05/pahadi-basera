@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import CustomCursor from "@/components/CustomCursor";
 import Loader from "@/components/Loader";
 
 
@@ -30,7 +29,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col loader-active" suppressHydrationWarning>
         <Loader />
-        <CustomCursor />
         <Navbar />
         <main className="flex-1">
           {children}
