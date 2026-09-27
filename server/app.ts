@@ -8,6 +8,11 @@ import propertyRoutes from './routes/property.route.js';
 import bookingRoutes from './routes/booking.route.js';
 import blogRoutes from './routes/blog.route.js';
 import communityRoutes from './routes/community.route.js';
+import adminRoutes from './routes/admin.route.js';
+import packageRoutes from './routes/package.route.js';
+import notificationRoutes from './routes/notification.route.js';
+import kycRoutes from './routes/kyc.route.js';
+import referralRoutes from './routes/referral.route.js';
 
 import { errorHandler } from './middleware/error.middleware.js';
 
@@ -36,8 +41,14 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/community', communityRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/packages', packageRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/kyc', kycRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
+
 
 export default app;
