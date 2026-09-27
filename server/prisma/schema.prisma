@@ -78,6 +78,22 @@ model User {
   // --- Verification Tracking ---
   kycStatus KycStatus @default(PENDING)
 
+  // --- Creator & KYC Profile ---
+  fullName            String?
+  bio                 String?   @db.Text
+  avatarUrl           String?
+  socialProfile       String?   // Instagram / YouTube / Portfolio link
+  aadhaarNumber       String?   // Last 4 or masked Aadhaar for DigiLocker reference
+  digilockerVerified  Boolean   @default(false)
+  kycVerifiedAt       DateTime?
+
+  // --- Creator Referral Engine ---
+  referralCode        String?   @unique
+  commissionRate      Float     @default(0.08) // 8% commission on bookings
+  upiId               String?   // For commission disbursement
+  totalEarnings       Float     @default(0)
+  pendingBalance      Float     @default(0)
+
   // --- Standard Tracking Fields ---
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -85,10 +101,12 @@ model User {
   // ------------------------------------------------------
   // RELATIONS
   // ------------------------------------------------------
-  refreshTokens RefreshToken[]
-  properties    Property[]
-  guestBookings Booking[]      @relation("GuestBookings")
-  reviews       Review[]
+  refreshTokens    RefreshToken[]
+  properties       Property[]
+  guestBookings    Booking[]         @relation("GuestBookings")
+  reviews          Review[]
+  authoredPosts    BlogPost[]
+  referralEarnings ReferralEarning[]
 }
 
 // ------------------------------------------------------
@@ -224,12 +242,34 @@ model Booking {
   
   status          BookingStatus    @default(PENDING)
   specialRequests String?          @db.Text
+
+  // Referral Attribution
+  referralCodeUsed String?
+  discountAmount   Float            @default(0)
   
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   // Mapped Services
   selectedServices BookingService[]
+  referralEarning  ReferralEarning?
+}
+
+model ReferralEarning {
+  id               String          @id @default(uuid())
+  bloggerId        String
+  blogger          User            @relation(fields: [bloggerId], references: [id], onDelete: Cascade)
+  bookingId        String          @unique
+  booking          Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  stayAmount       Float           // Base stay amount
+  commissionRate   Float           @default(0.08) // 8% commission
+  commissionAmount Float           // Calculated earnings
+  guestDiscount    Float           @default(0.05) // 5% discount given to guest
+  status           String          @default("PENDING") // PENDING, APPROVED, PAID, CANCELLED
+  createdAt        DateTime        @default(now())
+  paidAt           DateTime?
+
+  @@index([bloggerId])
 }
 
 model BookingService {
@@ -266,23 +306,33 @@ model Review {
 // ------------------------------------------------------
 
 model BlogPost {
-  id               String   @id
-  title            String
-  excerpt          String
-  content          String   @db.Text
-  altitude         String
-  duration         String
-  views            String
-  tags             String[] @default([])
-  difficulty       String
-  bestSeason       String
-  gearList         String[] @default([])
-  routeCoordinates Json     // Array of { name: String, alt: String }
-  images           String[] @default([])
-  authorName       String
-  authorRole       String
-  authorAvatar     String
-  createdAt        DateTime @default(now())
+  id                String   @id @default(uuid())
+  title             String
+  excerpt           String
+  content           String   @db.Text
+  altitude          String
+  duration          String
+  views             String   @default("1")
+  tags              String[] @default([])
+  difficulty        String
+  bestSeason        String
+  gearList          String[] @default([])
+  routeCoordinates  Json     // Array of { name: String, alt: String }
+  images            String[] @default([])
+  
+  // Author metadata
+  authorName        String
+  authorRole        String
+  authorAvatar      String
+  authorId          String?
+  authorUser        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  isVerifiedCreator Boolean  @default(false)
+  likesCount        Int      @default(0)
+
+  // Associated Himalayan Stay
+  taggedPropertyId  String?
+
+  createdAt         DateTime @default(now())
 }
 
 model CommunityTrail {
@@ -316,4 +366,40 @@ model LocalRecipe {
   ingredients String[] @default([])
   steps       String[] @default([])
   createdAt   DateTime @default(now())
+}
+
+model Package {
+  id              String   @id @default(uuid())
+  num             String
+  title           String
+  region          String   // e.g. "Uttarakhand", "Himachal", "Kashmir", "Sikkim"
+  location        String
+  duration        String   // e.g. "4 Days / 3 Nights"
+  durationDays    Int
+  vibe            String   // e.g. "Adventure", "Wellness", "Celestial", "Heritage"
+  difficulty      String   // e.g. "Easy", "Moderate", "Hard"
+  price           Float
+  maxGuests       Int      @default(4)
+  image           String
+  badge           String?
+  description     String   @db.Text
+  longDescription String   @db.Text
+  amenities       String[] @default([])
+  includes        Json     // Array of { name: String, iconName: String }
+  altitude        String
+  bestTime        String
+  itinerary       Json     // Array of { day: Int, title: String, desc: String }
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  desc      String
+  type      String   // 'booking', 'stay', 'package', 'kyc', 'system'
+  unread    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
