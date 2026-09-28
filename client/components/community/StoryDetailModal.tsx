@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   X, 
@@ -20,7 +20,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BlogItem } from '@/lib/blogData';
-import { propertiesList } from '@/lib/propertiesData';
+import { PropertyItem } from '@/lib/propertiesData';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 
 interface StoryDetailModalProps {
@@ -42,6 +43,7 @@ export default function StoryDetailModal({
   onToggleLike,
   likeCount = 42
 }: StoryDetailModalProps) {
+  const [taggedStay, setTaggedStay] = useState<PropertyItem | null>(null);
   const [commentText, setCommentText] = useState('');
   const [guestName, setGuestName] = useState('');
   const [comments, setComments] = useState<Array<{ name: string; text: string; time: string }>>([
@@ -49,9 +51,22 @@ export default function StoryDetailModal({
     { name: 'Rohan Sharma', text: 'Thanks for tagging the homestay! Booked 2 nights with your referral discount.', time: '2 days ago' }
   ]);
 
+  useEffect(() => {
+    if (story?.taggedPropertyId) {
+      api.get(`/api/properties/get-property/${story.taggedPropertyId}`)
+        .then(({ data }) => {
+          if (data) setTaggedStay(data);
+        })
+        .catch(() => {
+          setTaggedStay(null);
+        });
+    } else {
+      setTaggedStay(null);
+    }
+  }, [story?.taggedPropertyId]);
+
   if (!isOpen || !story) return null;
 
-  const taggedStay = propertiesList.find(p => p.id === story.taggedPropertyId) || propertiesList[0];
   const refCode = story.authorReferralCode || 'HIMALAYA8';
 
   const handleAddComment = (e: React.FormEvent) => {

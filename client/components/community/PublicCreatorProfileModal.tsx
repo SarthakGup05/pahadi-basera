@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   X, 
@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BlogItem } from '@/lib/blogData';
-import { propertiesList } from '@/lib/propertiesData';
+import { PropertyItem } from '@/lib/propertiesData';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 
 export interface CreatorProfileData {
@@ -57,7 +58,14 @@ export default function PublicCreatorProfileModal({
   isFollowing = false,
   onToggleFollow
 }: PublicCreatorProfileModalProps) {
+  const [properties, setProperties] = useState<PropertyItem[]>([]);
   const [copiedCode, setCopiedCode] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/properties/get-all-properties').then(({ data }) => {
+      if (Array.isArray(data)) setProperties(data);
+    }).catch(() => {});
+  }, []);
   const [activeTab, setActiveTab] = useState<'stories' | 'stays' | 'about'>('stories');
 
   if (!isOpen || !creator) return null;
@@ -267,7 +275,7 @@ export default function PublicCreatorProfileModal({
           {/* TAB 2: Recommended Homestays */}
           {activeTab === 'stays' && (
             <div className="space-y-3">
-              {propertiesList.slice(0, 3).map((prop) => (
+              {properties.slice(0, 3).map((prop) => (
                 <div key={prop.id} className="p-3 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <img src={prop.bgImage || prop.image} alt={prop.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />

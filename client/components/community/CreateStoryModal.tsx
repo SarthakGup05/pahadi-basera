@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '@/lib/api';
 import { 
   X, 
   MapPin, 
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { propertiesList } from '@/lib/propertiesData';
+import { PropertyItem } from '@/lib/propertiesData';
 import { toast } from 'sonner';
 
 interface CreateStoryModalProps {
@@ -31,6 +32,7 @@ export default function CreateStoryModal({
   creatorProfile,
   onPostCreated
 }: CreateStoryModalProps) {
+  const [properties, setProperties] = useState<PropertyItem[]>([]);
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
@@ -39,8 +41,17 @@ export default function CreateStoryModal({
   const [difficulty, setDifficulty] = useState('Moderate');
   const [bestSeason, setBestSeason] = useState('Autumn & Spring');
   const [imageUrl, setImageUrl] = useState('');
-  const [taggedPropertyId, setTaggedPropertyId] = useState(propertiesList[0]?.id || '1');
+  const [taggedPropertyId, setTaggedPropertyId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/properties/get-all-properties').then(({ data }) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setProperties(data);
+        setTaggedPropertyId(data[0].id);
+      }
+    }).catch(() => {});
+  }, []);
 
   if (!isOpen) return null;
 
@@ -53,7 +64,7 @@ export default function CreateStoryModal({
 
     setIsSubmitting(true);
     const finalImage = imageUrl.trim() || 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop';
-    const taggedProperty = propertiesList.find(p => p.id === taggedPropertyId);
+    const taggedProperty = properties.find(p => p.id === taggedPropertyId);
 
     const postPayload = {
       title: title.trim(),
@@ -74,23 +85,11 @@ export default function CreateStoryModal({
     };
 
     try {
-      const token = localStorage.getItem('pb_admin_token') || localStorage.getItem('pb_token');
-      const res = await fetch('http://localhost:5000/api/blogs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(postPayload)
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        onPostCreated(data.post || { ...postPayload, id: String(Date.now()), createdAt: new Date().toISOString() });
-        toast.success('Your Himalayan Journal story is live!');
-        onClose();
-        return;
-      }
+      const { data } = await api.post('/api/blogs', postPayload);
+      onPostCreated(data.post || { ...postPayload, id: String(Date.now()), createdAt: new Date().toISOString() });
+      toast.success('Your Himalayan Journal story is live!');
+      onClose();
+      return;
     } catch (e) {
       // Local fallback in state
     }
@@ -200,9 +199,9 @@ export default function CreateStoryModal({
               onChange={(e) => setTaggedPropertyId(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-emerald-200 bg-white text-xs font-medium text-stone-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              {propertiesList.map(p => (
+              {properties.map(p => (
                 <option key={p.id} value={p.id}>
-                  {p.title} — {p.location} (₹{p.pricePerNight.toLocaleString()}/night)
+                  {p.title} — {p.location} (₹{Number(p.pricePerNight).toLocaleString()}/night)
                 </option>
               ))}
             </select>
