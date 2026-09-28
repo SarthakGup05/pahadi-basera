@@ -13,8 +13,8 @@ WORKDIR /app
 # ─────────────────────────────────────────────────────────────────────────────
 FROM base AS deps
 
-COPY package*.json ./
-RUN npm ci
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 3: builder - compile Prisma Client & TypeScript bundle
@@ -73,8 +73,9 @@ RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 expressjs
 
 # Install production dependencies only
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi \
+ && npm cache clean --force
 
 # Copy compiled JavaScript code and Prisma artifacts from builder
 COPY --from=builder --chown=expressjs:nodejs /app/dist ./dist
