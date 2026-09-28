@@ -22,7 +22,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Banner from '@/components/ui/Banner';
-import { propertiesList, PropertyItem } from '@/lib/propertiesData';
+import { PropertyItem } from '@/lib/propertiesData';
+import api from '@/lib/api';
 import PropertyBackdropGraphics from '@/components/PropertyBackdropGraphics';
 
 export default function PropertiesGridPage() {
@@ -45,10 +46,8 @@ export default function PropertiesGridPage() {
     async function fetchProperties() {
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:5000/api/properties/get-all-properties');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+        const { data } = await api.get('/api/properties/get-all-properties');
+        if (Array.isArray(data) && data.length > 0) {
             const mappedData: PropertyItem[] = data.map((item: any) => ({
               id: item.id,
               title: item.title,
@@ -74,7 +73,7 @@ export default function PropertiesGridPage() {
               cancellationPolicy: item.cancellationPolicy || 'Standard policy',
               amenities: item.amenities || [],
               altitude: item.altitude || 1000,
-              type: item.type,
+              type: item.type || 'COTTAGE',
               services: item.services || [],
               isActive: item.isActive,
               isFeatured: item.isFeatured,
@@ -84,10 +83,11 @@ export default function PropertiesGridPage() {
             setIsApiFetched(true);
             return;
           }
-        }
-        throw new Error('Failed to load from server');
+        setProperties([]);
+        setIsApiFetched(true);
       } catch (err) {
-        setProperties(propertiesList);
+        console.error('Failed to load properties from server:', err);
+        setProperties([]);
         setIsApiFetched(false);
       } finally {
         setLoading(false);
@@ -97,10 +97,10 @@ export default function PropertiesGridPage() {
   }, []);
 
   // --- Dynamic Stats Extraction ---
-  const allAvailableStays = isApiFetched ? properties : propertiesList;
+  const allAvailableStays = properties;
   
   const regions = Array.from(new Set(allAvailableStays.map(p => p.location.split(',')[0].trim())));
-  const stayTypes = Array.from(new Set(allAvailableStays.map(p => p.type)));
+  const stayTypes = Array.from(new Set(allAvailableStays.map(p => p.type || 'COTTAGE')));
 
   const getRegionCount = (region: string) => {
     return allAvailableStays.filter(p => p.location.toLowerCase().includes(region.toLowerCase())).length;
@@ -141,7 +141,7 @@ export default function PropertiesGridPage() {
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     if (sortBy === 'price-low') return a.pricePerNight - b.pricePerNight;
     if (sortBy === 'price-high') return b.pricePerNight - a.pricePerNight;
-    if (sortBy === 'rating') return parseFloat(b.rating || '0') - parseFloat(a.rating || '0');
+    if (sortBy === 'rating') return Number(b.rating || 0) - Number(a.rating || 0);
     if (sortBy === 'altitude') return b.altitude - a.altitude;
     
     const featuredA = a.isFeatured ? 1 : 0;
