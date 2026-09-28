@@ -65,12 +65,15 @@ export const getMyReferralStats = async (req: AuthRequest, res: Response) => {
 export const validateReferralCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.params;
-    if (!code) {
+    const referralCode = Array.isArray(code) ? code[0] : code;
+    if (!referralCode) {
       return res.status(400).json({ error: 'Referral code is required' });
     }
 
+    const formattedCode = referralCode.toUpperCase().trim();
+
     const blogger = await prisma.user.findUnique({
-      where: { referralCode: code.toUpperCase().trim() },
+      where: { referralCode: formattedCode },
       select: {
         id: true,
         fullName: true,
@@ -91,7 +94,7 @@ export const validateReferralCode = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       valid: true,
-      code: code.toUpperCase().trim(),
+      code: formattedCode,
       creatorName: blogger.fullName || 'Himalayan Creator',
       discountRate: 0.05, // 5% Guest Discount
       discountPercentage: 5,

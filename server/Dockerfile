@@ -1,26 +1,94 @@
-FROM node:20-alpine
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1: base - shared Alpine base with necessary native libraries
+# ─────────────────────────────────────────────────────────────────────────────
+FROM node:20-alpine AS base
 
-# Set the working directory
+# Install OpenSSL and libc6-compat for Prisma Engine compatibility on Alpine
+RUN apk add --no-cache libc6-compat openssl
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2: deps - install dependencies for building
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS deps
+
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 3: builder - compile Prisma Client & TypeScript bundle
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS builder
 
-# Copy the rest of the application code
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json tsconfig.json prisma.config.ts ./
+COPY prisma ./prisma
 COPY . .
 
-# NOTE: Since this is a TypeScript project with Prisma, 
-# you'll typically want to generate the Prisma client and build the TypeScript code before running.
-# Uncomment the following lines once you have initialized `tsconfig.json` and a Prisma schema (`prisma/schema.prisma`):
-# RUN npx prisma generate
-# RUN npm run build
+# Dummy DATABASE_URL for build-time prisma generation if not supplied
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
-# Expose the port your server runs on (change if needed)
-EXPOSE 3000
+# Generate Prisma client and compile TypeScript to dist/
+RUN npx prisma generate
+RUN npm run build
 
-# Start the server in development mode (using nodemon)
-# For production, change this to: CMD ["npm", "start"]
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 4: development - target for docker-compose development with tsx watch
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS development
+
+ARG PORT=5000
+ENV PORT=${PORT}
+ENV NODE_ENV=development
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Dummy DATABASE_URL to allow prisma generate in case .env is mounted later
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+RUN npx prisma generate
+
+EXPOSE ${PORT}
+
 CMD ["npm", "run", "dev"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 5: runner - minimal, secure production runtime
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS runner
+
+ARG PORT=5000
+ENV PORT=${PORT}
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Create a non-root system user for security
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 expressjs
+
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copy compiled JavaScript code and Prisma artifacts from builder
+COPY --from=builder --chown=expressjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=expressjs:nodejs /app/generated ./generated
+COPY --from=builder --chown=expressjs:nodejs /app/prisma ./prisma
+
+USER expressjs
+
+EXPOSE ${PORT}
+
+# Healthcheck checking Express /health endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:${PORT}/health || exit 1
+
+CMD ["node", "dist/index.js"]

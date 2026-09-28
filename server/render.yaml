@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Pahadi Basera Backend — Render Service Blueprint
+# Deploy directly from the server folder or as a standalone web service
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # Option A: Docker Runtime (Recommended for consistency with Alpine & Prisma)
+  - type: web
+    name: pahadi-basera-api
+    runtime: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: starter # or free
+    region: singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+  # Option B: Native Node Runtime (Alternative if you prefer non-Docker)
+  # - type: web
+  #   name: pahadi-basera-api-native
+  #   runtime: node
+  #   plan: starter
+  #   region: singapore
+  #   buildCommand: npm install && npx prisma generate && npm run build
+  #   startCommand: npm start
+  #   healthCheckPath: /health
+  #   autoDeploy: true
+  #   envVars:
+  #     - key: NODE_ENV
+  #       value: production
+  #     - key: PORT
+  #       value: 10000
+  #     - key: DATABASE_URL
+  #       sync: false
+  #     - key: ACCESS_TOKEN_SECRET
+  #       generateValue: true
+  #     - key: REFRESH_TOKEN_SECRET
+  #       generateValue: true

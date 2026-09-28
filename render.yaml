@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Pahadi Basera — Render Blueprint Configuration (render.yaml)
+# Docs: https://render.com/docs/blueprint-spec
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ───────────────────────────────────────────────────────────────────────────
+  # 1. Backend Express API (Docker Runtime)
+  # ───────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: pahadi-basera-backend
+    runtime: docker
+    dockerfilePath: server/Dockerfile
+    dockerContext: server
+    rootDir: server
+    plan: starter # Change to 'free' or higher as needed
+    region: singapore # Options: oregon, frankfurt, ohio, singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Provide your database connection string (e.g., Supabase / Neon / Render Postgres)
+      - key: DATABASE_URL
+        sync: false
+      # Automatically generate secure 256-bit secrets on first deploy
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # 2. Frontend Next.js Client (Docker Standalone Runtime)
+  # ───────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: pahadi-basera-client
+    runtime: docker
+    dockerfilePath: client/Dockerfile
+    dockerContext: client
+    rootDir: client
+    plan: starter # Change to 'free' or higher as needed
+    region: singapore
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: 1
+      - key: PORT
+        value: 10000
+      # Backend API URL that client talks to
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: pahadi-basera-backend
+          property: host
+      # Public URL of the frontend web application
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Optional: Render Managed PostgreSQL (Uncomment to use Render's built-in DB)
+# ─────────────────────────────────────────────────────────────────────────────
+# databases:
+#   - name: pahadi-basera-db
+#     databaseName: pahadi_basera
+#     user: postgres
+#     plan: free # or starter
+#     region: singapore
