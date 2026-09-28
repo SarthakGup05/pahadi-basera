@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import api from '@/lib/api';
 import { 
   Clock, 
   MapPin, 
@@ -71,9 +72,7 @@ export default function PackageGrid({
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/packages/get-all-packages');
-        if (!res.ok) throw new Error('Failed to retrieve package listings');
-        const data = await res.json();
+        const { data } = await api.get<PackageItem[]>('/api/packages/get-all-packages');
         setPackages(data);
       } catch (err) {
         console.error('Error fetching packages from DB:', err);

@@ -127,7 +127,7 @@ export default function PackageFilter({
   const getDurationName = (id: string) => durations.find(d => d.id === id)?.name || 'Duration';
   const hasActiveFilters = selectedRegion !== 'All' || selectedDuration !== 'Any' || selectedDifficulty !== 'All' || selectedVibe !== 'All' || selectedGuests > 1;
 
-  const GuestsCounter = () => (
+  const renderGuestsCounter = () => (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex items-center justify-between">
         <div>
@@ -282,7 +282,7 @@ export default function PackageFilter({
             <h3 className="text-base font-bold text-stone-850 mb-4 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-[#10b981]" /> Who is coming?
             </h3>
-            <GuestsCounter />
+            {renderGuestsCounter()}
           </div>
 
           {/* Section 4: Advanced Vibe & Difficulty Filters */}
@@ -518,7 +518,7 @@ export default function PackageFilter({
             <h3 className="text-xs font-bold text-stone-900 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Users className="w-4 h-4 text-[#10b981]" /> Travelers Count
             </h3>
-            <GuestsCounter />
+            {renderGuestsCounter()}
           </div>
         )}
 
