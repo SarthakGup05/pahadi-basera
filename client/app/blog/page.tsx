@@ -6,7 +6,8 @@ import { Search, MapPin, Star, ArrowRight, BookOpen, Compass, TrendingUp, Rotate
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Banner from '@/components/ui/Banner';
-import { blogLogs, BlogItem } from '@/lib/blogData';
+import { BlogItem } from '@/lib/blogData';
+import api from '@/lib/api';
 
 export default function BlogFeedPage() {
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
@@ -17,10 +18,8 @@ export default function BlogFeedPage() {
   useEffect(() => {
     async function fetchBlogs() {
       try {
-        const res = await fetch('http://localhost:5000/api/blogs');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+        const { data } = await api.get('/api/blogs');
+        if (Array.isArray(data) && data.length > 0) {
             const mapped = data.map((post: any) => ({
               id: post.id,
               title: post.title,
@@ -45,11 +44,10 @@ export default function BlogFeedPage() {
             setBlogs(mapped);
             return;
           }
-        }
       } catch (err) {
-        console.error('Failed to fetch blogs from API, falling back to local data:', err);
+        console.error('Failed to fetch blogs from API:', err);
       }
-      setBlogs(blogLogs);
+      setBlogs([]);
     }
     fetchBlogs().finally(() => setLoading(false));
   }, []);

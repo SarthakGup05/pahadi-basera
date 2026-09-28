@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import api from '@/lib/api';
 import { 
   ArrowLeft, 
   Clock, 
@@ -61,9 +62,7 @@ export default function PackageDetailPage() {
     setMounted(true);
     const fetchPkg = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/packages/get-package/${slug}`);
-        if (!res.ok) throw new Error('Failed to fetch package detail');
-        const data = await res.json();
+        const { data } = await api.get(`/api/packages/get-package/${slug}`);
         setPkg(data);
       } catch (err) {
         console.error('Error loading package detail:', err);

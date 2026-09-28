@@ -6,15 +6,17 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, MapPin, Eye, Compass, Calendar, ShieldCheck, Heart, Share2, Info } from 'lucide-react';
 import Banner from '@/components/ui/Banner';
 import { Button } from '@/components/ui/button';
-import { blogLogs, BlogItem } from '@/lib/blogData';
+import { BlogItem } from '@/lib/blogData';
+import api from '@/lib/api';
 
 export default function BlogDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slug = params?.slug as string;
 
   const [mounted, setMounted] = useState(false);
   const [blog, setBlog] = useState<BlogItem | null>(null);
+  const [recommendedBlogs, setRecommendedBlogs] = useState<BlogItem[]>([]);
   const [likes, setLikes] = useState(42);
   const [hasLiked, setHasLiked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -23,48 +25,79 @@ export default function BlogDetailPage() {
     setMounted(true);
     async function fetchBlog() {
       try {
-        const res = await fetch(`http://localhost:5000/api/blogs/${slug}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.id) {
-            const mapped: BlogItem = {
-              id: data.id,
-              title: data.title,
-              excerpt: data.excerpt,
-              content: data.content,
-              altitude: data.altitude,
-              duration: data.duration,
-              author: {
-                name: data.authorName,
-                role: data.authorRole,
-                avatar: data.authorAvatar,
-                socials: { instagram: '#', twitter: '#', substack: '#' }
-              },
-              images: data.images,
-              views: data.views,
-              tags: data.tags,
-              difficulty: data.difficulty as any,
-              bestSeason: data.bestSeason,
-              gearList: data.gearList,
-              routeCoordinates: data.routeCoordinates || []
-            };
-            setBlog(mapped);
-            setLikes(Math.floor(parseFloat(mapped.views) * 10) + 12);
-            return;
+        const { data } = await api.get(`/api/blogs/${slug}`);
+        if (data && data.id) {
+          const mapped: BlogItem = {
+            id: data.id,
+            title: data.title,
+            excerpt: data.excerpt,
+            content: data.content,
+            altitude: data.altitude,
+            duration: data.duration,
+            author: {
+              name: data.authorName || data.author?.name || 'Explorer',
+              role: data.authorRole || data.author?.role || 'Alpine Contributor',
+              avatar: data.authorAvatar || data.author?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+              socials: { instagram: '#', twitter: '#', substack: '#' }
+            },
+            images: Array.isArray(data.images) && data.images.length > 0 ? data.images : ['https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop'],
+            views: data.views || '1.2K views',
+            tags: Array.isArray(data.tags) ? data.tags : ['Himalayas'],
+            difficulty: (data.difficulty as any) || 'Moderate',
+            bestSeason: data.bestSeason || 'Year-round',
+            gearList: Array.isArray(data.gearList) ? data.gearList : ['Thermal layer', 'Hiking boots', 'Water filter'],
+            routeCoordinates: Array.isArray(data.routeCoordinates) ? data.routeCoordinates : []
+          };
+          setBlog(mapped);
+          setLikes(Math.floor(parseFloat(mapped.views) * 10) + 12);
+        } else {
+          setBlog(null);
+        }
+
+        // Fetch recommended blogs from backend
+        try {
+          const { data: recData } = await api.get('/api/blogs');
+          if (Array.isArray(recData)) {
+            const mappedRecs: BlogItem[] = recData
+              .filter((b: any) => b.id !== slug)
+              .slice(0, 3)
+              .map((b: any) => ({
+                id: b.id,
+                title: b.title,
+                excerpt: b.excerpt,
+                content: b.content,
+                altitude: b.altitude || '2,400m',
+                duration: b.duration || '3 Days',
+                author: {
+                  name: b.authorName || 'Explorer',
+                  role: b.authorRole || 'Writer',
+                  avatar: b.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+                  socials: { instagram: '#', twitter: '#', substack: '#' }
+                },
+                images: Array.isArray(b.images) && b.images.length > 0 ? b.images : ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'],
+                views: b.views || '1.1K views',
+                tags: Array.isArray(b.tags) ? b.tags : [],
+                difficulty: b.difficulty || 'Moderate',
+                bestSeason: b.bestSeason || 'All season',
+                gearList: b.gearList || [],
+                routeCoordinates: b.routeCoordinates || []
+              }));
+            setRecommendedBlogs(mappedRecs);
           }
+        } catch (recErr) {
+          console.error('Failed to load recommended blogs:', recErr);
         }
       } catch (err) {
-        console.error('Failed to fetch blog details from API, falling back to local data:', err);
-      }
-
-      // Fallback to static data
-      const foundBlog = blogLogs.find((b) => b.id === slug);
-      if (foundBlog) {
-        setBlog(foundBlog);
-        setLikes(Math.floor(parseFloat(foundBlog.views) * 10) + 12);
+        console.error('Failed to fetch blog details from API:', err);
+        setBlog(null);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchBlog().finally(() => setLoading(false));
+
+    if (slug) {
+      fetchBlog();
+    }
   }, [slug]);
 
   if (!mounted || loading) {
@@ -100,9 +133,6 @@ export default function BlogDetailPage() {
     { label: 'Journals', href: '/blog' },
     { label: blog.title, isCurrent: true }
   ];
-
-  // Get other recommended blogs
-  const recommendedBlogs = blogLogs.filter((b) => b.id !== blog.id).slice(0, 3);
 
   const handleLike = () => {
     if (hasLiked) {

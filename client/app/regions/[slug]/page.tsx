@@ -26,16 +26,18 @@ import {
 } from 'lucide-react';
 import Banner from '@/components/ui/Banner';
 import { Button } from '@/components/ui/button';
-import { regionsList, regionalPropertiesList, RegionItem } from '@/lib/regionsData';
-import { packagesList } from '@/lib/packagesData';
+import { regionsList, RegionItem } from '@/lib/regionsData';
+import api from '@/lib/api';
 
 export default function RegionDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slug = params?.slug as string;
 
   const [mounted, setMounted] = useState(false);
   const [region, setRegion] = useState<RegionItem | null>(null);
+  const [matchingProperties, setMatchingProperties] = useState<any[]>([]);
+  const [matchingPackages, setMatchingPackages] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -44,6 +46,48 @@ export default function RegionDetailPage() {
       setRegion(foundRegion);
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (region) {
+      api.get('/api/properties/get-all-properties').then(({ data }) => {
+        if (Array.isArray(data)) {
+          const regionKey = region.title.toLowerCase();
+          const idKey = region.id.toLowerCase();
+          const filtered = data.filter((p: any) => 
+            p.location?.toLowerCase().includes(regionKey) || 
+            p.location?.toLowerCase().includes(idKey) ||
+            region.featuredStayIds?.includes(p.id)
+          ).map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            location: p.location,
+            image: (Array.isArray(p.images) && p.images[0]) || p.bgImage || 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop',
+            rating: p.rating || '4.9',
+            pricePerNight: Number(p.pricePerNight) || 4500,
+            guests: p.guests || 2,
+            bedrooms: p.bedrooms || 1,
+            bathrooms: p.bathrooms || 1,
+            badge: p.badge || 'Signature'
+          }));
+          setMatchingProperties(filtered);
+        }
+      }).catch(() => {});
+
+      api.get('/api/packages/get-all-packages').then(({ data }) => {
+        if (Array.isArray(data)) {
+          const regionKey = region.title.toLowerCase();
+          const idKey = region.id.toLowerCase();
+          const filtered = data.filter((pkg: any) => 
+            pkg.region?.toLowerCase() === idKey ||
+            pkg.region?.toLowerCase().includes(regionKey) ||
+            pkg.location?.toLowerCase().includes(regionKey) ||
+            region.featuredPackageIds?.includes(pkg.id)
+          );
+          setMatchingPackages(filtered);
+        }
+      }).catch(() => {});
+    }
+  }, [region]);
 
   if (!mounted) {
     return (
@@ -78,10 +122,6 @@ export default function RegionDetailPage() {
     { label: 'Regions', href: '/regions' },
     { label: region.title, isCurrent: true }
   ];
-
-  // Fetch stays & packages matching this region
-  const matchingProperties = regionalPropertiesList.filter(p => region.featuredStayIds.includes(p.id));
-  const matchingPackages = packagesList.filter(pkg => region.featuredPackageIds.includes(pkg.id));
 
   return (
     <div className="bg-[#FAFAFA] min-h-screen pb-24 font-sans text-stone-850 selection:bg-[#10b981]/20 selection:text-[#0e9f6e] relative overflow-hidden">
@@ -376,7 +416,7 @@ export default function RegionDetailPage() {
                   </p>
 
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {pkg.includes.map((inc, idx) => (
+                    {Array.isArray(pkg.includes) && pkg.includes.map((inc: any, idx: number) => (
                       <span key={idx} className="text-[7.5px] font-bold bg-stone-50 border border-stone-150 rounded px-1.5 py-0.5 text-stone-500 uppercase tracking-wider">
                         {inc.name}
                       </span>
