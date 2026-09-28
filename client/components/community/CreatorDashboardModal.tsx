@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import api from '@/lib/api';
 import { 
   X, 
   DollarSign, 
@@ -38,15 +39,9 @@ export default function CreatorDashboardModal({
     async function fetchReferralStats() {
       setLoading(true);
       try {
-        const token = localStorage.getItem('pb_admin_token') || localStorage.getItem('pb_token');
-        const res = await fetch('http://localhost:5000/api/referrals/my-stats', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-          return;
-        }
+        const { data } = await api.get('/api/referrals/my-stats');
+        setStats(data);
+        return;
       } catch (e) {
         // Fallback demo stats
       }
@@ -97,7 +92,8 @@ export default function CreatorDashboardModal({
 
   const copyLink = () => {
     const code = stats?.referralCode || creatorProfile?.referralCode || 'HIMALAYA8';
-    navigator.clipboard.writeText(`http://localhost:3000/properties?ref=${code}`);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    navigator.clipboard.writeText(`${origin}/properties?ref=${code}`);
     setCopied(true);
     toast.success('Referral link copied to clipboard!');
     setTimeout(() => setCopied(false), 2500);

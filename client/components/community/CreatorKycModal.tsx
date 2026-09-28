@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import api from '@/lib/api';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -67,32 +68,15 @@ export default function CreatorKycModal({ isOpen, onClose, onSuccess }: CreatorK
 
     setIsVerifying(true);
     try {
-      const token = localStorage.getItem('pb_admin_token') || localStorage.getItem('pb_token');
-
-      // We send request to our automated DigiLocker backend endpoint
-      const res = await fetch('http://localhost:5000/api/kyc/verify-aadhaar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          fullName,
-          aadhaarNumber: aadhaarNumber.replace(/\D/g, ''),
-          socialProfile: socialHandle,
-          bio,
-          upiId
-        })
+      // Send request to automated DigiLocker backend endpoint
+      const { data } = await api.post('/api/kyc/verify-aadhaar', {
+        fullName,
+        aadhaarNumber: aadhaarNumber.replace(/\D/g, ''),
+        socialProfile: socialHandle,
+        bio,
+        upiId
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        // Fallback simulation if token missing or guest session
-        simulateInstantVerification();
-        return;
-      }
-
-      const data = await res.json();
       setVerifiedData(data.user);
       setStep(4);
       onSuccess(data.user);
@@ -124,7 +108,8 @@ export default function CreatorKycModal({ isOpen, onClose, onSuccess }: CreatorK
   };
 
   const copyReferralLink = () => {
-    const link = `http://localhost:3000/properties?ref=${verifiedData?.referralCode || 'HIMALAYA8'}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const link = `${origin}/properties?ref=${verifiedData?.referralCode || 'HIMALAYA8'}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     toast.success('Referral link copied to clipboard!');
