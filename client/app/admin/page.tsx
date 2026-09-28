@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import api from '@/lib/api';
 import { toast } from 'sonner';
 import { 
   AreaChart, 
@@ -87,28 +88,14 @@ export default function AdminDashboard() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      if (!token) throw new Error('No admin authentication token found.');
-
-      const res = await fetch('http://localhost:5000/api/admin/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          window.dispatchEvent(new CustomEvent('pb:unauthorized'));
-          return;
-        }
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.error || 'Failed to fetch dashboard statistics.');
-      }
-
-      const data = await res.json();
+      const { data } = await api.get('/api/admin/stats');
       setStats(data);
       setLastUpdated(new Date());
     } catch (err: any) {
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        window.dispatchEvent(new CustomEvent('pb:unauthorized'));
+        return;
+      }
       setError(err.message);
       toast.error(err.message || 'Error fetching stats');
     } finally {

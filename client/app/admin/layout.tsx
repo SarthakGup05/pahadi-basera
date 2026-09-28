@@ -9,6 +9,7 @@ import { Toaster, toast } from 'sonner';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+import api from '@/lib/api';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -50,20 +51,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+      const { data } = await api.post('/api/auth/login', {
+        email: loginEmail,
+        password: loginPassword
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Authentication failed');
-      }
-
-      const data = await res.json();
       if (data.role !== 'ADMIN') {
         throw new Error('Access denied. Super Admin permissions required.');
       }

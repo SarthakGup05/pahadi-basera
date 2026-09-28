@@ -28,6 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { PackageItem } from '@/lib/packagesData';
+import api from '@/lib/api';
 
 export default function AdminPackages() {
   const [packages, setPackages] = useState<PackageItem[]>([]);
@@ -76,21 +77,7 @@ export default function AdminPackages() {
   const fetchPackages = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      if (!token) throw new Error('Admin authorization required.');
-
-      const res = await fetch('http://localhost:5000/api/packages/admin/all', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to retrieve package listings');
-      }
-
-      const data = await res.json();
+      const { data } = await api.get('/api/packages/admin/all');
       setPackages(data);
     } catch (err: any) {
       toast.error(err.message || 'Error loading packages');
@@ -106,22 +93,8 @@ export default function AdminPackages() {
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     setUpdatingId(id);
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      const res = await fetch(`http://localhost:5000/api/packages/toggle-active/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to update package status');
-      }
-
-      const updated = await res.json();
-      setPackages(prev => prev.map(p => p.id === id ? { ...p, isActive: updated.isActive } : p));
+      const { data } = await api.put(`/api/packages/toggle-active/${id}`);
+      setPackages(prev => prev.map(p => p.id === id ? { ...p, isActive: data.isActive } : p));
       toast.success(currentStatus ? 'Package set to inactive.' : 'Package published successfully!');
     } catch (err: any) {
       toast.error(err.message || 'Error toggling package state');
@@ -201,19 +174,7 @@ export default function AdminPackages() {
   const handleDeletePackage = async () => {
     if (!packageToDelete) return;
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      const res = await fetch(`http://localhost:5000/api/packages/delete-package/${packageToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to delete package');
-      }
-
+      await api.delete(`/api/packages/delete-package/${packageToDelete.id}`);
       setPackages(prev => prev.filter(p => p.id !== packageToDelete.id));
       toast.success('Package deleted successfully!');
     } catch (err: any) {
@@ -287,30 +248,17 @@ export default function AdminPackages() {
     };
 
     try {
-      const url = editingPackage 
-        ? `http://localhost:5000/api/packages/update-package/${editingPackage.id}`
-        : 'http://localhost:5000/api/packages/create-package';
-      
-      const method = editingPackage ? 'PUT' : 'POST';
-
       // Attach ID for creations
       const fullPayload = editingPackage ? payload : { ...payload, id: idSlug };
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(fullPayload)
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to submit package');
+      let saved;
+      if (editingPackage) {
+        const { data } = await api.put(`/api/packages/update-package/${editingPackage.id}`, fullPayload);
+        saved = data;
+      } else {
+        const { data } = await api.post('/api/packages/create-package', fullPayload);
+        saved = data;
       }
-
-      const saved = await res.json();
       if (editingPackage) {
         setPackages(prev => prev.map(p => p.id === editingPackage.id ? saved : p));
         toast.success('Package details updated successfully!');

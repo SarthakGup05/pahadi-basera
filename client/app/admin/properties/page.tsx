@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import api from '@/lib/api';
 
 interface Property {
   id: string;
@@ -99,21 +100,7 @@ export default function AdminProperties() {
   const fetchProperties = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      if (!token) throw new Error('Admin authorization required.');
-
-      const res = await fetch('http://localhost:5000/api/admin/properties', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to retrieve properties');
-      }
-
-      const data = await res.json();
+      const { data } = await api.get('/api/admin/properties');
       setProperties(data);
     } catch (err: any) {
       toast.error(err.message || 'Error loading listings');
@@ -129,20 +116,7 @@ export default function AdminProperties() {
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     setUpdatingId(id);
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      const res = await fetch(`http://localhost:5000/api/admin/properties/${id}/toggle-active`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to update listing status');
-      }
-
+      await api.put(`/api/admin/properties/${id}/toggle-active`);
       setProperties(prev => prev.map(p => p.id === id ? { ...p, isActive: !currentStatus } : p));
       toast.success(currentStatus ? 'Listing unpublished.' : 'Listing published successfully!');
     } catch (err: any) {
@@ -151,6 +125,8 @@ export default function AdminProperties() {
       setUpdatingId(null);
     }
   };
+
+
 
   const handleOpenCreateForm = () => {
     setEditingProperty(null);
@@ -256,32 +232,12 @@ export default function AdminProperties() {
 
     setIsLoading(true);
     try {
-      let res;
       if (editingProperty) {
         // Edit property
-        res = await fetch(`http://localhost:5000/api/properties/update-property/${editingProperty.id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
+        await api.put(`/api/properties/update-property/${editingProperty.id}`, payload);
       } else {
         // Create property
-        res = await fetch('http://localhost:5000/api/properties/create-property', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-      }
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to submit stay details.');
+        await api.post('/api/properties/create-property', payload);
       }
 
       toast.success(editingProperty ? 'Stay updated successfully!' : 'New stay created successfully!');
@@ -300,20 +256,9 @@ export default function AdminProperties() {
 
   const handleDeleteProperty = async () => {
     if (!propertyToDelete) return;
-    const token = localStorage.getItem('pb_admin_token');
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/properties/delete-property/${propertyToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to delete listing');
-      }
+      await api.delete(`/api/properties/delete-property/${propertyToDelete.id}`);
 
       toast.success(`Deleted property: ${propertyToDelete.title}`);
       setIsOpenDeleteConfirm(false);

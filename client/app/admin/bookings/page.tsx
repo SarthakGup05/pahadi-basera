@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import api from '@/lib/api';
 
 interface BookingService {
   id: string;
@@ -62,21 +63,7 @@ export default function AdminBookings() {
   const fetchBookings = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      if (!token) throw new Error('Admin authorization required.');
-
-      const res = await fetch('http://localhost:5000/api/admin/bookings', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to retrieve bookings ledger');
-      }
-
-      const data = await res.json();
+      const { data } = await api.get('/api/admin/bookings');
       setBookings(data);
     } catch (err: any) {
       toast.error(err.message || 'Error loading bookings');
@@ -92,20 +79,7 @@ export default function AdminBookings() {
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      const res = await fetch(`http://localhost:5000/api/admin/bookings/${id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to update booking status');
-      }
+      await api.put(`/api/admin/bookings/${id}/status`, { status: newStatus });
 
       // Update state locally
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));

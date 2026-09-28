@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import api from '@/lib/api';
 import { 
   Bell, 
   Calendar, 
@@ -41,24 +42,12 @@ export default function AdminHeader({ pathname }: AdminHeaderProps) {
       const token = localStorage.getItem('pb_admin_token');
       if (!token) return;
 
-      const res = await fetch('http://localhost:5000/api/notifications', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          window.dispatchEvent(new CustomEvent('pb:unauthorized'));
-          return;
-        }
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.error || 'Failed to fetch notifications');
-      }
-
-      const data = await res.json();
+      const { data } = await api.get('/api/notifications');
       setNotifications(data);
     } catch (err: any) {
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        window.dispatchEvent(new CustomEvent('pb:unauthorized'));
+      }
       console.error('Error fetching notifications:', err.message);
     }
   };
@@ -86,17 +75,7 @@ export default function AdminHeader({ pathname }: AdminHeaderProps) {
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
 
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      if (!token) return;
-
-      const res = await fetch('http://localhost:5000/api/notifications/mark-read', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) throw new Error('Failed to mark all as read');
+      await api.put('/api/notifications/mark-read');
     } catch (err: any) {
       console.error('Failed to mark all read in database:', err.message);
       fetchNotifications();
@@ -110,17 +89,7 @@ export default function AdminHeader({ pathname }: AdminHeaderProps) {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
 
     try {
-      const token = localStorage.getItem('pb_admin_token');
-      if (!token) return;
-
-      const res = await fetch(`http://localhost:5000/api/notifications/${id}/mark-read`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) throw new Error('Failed to mark notification as read');
+      await api.put(`/api/notifications/${id}/mark-read`);
     } catch (err: any) {
       console.error('Failed to mark single read in database:', err.message);
       fetchNotifications();
