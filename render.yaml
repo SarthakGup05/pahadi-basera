@@ -10,9 +10,9 @@ services:
   - type: web
     name: pahadi-basera-backend
     runtime: docker
-    dockerfilePath: server/Dockerfile
-    dockerContext: server
     rootDir: server
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: starter # Change to 'free' or higher as needed
     region: singapore # Options: oregon, frankfurt, ohio, singapore
     healthCheckPath: /health
@@ -39,9 +39,9 @@ services:
   - type: web
     name: pahadi-basera-client
     runtime: docker
-    dockerfilePath: client/Dockerfile
-    dockerContext: client
     rootDir: client
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: starter # Change to 'free' or higher as needed
     region: singapore
     healthCheckPath: /
