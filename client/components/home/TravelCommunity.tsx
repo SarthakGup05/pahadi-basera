@@ -1,74 +1,54 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   MapPin,
   ArrowRight,
   Globe,
-  ArrowUpRight
+  ArrowUpRight,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
-const blogLogs = [
-  {
-    id: 'chopta-meadows',
-    title: 'The Silent Meadows of Chopta: A Winter Solitude Log',
-    excerpt: 'Stepping off the grid into deep pine woodlands covered in thick snow. This is the story of discovering pristine silent ridges untouched by mainstream tourism.',
-    altitude: '2,680m',
-    duration: '3 Days Trek',
-    author: {
-      name: 'Aarav Semwal',
-      role: 'Alpine Photographer',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      socials: { instagram: '#', twitter: '#', substack: '#' }
-    },
-    images: [
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80'
-    ],
-    views: '12.4K views',
-    tags: ['Chopta', 'Garhwal', 'Solo Trek']
-  },
-  {
-    id: 'almora-retreat',
-    title: 'Discovering Secret Wild Orchards in Almora',
-    excerpt: 'Living alongside local Kumaoni farmers in ancestral stone houses. A journey into sustainable organic farming, slow forest bathing, and traditional local cuisine.',
-    altitude: '1,600m',
-    duration: '5 Days Rest',
-    author: {
-      name: 'Priyanka Rawat',
-      role: 'Cultural Gastronomist',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-      socials: { instagram: '#', twitter: '#', substack: '#' }
-    },
-    images: [
-      'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
-    ],
-    views: '9.8K views',
-    tags: ['Almora', 'Kumaon', 'Organic']
-  },
-  {
-    id: 'auli-slopes',
-    title: 'Living Under the Panchachuli Stars in Auli',
-    excerpt: 'An expedition report detailing the sub-zero stargazing conditions, astrophotography techniques, and building fires underneath high Himalayan peaks.',
-    altitude: '3,050m',
-    duration: '4 Days Camp',
-    author: {
-      name: 'Vikram Negi',
-      role: 'Astro-Photographer',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-      socials: { instagram: '#', twitter: '#', substack: '#' }
-    },
-    images: [
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
-    ],
-    views: '15.6K views',
-    tags: ['Auli', 'Stargazing', 'Telescope']
-  }
-];
+import api from '@/lib/api';
 
 const TravelCommunity = () => {
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const { data } = await api.get<any[]>('/api/blogs');
+        if (Array.isArray(data)) {
+          const formatted = data.map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            excerpt: b.excerpt,
+            altitude: b.altitude || '2,400m',
+            duration: b.duration || '3 Days',
+            author: {
+              name: b.author?.name || b.authorName || 'Himalayan Explorer',
+              role: b.author?.role || b.authorRole || 'Alpine Chronicler',
+              avatar: b.author?.avatar || b.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+              socials: b.author?.socials || { instagram: '#', twitter: '#', substack: '#' }
+            },
+            images: Array.isArray(b.images) && b.images.length > 0 ? b.images : ['https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80'],
+            views: b.views || '1.2K views',
+            tags: Array.isArray(b.tags) && b.tags.length > 0 ? b.tags : ['Himalayas', 'Expedition']
+          }));
+          setBlogs(formatted);
+        }
+      } catch (err) {
+        console.error('Failed to fetch community blogs:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
   const handleJoinCommunity = () => {
     alert(
       `💚 Welcome to the Pahadi Explorers Community!\n\n` +
@@ -115,58 +95,82 @@ const TravelCommunity = () => {
           </p>
         </div>
 
-        {/* 3-Column Blog Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-24 text-left">
-          {blogLogs.map((log) => (
-            <Link
-              key={log.id}
-              href={`/blog/${log.id}`}
-              className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
-            >
-              {/* Card Images Segment */}
-              <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
-                <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden shadow-sm bg-zinc-100">
-
-                  {/* Subtle vignette gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent z-10 opacity-70 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none" />
-
-                  {/* Main cover image */}
-                  <img
-                    src={log.images[0]}
-                    alt={log.title}
-                    className="w-full h-full object-cover transform-gpu transition-transform duration-[10000ms] ease-out group-hover:scale-110"
-                  />
-
-                  {/* Top Stats badges */}
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-                    <span className="px-3 py-1.5 bg-white/10 backdrop-blur-md text-white text-[9px] font-bold tracking-widest uppercase rounded-lg border border-white/20 shadow-sm">
-                      {log.views} views
-                    </span>
-                    <span className="text-[9px] font-bold tracking-widest text-emerald-300 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-sm">
-                      {log.duration}
-                    </span>
-                  </div>
-
-                  {/* Location & Altitude Bottom Overlay */}
-                  <div className="absolute bottom-4 left-4 right-4 z-20 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-white text-[11px] font-bold tracking-wider drop-shadow-md">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                      {log.tags[0]}
-                    </div>
-                    <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest drop-shadow-md">
-                      Alt: {log.altitude}
-                    </span>
-                  </div>
-
-                </div>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-24">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm animate-pulse p-4">
+                <div className="w-full h-48 bg-gray-200 rounded-[1.5rem] mb-4" />
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-3" />
+                <div className="h-6 bg-gray-200 rounded w-4/5 mb-3" />
+                <div className="h-4 bg-gray-100 rounded w-full mb-4" />
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && blogs.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 max-w-lg mx-auto shadow-sm mb-24">
+            <Sparkles className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Mountain Stories Incoming</h3>
+            <p className="text-sm text-gray-500">Fresh expedition logs and travel guides are being drafted. Check back soon!</p>
+          </div>
+        )}
+
+        {/* 3-Column Blog Cards Grid */}
+        {!isLoading && blogs.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mb-24 text-left">
+            {blogs.slice(0, 3).map((log) => (
+              <Link
+                key={log.id}
+                href={`/blog/${log.id}`}
+                className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              >
+                {/* Card Images Segment */}
+                <div className="w-full h-48 sm:h-52 shrink-0 relative p-2.5 pb-0">
+                  <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden shadow-sm bg-zinc-100">
+
+                    {/* Subtle vignette gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent z-10 opacity-70 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none" />
+
+                    {/* Main cover image */}
+                    <img
+                      src={log.images[0]}
+                      alt={log.title}
+                      className="w-full h-full object-cover transform-gpu transition-transform duration-[10000ms] ease-out group-hover:scale-110"
+                    />
+
+                    {/* Top Stats badges */}
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
+                      <span className="px-3 py-1.5 bg-white/10 backdrop-blur-md text-white text-[9px] font-bold tracking-widest uppercase rounded-lg border border-white/20 shadow-sm">
+                        {log.views}
+                      </span>
+                      <span className="text-[9px] font-bold tracking-widest text-emerald-300 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-sm">
+                        {log.duration}
+                      </span>
+                    </div>
+
+                    {/* Location & Altitude Bottom Overlay */}
+                    <div className="absolute bottom-4 left-4 right-4 z-20 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-white text-[11px] font-bold tracking-wider drop-shadow-md">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                        {log.tags[0] || 'Himalayas'}
+                      </div>
+                      <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest drop-shadow-md">
+                        Alt: {log.altitude}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
 
               {/* Card Content details */}
               <div className="p-6 md:p-7 flex flex-col flex-1 bg-white">
 
                 {/* Hash Tags */}
                 <div className="flex items-center gap-2 mb-4 flex-wrap">
-                  {log.tags.map((tag, i) => (
+                  {Array.isArray(log.tags) && log.tags.map((tag: string, i: number) => (
                     <span key={i} className="text-[9px] font-bold uppercase tracking-wider text-[#10b981] bg-emerald-50/80 px-2.5 py-1 rounded-md border border-emerald-100/50">
                       #{tag}
                     </span>
@@ -203,6 +207,7 @@ const TravelCommunity = () => {
             </Link>
           ))}
         </div>
+      )}
 
         {/* Unified Premium Call to Action Banner */}
         <div className="relative overflow-hidden bg-zinc-950 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-14 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] z-10 border border-white/10 group/banner">

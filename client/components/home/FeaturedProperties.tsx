@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import api from '@/lib/api';
 import { 
   Star, 
   Users, 
@@ -18,7 +19,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { propertiesList, PropertyItem } from '@/lib/propertiesData';
+import type { PropertyItem } from '@/lib/propertiesData';
 
 const CATEGORIES = [
   { id: 'ALL', name: 'All Baseras', icon: Sparkles },
@@ -32,42 +33,42 @@ const CATEGORIES = [
 const FeaturedProperties = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
-  const [properties, setProperties] = useState<PropertyItem[]>(() => {
-    return propertiesList.filter((p) => p.isFeatured && p.isActive);
-  });
+  const [properties, setProperties] = useState<PropertyItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Try fetching live properties from Supabase backend with fallback
+  // Fetch live properties from backend
   useEffect(() => {
     const fetchLiveProperties = async () => {
+      setIsLoading(true);
       try {
-        const res = await fetch('http://localhost:5000/api/properties/get-all-properties');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            // Map live DB properties to expected item structure if needed
-            const mapped = data.map((p: any) => ({
-              id: p.id,
-              title: p.title,
-              description: p.description,
-              location: p.location || 'Himalayan Ridge',
-              pricePerNight: p.basePrice || 6500,
-              rating: '4.9',
-              reviewsCount: p.reviews?.length || 24,
-              badge: p.isFeatured ? 'Guest Favourite' : null,
-              image: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
-              altitude: p.altitude || 2100,
-              maxGuests: p.maxGuests || 4,
-              bedrooms: p.bedrooms || 2,
-              bathrooms: p.bathrooms || 2,
-              type: p.type || 'COTTAGE',
-              isActive: p.isActive,
-              isFeatured: p.isFeatured,
-            }));
-            setProperties(mapped as any);
-          }
+        const { data } = await api.get('/api/properties/get-all-properties');
+        if (Array.isArray(data)) {
+          const mapped = data.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description || '',
+            location: p.location || 'Himalayan Ridge',
+            pricePerNight: p.basePrice || 0,
+            rating: '4.9',
+            reviewsCount: p.reviews?.length || 0,
+            badge: p.isFeatured ? 'Guest Favourite' : null,
+            image: p.images?.[0]?.url || 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
+            altitude: p.altitude || 2100,
+            maxGuests: p.maxGuests || 4,
+            bedrooms: p.bedrooms || 2,
+            bathrooms: p.bathrooms || 2,
+            type: p.type || 'COTTAGE',
+            isActive: p.isActive,
+            isFeatured: p.isFeatured,
+            amenities: p.amenities || [],
+            services: p.services || []
+          }));
+          setProperties(mapped);
         }
       } catch (e) {
-        // Fall back gracefully to static mock catalog
+        console.error('Failed to load live properties from API:', e);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchLiveProperties();
@@ -141,8 +142,20 @@ const FeaturedProperties = () => {
       </div>
 
       {/* Luxury Property Cards Grid (Airbnb Style) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
-        {filteredProperties.slice(0, 8).map((property) => {
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="flex flex-col gap-3 animate-pulse">
+              <div className="w-full aspect-[4/3] rounded-2xl bg-stone-200/80" />
+              <div className="h-4 bg-stone-200/80 rounded-md w-3/4 mt-1" />
+              <div className="h-3 bg-stone-200/80 rounded-md w-1/2" />
+              <div className="h-4 bg-stone-200/80 rounded-md w-1/3 mt-1" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
+          {filteredProperties.slice(0, 8).map((property) => {
           const isLiked = favorites[property.id];
           return (
             <Link 
@@ -227,9 +240,10 @@ const FeaturedProperties = () => {
             </Link>
           );
         })}
-      </div>
+        </div>
+      )}
 
-      {filteredProperties.length === 0 && (
+      {!isLoading && filteredProperties.length === 0 && (
         <div className="text-center py-16 bg-stone-50 rounded-2xl border border-stone-200/80">
           <p className="text-sm font-semibold text-stone-700">No properties in this category currently.</p>
           <p className="text-xs text-stone-400 mt-1">Try selecting &apos;All Baseras&apos; to view all available mountain stays.</p>

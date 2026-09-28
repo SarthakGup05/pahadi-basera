@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import api from '@/lib/api';
+import { PackageItem } from '@/lib/packagesData';
 import { 
   Clock, 
   MapPin, 
@@ -13,73 +15,40 @@ import {
   Tent, 
   Compass as GuideIcon, 
   Car, 
-  UtensilsCrossed 
+  UtensilsCrossed,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const getIconComponent = (name?: string) => {
+  switch (name) {
+    case 'Car': return Car;
+    case 'UtensilsCrossed': return UtensilsCrossed;
+    case 'Tent': return Tent;
+    case 'Guide': return GuideIcon;
+    case 'Sparkles': return Sparkles;
+    case 'Coffee': return Coffee;
+    default: return Sparkles;
+  }
+};
+
 const Packages = () => {
-  const packagesList = [
-    {
-      id: 'chopta-trek',
-      num: '01',
-      title: 'Chopta-Tungnath Summit Trek',
-      location: 'Chopta, Uttarakhand',
-      duration: '4 Days / 3 Nights',
-      vibe: 'High-Altitude Adventure',
-      difficulty: 'Moderate',
-      price: '12,499',
-      image: 'https://images.unsplash.com/photo-1589136777351-fd6e473e09a5?q=80&w=800&auto=format&fit=crop',
-      badge: "Trekker's Choice",
-      description: "Conquer the sacred ridge trail leading to the world's highest Shiva temple. Awaken to breathtaking sunrises casting golden hues on Mount Trishul and Nanda Devi.",
-      amenities: ['Professional Guide', 'Premium Alpine Tents', 'All Organic Meals'],
-      includes: [
-        { name: 'Transit', icon: Car },
-        { name: 'Meals', icon: UtensilsCrossed },
-        { name: 'Shelter', icon: Tent },
-        { name: 'Guide', icon: GuideIcon }
-      ]
-    },
-    {
-      id: 'almora-wellness',
-      num: '02',
-      title: 'Bohemian Wellness & Yoga Retreat',
-      location: 'Almora, Uttarakhand',
-      duration: '5 Days / 4 Nights',
-      vibe: 'Deep Rejuvenation',
-      difficulty: 'Relaxing',
-      price: '18,999',
-      image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop',
-      badge: 'Deep Rejuvenation',
-      description: 'Heal your body and soul within pristine pine forest glades. Features daily sunrise Hatha yoga sessions and quiet meditation walks along misty mountain ridges.',
-      amenities: ['Certified Yoga Guru', 'Farm-to-Table Dining', 'Forest Sauna Session'],
-      includes: [
-        { name: 'Transit', icon: Car },
-        { name: 'Vegan Meals', icon: UtensilsCrossed },
-        { name: 'Glass Cabin', icon: Tent },
-        { name: 'Wellness', icon: Sparkles }
-      ]
-    },
-    {
-      id: 'munsiyari-sky',
-      num: '03',
-      title: 'Munsiyari Celestial Sky Escapade',
-      location: 'Munsiyari, Uttarakhand',
-      duration: '6 Days / 5 Nights',
-      vibe: 'Celestial Luxury',
-      difficulty: 'Easy',
-      price: '24,500',
-      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-      badge: 'Stargazer Edition',
-      description: 'Retreat to a high-altitude sanctuary facing the colossal Panchachuli Peaks. Gaze deep into the cosmos from our private stargazing deck equipped with a high-end telescope.',
-      amenities: ['Astrophotography Guide', 'Private Telescope', 'Kumaoni Heritage Dining'],
-      includes: [
-        { name: 'Chauffeur', icon: Car },
-        { name: 'Dining', icon: UtensilsCrossed },
-        { name: 'Ridge Villa', icon: Tent },
-        { name: 'Telescope', icon: Coffee }
-      ]
-    }
-  ];
+  const [packagesList, setPackagesList] = useState<PackageItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const { data } = await api.get<PackageItem[]>('/api/packages/get-all-packages');
+        setPackagesList(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to fetch packages:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPackages();
+  }, []);
 
   const handleBookPackage = (pkgTitle: string) => {
     alert(`🏔️ Booking request initiated for: "${pkgTitle}"\n\nOur custom quotation and tax calculator will prepare your personalized experiential package!`);
@@ -124,131 +93,163 @@ const Packages = () => {
           </p>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm animate-pulse p-4">
+                <div className="w-full aspect-[16/11] bg-gray-200 rounded-[1.5rem] mb-4" />
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
+                <div className="h-4 bg-gray-100 rounded w-full mb-6" />
+                <div className="h-10 bg-gray-200 rounded-xl" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && packagesList.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 max-w-lg mx-auto shadow-sm">
+            <Sparkles className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
+            <h3 className="text-lg font-medium text-gray-900 mb-1">New Expeditions Loading</h3>
+            <p className="text-sm text-gray-500">Curated mountain packages are being updated. Check back shortly!</p>
+          </div>
+        )}
+
         {/* 3-Column Premium Package Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {packagesList.map((pkg) => (
-            <div 
-              key={pkg.id}
-              className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer"
-            >
-              
-              {/* Image & Header Overlay */}
-              <div className="relative aspect-[16/11] p-2.5 pb-0">
-                <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden shadow-sm">
-                  
-                  {/* Subtle Image Vignette Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
-                  
-                  {/* Background Image with Cinematic Ken Burns Zoom */}
-                  <img 
-                    src={pkg.image} 
-                    alt={pkg.title}
-                    className="w-full h-full object-cover transform-gpu transition-transform duration-[8000ms] ease-out group-hover:scale-110"
-                  />
-                  
-                  {/* Top Badges */}
-                  <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-20">
-                    <span className="px-3.5 py-1.5 bg-white/95 backdrop-blur-md text-[#10b981] text-[10px] font-bold tracking-widest uppercase rounded-lg shadow-sm border border-white/20 transition-transform duration-500 group-hover:scale-105">
-                      {pkg.badge}
-                    </span>
-                    <span className="text-[10px] font-bold tracking-widest text-white/70 bg-black/30 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-white/10">
-                      {pkg.num}
-                    </span>
-                  </div>
-
-                  {/* Frosted Glass Footer inside Image */}
-                  <div className="absolute bottom-3 left-3 right-3 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 transform-gpu transition-transform duration-500">
-                    <span className="block text-[9px] font-bold text-emerald-300 uppercase tracking-widest mb-1 drop-shadow-sm">
-                      {pkg.vibe}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-white text-[11px] font-semibold tracking-wide drop-shadow-md">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                      {pkg.location}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Package Details & Content */}
-              <div className="p-6 md:p-7 flex flex-col flex-1 bg-gradient-to-b from-white to-zinc-50/50">
+        {!isLoading && packagesList.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {packagesList.slice(0, 3).map((pkg, idx) => (
+              <div 
+                key={pkg.id || idx}
+                className="group flex flex-col bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-2 hover:border-emerald-100/50 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer"
+              >
                 
-                {/* Duration & Difficulty */}
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-4">
-                  <span className="flex items-center gap-1.5 text-gray-500">
-                    <Clock className="w-3.5 h-3.5 text-[#10b981]" />
-                    {pkg.duration}
-                  </span>
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-600 group-hover:bg-[#10b981]/10 group-hover:text-[#0e9f6e] transition-colors duration-300">
-                    <Flame className="w-3.5 h-3.5" />
-                    {pkg.difficulty}
-                  </span>
-                </div>
-
-                {/* Main Title */}
-                <h3 className="text-gray-900 group-hover:text-[#10b981] transition-colors duration-300 font-semibold text-xl md:text-2xl leading-tight mb-3 line-clamp-2">
-                  {pkg.title}
-                </h3>
-
-                {/* Editorial Description */}
-                <p className="text-xs font-light text-gray-500 leading-relaxed mb-6 line-clamp-2">
-                  {pkg.description}
-                </p>
-
-                {/* Micro-Pills for Includes (Replaces bulky grid) */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {pkg.includes.map((inc, i) => {
-                    const IncIcon = inc.icon;
-                    return (
-                      <div 
-                        key={i} 
-                        className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1.5 group-hover:border-emerald-100 group-hover:bg-emerald-50/30 transition-colors duration-300"
-                      >
-                        <IncIcon className="w-3 h-3 text-[#10b981]" />
-                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-wider">{inc.name}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Detailed Checklists */}
-                <div className="flex flex-col gap-2.5 mb-6 border-t border-gray-100 pt-5">
-                  {pkg.amenities.map((amenity, i) => (
-                    <div key={i} className="flex items-center gap-2.5 text-[11px] font-medium text-gray-600">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#10b981] flex-shrink-0" strokeWidth={2.5} />
-                      <span className="group-hover:text-gray-900 transition-colors duration-300">{amenity}</span>
+                {/* Image & Header Overlay */}
+                <div className="relative aspect-[16/11] p-2.5 pb-0">
+                  <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden shadow-sm">
+                    
+                    {/* Subtle Image Vignette Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    {/* Background Image with Cinematic Ken Burns Zoom */}
+                    <img 
+                      src={pkg.image || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop'} 
+                      alt={pkg.title}
+                      className="w-full h-full object-cover transform-gpu transition-transform duration-[8000ms] ease-out group-hover:scale-110"
+                    />
+                    
+                    {/* Top Badges */}
+                    <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-20">
+                      <span className="px-3.5 py-1.5 bg-white/95 backdrop-blur-md text-[#10b981] text-[10px] font-bold tracking-widest uppercase rounded-lg shadow-sm border border-white/20 transition-transform duration-500 group-hover:scale-105">
+                        {pkg.badge || 'Expedition'}
+                      </span>
+                      <span className="text-[10px] font-bold tracking-widest text-white/70 bg-black/30 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-white/10">
+                        {pkg.num || `0${idx + 1}`}
+                      </span>
                     </div>
-                  ))}
-                </div>
 
-                {/* Spacer to push footer down uniformly */}
-                <div className="flex-1" />
-
-                {/* Package Footer & Call to Action */}
-                <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Starting at</span>
-                    <div className="text-gray-900 flex items-baseline gap-1">
-                      <span className="font-bold text-xl md:text-2xl leading-none">₹{pkg.price}</span>
-                      <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">/pp</span>
+                    {/* Frosted Glass Footer inside Image */}
+                    <div className="absolute bottom-3 left-3 right-3 z-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 transform-gpu transition-transform duration-500">
+                      <span className="block text-[9px] font-bold text-emerald-300 uppercase tracking-widest mb-1 drop-shadow-sm">
+                        {pkg.vibe || 'Himalayan Escape'}
+                      </span>
+                      <span className="flex items-center gap-1.5 text-white text-[11px] font-semibold tracking-wide drop-shadow-md">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                        {pkg.location}
+                      </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Package Details & Content */}
+                <div className="p-6 md:p-7 flex flex-col flex-1 bg-gradient-to-b from-white to-zinc-50/50">
                   
-                  <Button 
-                    onClick={(e) => { e.stopPropagation(); handleBookPackage(pkg.title); }}
-                    className="group/btn relative overflow-hidden bg-zinc-900 hover:bg-[#10b981] text-white rounded-xl px-5 h-10 md:h-11 text-[10px] md:text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 shadow-md hover:shadow-[0_8px_20px_rgba(16,185,129,0.3)] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 border-0"
-                  >
-                    <span className="relative z-10 flex items-center gap-1.5">
-                      Reserve 
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                  {/* Duration & Difficulty */}
+                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-4">
+                    <span className="flex items-center gap-1.5 text-gray-500">
+                      <Clock className="w-3.5 h-3.5 text-[#10b981]" />
+                      {pkg.duration}
                     </span>
-                  </Button>
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-600 group-hover:bg-[#10b981]/10 group-hover:text-[#0e9f6e] transition-colors duration-300">
+                      <Flame className="w-3.5 h-3.5" />
+                      {pkg.difficulty}
+                    </span>
+                  </div>
+
+                  {/* Main Title */}
+                  <h3 className="text-gray-900 group-hover:text-[#10b981] transition-colors duration-300 font-semibold text-xl md:text-2xl leading-tight mb-3 line-clamp-2">
+                    {pkg.title}
+                  </h3>
+
+                  {/* Editorial Description */}
+                  <p className="text-xs font-light text-gray-500 leading-relaxed mb-6 line-clamp-2">
+                    {pkg.description}
+                  </p>
+
+                  {/* Micro-Pills for Includes */}
+                  {Array.isArray(pkg.includes) && pkg.includes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {pkg.includes.map((inc: any, i: number) => {
+                        const IncIcon = inc.icon || getIconComponent(inc.iconName || inc.name);
+                        return (
+                          <div 
+                            key={i} 
+                            className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1.5 group-hover:border-emerald-100 group-hover:bg-emerald-50/30 transition-colors duration-300"
+                          >
+                            <IncIcon className="w-3 h-3 text-[#10b981]" />
+                            <span className="text-[9px] font-bold text-gray-600 uppercase tracking-wider">{inc.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Detailed Checklists */}
+                  {Array.isArray(pkg.amenities) && pkg.amenities.length > 0 && (
+                    <div className="flex flex-col gap-2.5 mb-6 border-t border-gray-100 pt-5">
+                      {pkg.amenities.map((amenity: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2.5 text-[11px] font-medium text-gray-600">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#10b981] flex-shrink-0" strokeWidth={2.5} />
+                          <span className="group-hover:text-gray-900 transition-colors duration-300">{amenity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Spacer to push footer down uniformly */}
+                  <div className="flex-1" />
+
+                  {/* Package Footer & Call to Action */}
+                  <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Starting at</span>
+                      <div className="text-gray-900 flex items-baseline gap-1">
+                        <span className="font-bold text-xl md:text-2xl leading-none">
+                          ₹{typeof pkg.price === 'number' ? pkg.price.toLocaleString('en-IN') : pkg.price}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">/pp</span>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={(e) => { e.stopPropagation(); handleBookPackage(pkg.title); }}
+                      className="group/btn relative overflow-hidden bg-zinc-900 hover:bg-[#10b981] text-white rounded-xl px-5 h-10 md:h-11 text-[10px] md:text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 shadow-md hover:shadow-[0_8px_20px_rgba(16,185,129,0.3)] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 border-0"
+                    >
+                      <span className="relative z-10 flex items-center gap-1.5">
+                        Reserve 
+                        <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                      </span>
+                    </Button>
+                  </div>
+
                 </div>
 
               </div>
-
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* View All Packages Footer */}
         <div className="mt-12 flex justify-center">
