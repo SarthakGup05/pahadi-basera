@@ -32,6 +32,7 @@ ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholde
 # Generate Prisma client and compile TypeScript to dist/
 RUN npx prisma generate
 RUN npm run build
+RUN cp -r /app/generated /app/dist/generated
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 4: development - target for docker-compose development with tsx watch
