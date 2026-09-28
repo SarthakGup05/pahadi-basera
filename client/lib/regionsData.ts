@@ -43,64 +43,7 @@ export interface RegionItem {
 }
 
 // 1. Shared Himalayan Stays Database (Baseras)
-export const regionalPropertiesList: RegionalProperty[] = [
-  {
-    id: 'tungnath-eco-glamp',
-    title: 'Tungnath Eco-Glamping Meadows',
-    location: 'Chopta, Uttarakhand',
-    rating: '4.95',
-    reviewsCount: 88,
-    guests: 4,
-    bedrooms: 2,
-    bathrooms: 2,
-    pricePerNight: 6500,
-    badge: 'Eco Glamping',
-    image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=800&auto=format&fit=crop',
-    amenities: ['Bonfire Pit', 'Traditional Dining', 'Heating', 'Nature Guide']
-  },
-  {
-    id: 'panchachuli-stone-lodge',
-    title: 'Panchachuli Panoramic Stone Lodge',
-    location: 'Munsiyari, Uttarakhand',
-    rating: '5.0',
-    reviewsCount: 56,
-    guests: 6,
-    bedrooms: 3,
-    bathrooms: 3,
-    pricePerNight: 7800,
-    badge: 'Stargazer Deck',
-    image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop',
-    amenities: ['Private Telescope', 'Fireplace', 'Heated Bedding', 'Ayurvedic Tea']
-  },
-  {
-    id: 'nanda-devi-ski-chalet',
-    title: 'Nanda Devi Ski & Alpine Chalet',
-    location: 'Auli, Uttarakhand',
-    rating: '4.88',
-    reviewsCount: 74,
-    guests: 6,
-    bedrooms: 3,
-    bathrooms: 4,
-    pricePerNight: 9500,
-    badge: 'Ski-in Ski-out',
-    image: 'https://images.unsplash.com/photo-1549693578-d683be217e58?q=80&w=800&auto=format&fit=crop',
-    amenities: ['Ski Locker', 'Sauna Access', 'Jacuzzi Tub', 'Himalayan Coffee Bar']
-  },
-  {
-    id: 'trishul-heritage-homestead',
-    title: 'Trishul View Ancestral Homestead',
-    location: 'Kausani, Uttarakhand',
-    rating: '4.92',
-    reviewsCount: 42,
-    guests: 4,
-    bedrooms: 2,
-    bathrooms: 2,
-    pricePerNight: 5400,
-    badge: 'Cultural Heritage',
-    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=800&auto=format&fit=crop',
-    amenities: ['Clay-oven Kitchen', 'Organic Tea Farm Walk', 'Yoga Deck', 'Local Guide']
-  }
-];
+export const regionalPropertiesList: RegionalProperty[] = [];
 
 // 2. Comprehensive Regions Catalog
 export const regionsList: RegionItem[] = [
