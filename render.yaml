@@ -55,10 +55,7 @@ services:
         value: 10000
       # Backend API URL that client talks to
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: pahadi-basera-backend
-          property: host
+        value: https://pahadi-basera.onrender.com
       # Public URL of the frontend web application
       - key: NEXT_PUBLIC_APP_URL
         sync: false
