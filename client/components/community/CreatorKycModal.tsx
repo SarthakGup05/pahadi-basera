@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import ImageUploadDropzone from '@/components/ui/ImageUploadDropzone';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -54,6 +55,7 @@ export default function CreatorKycModal({ isOpen, onClose, onSuccess }: CreatorK
   const [upiId, setUpiId] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifiedData, setVerifiedData] = useState<any>(null);
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -74,6 +76,7 @@ export default function CreatorKycModal({ isOpen, onClose, onSuccess }: CreatorK
         aadhaarNumber: aadhaarNumber.replace(/\D/g, ''),
         socialProfile: socialHandle,
         bio,
+        avatarUrl,
         upiId
       });
 
@@ -96,6 +99,7 @@ export default function CreatorKycModal({ isOpen, onClose, onSuccess }: CreatorK
       fullName: fullName || 'Verified Creator',
       role: 'BLOGGER',
       kycStatus: 'VERIFIED',
+      avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
       referralCode: randomCode,
       commissionRate: 0.08,
       digilockerVerified: true
@@ -179,6 +183,41 @@ export default function CreatorKycModal({ isOpen, onClose, onSuccess }: CreatorK
                   required
                 />
                 <p className="text-[11px] text-stone-400 mt-1">Must match your Aadhaar document for automated match.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Profile Photo (ImageKit CDN)</label>
+                {avatarUrl ? (
+                  <div className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200/90 rounded-2xl">
+                    <img src={avatarUrl} alt="Avatar Preview" className="w-11 h-11 rounded-full object-cover border border-emerald-500/40 shadow-xs" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-stone-800">Avatar Attached</p>
+                      <button
+                        type="button"
+                        onClick={() => setAvatarUrl('')}
+                        className="text-[11px] text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Remove / Replace
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <ImageUploadDropzone
+                    folder="avatars"
+                    multiple={false}
+                    maxFiles={1}
+                    maxSizeMB={5}
+                    label="Upload Creator Avatar"
+                    hint="Streamed & optimized directly via ImageKit CDN"
+                    showPreviews={false}
+                    onUploadSuccess={(results) => {
+                      if (results[0]?.url) {
+                        setAvatarUrl(results[0].url);
+                        toast.success('Avatar uploaded to ImageKit!');
+                      }
+                    }}
+                  />
+                )}
               </div>
 
               <div>

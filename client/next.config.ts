@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+        pathname: "/**",
+      },
     ],
     // Generate modern formats automatically — huge savings on mobile
     formats: ["image/avif", "image/webp"],

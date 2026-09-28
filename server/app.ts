@@ -13,6 +13,7 @@ import packageRoutes from './routes/package.route.js';
 import notificationRoutes from './routes/notification.route.js';
 import kycRoutes from './routes/kyc.route.js';
 import referralRoutes from './routes/referral.route.js';
+import mediaRoutes from './routes/media.route.js';
 
 import { errorHandler } from './middleware/error.middleware.js';
 
@@ -46,6 +47,7 @@ app.use('/api/packages', packageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/referrals', referralRoutes);
+app.use('/api/media', mediaRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

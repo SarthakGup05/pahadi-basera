@@ -17,8 +17,10 @@ import {
   Loader2,
   ExternalLink,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Image as ImageIcon
 } from 'lucide-react';
+import ImageUploadDropzone from '@/components/ui/ImageUploadDropzone';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -656,17 +658,65 @@ export default function AdminPackages() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] tracking-wider uppercase font-bold text-gray-500">Image Cover URL</label>
+              {/* ImageKit Expedition Cover Upload */}
+              <div className="space-y-2 pt-1 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] tracking-wider uppercase font-bold text-gray-700 flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-emerald-600" />
+                    Expedition Cover Media (ImageKit CDN)
+                  </label>
+                  {image && (
+                    <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                      Cover Active
+                    </span>
+                  )}
+                </div>
+
+                <ImageUploadDropzone
+                  folder="packages"
+                  multiple={false}
+                  maxFiles={1}
+                  maxSizeMB={15}
+                  label="Upload Expedition Cover"
+                  hint="Streams directly to ImageKit CDN storage for fast responsive delivery"
+                  onUploadSuccess={(results) => {
+                    if (results.length > 0) {
+                      setImage(results[0].url);
+                      toast.success('ImageKit expedition cover photo attached!');
+                    }
+                  }}
+                />
+
+                {image && (
+                  <div className="relative aspect-video max-w-sm rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-xs group">
+                    <img src={image} alt="Package cover preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setImage('')}
+                      className="absolute top-2 right-2 bg-gray-900/80 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors cursor-pointer"
+                      title="Clear photo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="absolute bottom-2 left-2 bg-emerald-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
+                      Active Cover
+                    </span>
+                  </div>
+                )}
+
+                <details className="text-[11px] text-gray-500 pt-1">
+                  <summary className="cursor-pointer hover:text-gray-700 font-medium">Edit Raw Image URL</summary>
                   <Input 
                     type="text" 
                     value={image} 
                     onChange={e => setImage(e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
+                    placeholder="https://ik.imagekit.io/skhds42rl/..."
+                    className="mt-1 text-xs font-mono"
                   />
-                </div>
+                </details>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] tracking-wider uppercase font-bold text-gray-500">Badge Tagline</label>
                   <Input 

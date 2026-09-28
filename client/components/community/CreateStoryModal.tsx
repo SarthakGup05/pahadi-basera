@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PropertyItem } from '@/lib/propertiesData';
+import ImageUploadDropzone from '@/components/ui/ImageUploadDropzone';
 import { toast } from 'sonner';
 
 interface CreateStoryModalProps {
@@ -40,7 +41,9 @@ export default function CreateStoryModal({
   const [duration, setDuration] = useState('4 Days Trek');
   const [difficulty, setDifficulty] = useState('Moderate');
   const [bestSeason, setBestSeason] = useState('Autumn & Spring');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
+  const [showUrlFallback, setShowUrlFallback] = useState(false);
   const [taggedPropertyId, setTaggedPropertyId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,7 +66,9 @@ export default function CreateStoryModal({
     }
 
     setIsSubmitting(true);
-    const finalImage = imageUrl.trim() || 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop';
+    const finalImages = uploadedImages.length > 0 
+      ? uploadedImages 
+      : (imageUrl.trim() ? [imageUrl.trim()] : ['https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop']);
     const taggedProperty = properties.find(p => p.id === taggedPropertyId);
 
     const postPayload = {
@@ -74,12 +79,12 @@ export default function CreateStoryModal({
       duration,
       difficulty,
       bestSeason,
-      images: [finalImage],
+      images: finalImages,
       tags: ['Verified Creator', 'Himalayas', taggedProperty?.location?.split(',')[0] || 'Ridge'],
       taggedPropertyId,
       authorName: creatorProfile?.fullName || 'Verified Explorer',
       authorRole: 'Verified Himalayan Blogger',
-      authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      authorAvatar: creatorProfile?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
       isVerifiedCreator: true,
       referralCode: creatorProfile?.referralCode || 'HIMALAYA8'
     };
@@ -207,18 +212,81 @@ export default function CreateStoryModal({
             </select>
           </div>
 
-          {/* Photo URL */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1.5">Cover Photo Image URL</label>
-            <div className="relative">
-              <ImageIcon className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <Input 
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/... (or leave blank for mountain default)"
-                className="pl-9 rounded-xl border-stone-200 text-xs"
-              />
+          {/* Photo Upload via ImageKit */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-emerald-600" />
+                Himalayan Story Photography
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowUrlFallback(!showUrlFallback)}
+                className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer"
+              >
+                {showUrlFallback ? '← Use ImageKit Uploader' : 'Paste Image URL instead'}
+              </button>
             </div>
+
+            {!showUrlFallback ? (
+              <div className="space-y-2">
+                <ImageUploadDropzone
+                  folder="blogs"
+                  multiple={true}
+                  maxFiles={6}
+                  maxSizeMB={10}
+                  label="Upload Story Photos & Vistas"
+                  hint="High-res photos are streamed to your ImageKit storage and optimized automatically"
+                  showPreviews={false}
+                  onUploadSuccess={(results) => {
+                    const newUrls = results.map(r => r.url);
+                    setUploadedImages(prev => Array.from(new Set([...prev, ...newUrls])));
+                  }}
+                />
+
+                {/* Uploaded Story Photos Gallery Preview */}
+                {uploadedImages.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[11px] text-stone-500 font-medium">
+                      <span>Attached Photos ({uploadedImages.length}/6)</span>
+                      <span className="text-[10px] text-stone-400">First image will be the story cover</span>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-stone-50 border border-stone-200/80 rounded-2xl">
+                      {uploadedImages.map((url, idx) => (
+                        <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border border-stone-200 bg-white group shadow-xs">
+                          <img src={url} alt={`Story photo ${idx + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUploadedImages(prev => prev.filter((_, i) => i !== idx));
+                            }}
+                            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-stone-900/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600 cursor-pointer"
+                            title="Remove photo"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          {idx === 0 && (
+                            <span className="absolute bottom-1 left-1 bg-emerald-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-xs">
+                              Cover
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="relative">
+                <ImageIcon className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input 
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://ik.imagekit.io/... or https://images.unsplash.com/..."
+                  className="pl-9 rounded-xl border-stone-200 text-xs"
+                />
+              </div>
+            )}
           </div>
 
           {/* Story Narrative Content */}

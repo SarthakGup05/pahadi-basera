@@ -16,8 +16,10 @@ import {
   Trash2,
   PlusCircle,
   X,
-  Compass
+  Compass,
+  Image as ImageIcon
 } from 'lucide-react';
+import ImageUploadDropzone from '@/components/ui/ImageUploadDropzone';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -152,7 +154,7 @@ export default function AdminProperties() {
     setCheckInTime('2:00 PM');
     setCheckOutTime('11:00 AM');
     setAmenitiesInput('Wi-Fi, Hot Water, Mountain View');
-    setImagesInput('https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=1920&auto=format&fit=crop');
+    setImagesInput('');
     setIsOpenForm(true);
   };
 
@@ -488,28 +490,41 @@ export default function AdminProperties() {
 
           {/* Step Progress Bar Indicator */}
           <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 select-none mb-6">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center gap-2">
+            {[1, 2, 3, 4].map((step) => (
+              <div 
+                key={step} 
+                onClick={() => setFormStep(step)}
+                className="flex items-center gap-2 cursor-pointer group"
+                title={`Jump to step ${step}`}
+              >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black font-sans border transition-all ${
                   formStep === step
                     ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-500/20'
                     : formStep > step
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold'
-                      : 'bg-white border-gray-200 text-gray-400'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold group-hover:bg-emerald-100'
+                      : 'bg-white border-gray-200 text-gray-400 group-hover:border-gray-300'
                 }`}>
                   {step}
                 </div>
                 <span className={`text-[9px] uppercase tracking-wider font-extrabold transition-colors ${
-                  formStep === step ? 'text-gray-900' : 'text-gray-400'
+                  formStep === step ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'
                 }`}>
-                  {step === 1 ? 'Core Specs' : step === 2 ? 'Overview & Geo' : 'Policies & Media'}
+                  {step === 1 ? 'Core Specs' : step === 2 ? 'Overview & Geo' : step === 3 ? 'Policies' : 'Media Gallery'}
                 </span>
-                {step < 3 && <div className="w-8 h-[1px] bg-gray-200 mx-1 hidden sm:block" />}
+                {step < 4 && <div className="w-6 h-[1px] bg-gray-200 mx-1 hidden sm:block" />}
               </div>
             ))}
           </div>
 
-          <form onSubmit={handleSubmitForm} className="space-y-6 text-xs">
+          <form 
+            onSubmit={handleSubmitForm} 
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-6 text-xs"
+          >
             {/* Step 1: General Specs */}
             <div className={formStep === 1 ? "space-y-4" : "hidden"}>
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">1. General Specifications</h3>
@@ -746,16 +761,82 @@ export default function AdminProperties() {
                 />
                 <label htmlFor="petsAllowed" className="text-[10px] font-bold text-gray-600 uppercase tracking-wider cursor-pointer">Pets Allowed</label>
               </div>
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] tracking-wider uppercase font-bold text-gray-500">Image URLs (one URL per line)</label>
+            {/* Step 4: Photo Gallery & Media (ImageKit CDN) */}
+            <div className={formStep === 4 ? "space-y-4" : "hidden"}>
+              <div className="flex items-center justify-between border-b border-emerald-100 pb-1.5">
+                <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  4. Media & High-Res Photography (ImageKit CDN)
+                </h3>
+                <span className="text-[10px] text-gray-400 font-semibold">
+                  {imagesInput.split('\n').filter(s => s.trim().length > 0).length} photos attached
+                </span>
+              </div>
+
+              <ImageUploadDropzone
+                folder="properties"
+                multiple={true}
+                maxFiles={10}
+                maxSizeMB={15}
+                label="Upload Property Photos"
+                hint="Drag & drop or click to upload high-res photos directly to ImageKit"
+                showPreviews={false}
+                onUploadSuccess={(results) => {
+                  const newUrls = results.map(r => r.url);
+                  setImagesInput(prev => {
+                    const existing = prev.split('\n').map(s => s.trim()).filter(Boolean);
+                    const combined = Array.from(new Set([...existing, ...newUrls]));
+                    return combined.join('\n');
+                  });
+                  toast.success(`Attached ${results.length} ImageKit photos to property`);
+                }}
+              />
+
+              {/* Live Attached Gallery Thumbnails */}
+              {imagesInput.split('\n').filter(s => s.trim().length > 0).length > 0 && (
+                <div className="space-y-1.5 pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] uppercase tracking-wider font-bold text-gray-400 block">Current Gallery Photos</span>
+                    <span className="text-[9px] text-emerald-600 font-semibold">First image is listing cover</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1.5 bg-gray-50/70 border border-gray-100 rounded-xl">
+                    {imagesInput.split('\n').filter(s => s.trim().length > 0).map((url, idx) => (
+                      <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white group shadow-2xs">
+                        <img src={url} alt={`Property photo ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const list = imagesInput.split('\n').filter(s => s.trim().length > 0);
+                            list.splice(idx, 1);
+                            setImagesInput(list.join('\n'));
+                          }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-gray-900/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 cursor-pointer"
+                          title="Remove photo"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-1 left-1 bg-emerald-600 text-white text-[8px] font-bold px-1 rounded-sm">Cover</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Direct Raw URLs Fallback */}
+              <details className="text-[11px] text-gray-500 pt-1">
+                <summary className="cursor-pointer hover:text-gray-700 font-medium">Edit Raw Image URLs</summary>
                 <Textarea 
                   value={imagesInput} 
                   onChange={e => setImagesInput(e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  rows={3}
+                  placeholder="https://ik.imagekit.io/skhds42rl/..."
+                  rows={2}
+                  className="mt-1 text-xs font-mono"
                 />
-              </div>
+              </details>
             </div>
 
             {/* Navigation buttons */}
@@ -783,7 +864,7 @@ export default function AdminProperties() {
                   Cancel
                 </Button>
                 
-                {formStep < 3 ? (
+                {formStep < 4 ? (
                   <Button
                     type="button"
                     onClick={() => {
@@ -802,9 +883,16 @@ export default function AdminProperties() {
                 ) : (
                   <Button 
                     type="submit"
+                    disabled={isLoading}
                     className="bg-[#10b981] hover:bg-[#0e9f6e] text-white rounded-xl font-bold text-xs uppercase tracking-wider py-4 px-6 shadow-[0_4px_15px_rgba(16,185,129,0.25)] cursor-pointer"
                   >
-                    {editingProperty ? 'Save Changes' : 'Create Listing'}
+                    {isLoading ? (
+                      <span className="flex items-center gap-1.5">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...
+                      </span>
+                    ) : (
+                      editingProperty ? 'Save Changes' : 'Create Listing'
+                    )}
                   </Button>
                 )}
               </div>

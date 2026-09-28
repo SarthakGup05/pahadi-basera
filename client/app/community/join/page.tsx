@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ImageUploadDropzone from '@/components/ui/ImageUploadDropzone';
 import { toast } from 'sonner';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -50,6 +51,7 @@ export default function JoinCommunityPage() {
   const [fullName, setFullName] = useState('');
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [specialty, setSpecialty] = useState('Slow Living & Homestays');
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [aadhaarNumber, setAadhaarNumber] = useState('');
@@ -94,6 +96,7 @@ export default function JoinCommunityPage() {
       const userObj = data.user || {
         fullName,
         handle: handle.replace('@', '') || fullName.toLowerCase().replace(/\s+/g, '_'),
+        avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
         referralCode: data.referralCode || `PB${cleanAadhaar.slice(-4)}`,
         isVerified: true,
         kycStatus: 'VERIFIED',
@@ -128,7 +131,7 @@ export default function JoinCommunityPage() {
       bio: bio || 'Slow travel writer and high-altitude explorer in the Indian Himalayas.',
       specialty,
       upiId,
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'
+      avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'
     };
 
     localStorage.setItem('pb_creator_profile', JSON.stringify(mockProfile));
@@ -221,6 +224,36 @@ export default function JoinCommunityPage() {
               </div>
 
               <div className="space-y-4">
+                {/* Creator Profile Picture via ImageKit */}
+                <div className="space-y-1.5 pb-2 border-b border-stone-100">
+                  <label className="block text-xs font-semibold text-stone-700">
+                    Creator Profile Picture (ImageKit CDN)
+                  </label>
+                  <ImageUploadDropzone
+                    folder="avatars"
+                    multiple={false}
+                    maxFiles={1}
+                    maxSizeMB={5}
+                    label="Upload Creator Portrait"
+                    hint="Face portrait or photography logo (JPEG, PNG, WebP)"
+                    onUploadSuccess={(results) => {
+                      if (results.length > 0) {
+                        setAvatarUrl(results[0].url);
+                        toast.success('Creator avatar uploaded to ImageKit!');
+                      }
+                    }}
+                  />
+                  {avatarUrl && (
+                    <div className="flex items-center gap-3 p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl mt-2">
+                      <img src={avatarUrl} alt="Avatar Preview" className="w-10 h-10 rounded-full object-cover border border-emerald-300" />
+                      <div className="text-xs min-w-0">
+                        <span className="font-bold text-emerald-800 block">Avatar Active</span>
+                        <span className="text-[10px] text-emerald-600 truncate block max-w-xs">{avatarUrl}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                     Full Legal Name <span className="text-rose-500">*</span>
