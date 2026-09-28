@@ -22,19 +22,22 @@ import {
   BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { blogLogs, BlogItem, communityTrails, CommunityTrail } from '@/lib/blogData';
-import { propertiesList, PropertyItem } from '@/lib/propertiesData';
+import { BlogItem, CommunityTrail } from '@/lib/blogData';
+import api from '@/lib/api';
+import { PropertyItem } from '@/lib/propertiesData';
 import { toast } from 'sonner';
 
 export default function CreatorPublicProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const slug = (params.slug as string || '').toLowerCase();
+  const slug = (params?.slug as string || '').toLowerCase();
 
   const [copiedCode, setCopiedCode] = useState(false);
   const [activeTab, setActiveTab] = useState<'stories' | 'stays' | 'trails'>('stories');
   const [isFollowing, setIsFollowing] = useState(false);
-  const [allStories, setAllStories] = useState<BlogItem[]>(blogLogs);
+  const [allStories, setAllStories] = useState<BlogItem[]>([]);
+  const [properties, setProperties] = useState<PropertyItem[]>([]);
+  const [trails, setTrails] = useState<CommunityTrail[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Directory of creators with rich content
@@ -115,23 +118,30 @@ export default function CreatorPublicProfilePage() {
       setIsFollowing(savedFollow === 'true');
     }
 
-    async function fetchCreatorStories() {
+    async function fetchCreatorData() {
       try {
-        const res = await fetch('http://localhost:5000/api/blogs');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setAllStories(data);
-          }
+        const [storiesRes, propsRes, trailsRes] = await Promise.allSettled([
+          api.get('/api/blogs'),
+          api.get('/api/properties/get-all-properties'),
+          api.get('/api/community/trails')
+        ]);
+        if (storiesRes.status === 'fulfilled' && Array.isArray(storiesRes.value.data)) {
+          setAllStories(storiesRes.value.data);
+        }
+        if (propsRes.status === 'fulfilled' && Array.isArray(propsRes.value.data)) {
+          setProperties(propsRes.value.data);
+        }
+        if (trailsRes.status === 'fulfilled' && Array.isArray(trailsRes.value.data)) {
+          setTrails(trailsRes.value.data);
         }
       } catch (err) {
-        // fallback to static blogLogs
+        console.error('Failed to fetch creator data:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchCreatorStories();
+    fetchCreatorData();
   }, [creator.handle]);
 
   const creatorStories = allStories.filter(s => {
@@ -371,7 +381,7 @@ export default function CreatorPublicProfilePage() {
               {/* TAB 2: Recommended Baseras */}
               {activeTab === 'stays' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {propertiesList.slice(0, 4).map((stay) => (
+                  {properties.slice(0, 4).map((stay) => (
                     <div key={stay.id} className="p-4 rounded-2xl border border-stone-200 bg-[#fafaf7] flex flex-col justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <img src={stay.bgImage || stay.image} alt={stay.title} className="w-16 h-16 rounded-xl object-cover shrink-0" />
@@ -401,7 +411,7 @@ export default function CreatorPublicProfilePage() {
               {/* TAB 3: Mapped Valleys */}
               {activeTab === 'trails' && (
                 <div className="space-y-3">
-                  {communityTrails.map((trail) => (
+                  {trails.map((trail) => (
                     <div key={trail.id} className="p-4 rounded-2xl border border-stone-200 bg-[#fafaf7] flex items-center justify-between gap-4">
                       <div>
                         <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest">{trail.location}</span>

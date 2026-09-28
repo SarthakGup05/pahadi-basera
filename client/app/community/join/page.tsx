@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -82,29 +83,14 @@ export default function JoinCommunityPage() {
 
     setIsVerifying(true);
     try {
-      const token = localStorage.getItem('pb_admin_token') || localStorage.getItem('pb_token');
-
-      const res = await fetch('http://localhost:5000/api/kyc/verify-aadhaar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          fullName,
-          aadhaarNumber: cleanAadhaar,
-          socialProfile: handle ? `@${handle.replace('@', '')}` : portfolioUrl,
-          bio,
-          upiId
-        })
+      const { data } = await api.post('/api/kyc/verify-aadhaar', {
+        fullName,
+        aadhaarNumber: cleanAadhaar,
+        socialProfile: handle ? `@${handle.replace('@', '')}` : portfolioUrl,
+        bio,
+        upiId
       });
 
-      if (!res.ok) {
-        fallbackVerification();
-        return;
-      }
-
-      const data = await res.json();
       const userObj = data.user || {
         fullName,
         handle: handle.replace('@', '') || fullName.toLowerCase().replace(/\s+/g, '_'),

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
 import { 
   Mountain, 
   MapPin, 
@@ -28,16 +29,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
-  communityTrails, 
-  communityThreads, 
-  localRecipes, 
-  blogLogs, 
   BlogItem, 
   CommunityThread, 
   CommunityTrail, 
   LocalRecipe 
 } from '@/lib/blogData';
-import { propertiesList } from '@/lib/propertiesData';
+import { PropertyItem } from '@/lib/propertiesData';
 import CreatorKycModal from '@/components/community/CreatorKycModal';
 import CreateStoryModal from '@/components/community/CreateStoryModal';
 import CreatorDashboardModal from '@/components/community/CreatorDashboardModal';
@@ -66,6 +63,7 @@ export default function CommunityHubPage() {
   const [threads, setThreads] = useState<CommunityThread[]>([]);
   const [trails, setTrails] = useState<CommunityTrail[]>([]);
   const [recipes, setRecipes] = useState<LocalRecipe[]>([]);
+  const [availableStays, setAvailableStays] = useState<PropertyItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Active filter tab: 'stories' | 'homestays' | 'trails' | 'recipes'
@@ -89,7 +87,7 @@ export default function CommunityHubPage() {
   // Field note composer
   const [noteContent, setNoteContent] = useState('');
   const [noteAltitude, setNoteAltitude] = useState('2,400m');
-  const [noteStayId, setNoteStayId] = useState(propertiesList[0]?.id || '1');
+  const [noteStayId, setNoteStayId] = useState('1');
   const [noteImage, setNoteImage] = useState('');
   const [showImageField, setShowImageField] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -119,53 +117,85 @@ export default function CommunityHubPage() {
     }
 
     async function loadData() {
+      setLoading(true);
       try {
-        const res = await fetch('http://localhost:5000/api/blogs');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            const mapped: BlogItem[] = data.map((b: any) => ({
-              id: b.id,
-              title: b.title,
-              excerpt: b.excerpt,
-              content: b.content,
-              altitude: b.altitude || '2,400m',
-              duration: b.duration || '3 Days',
-              difficulty: (b.difficulty as any) || 'Moderate',
-              bestSeason: b.bestSeason || 'Autumn',
-              images: Array.isArray(b.images) && b.images.length > 0 ? b.images : [
-                'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop'
-              ],
-              views: b.views || '1.4K',
-              tags: b.tags || ['SlowLiving', 'Himalayas'],
-              gearList: b.gearList || [],
-              routeCoordinates: b.routeCoordinates || [],
-              author: {
-                name: b.authorName || b.authorUser?.fullName || 'Aarav Semwal',
-                role: b.authorRole || 'Verified Himalayan Creator',
-                avatar: b.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-                socials: { instagram: '#', twitter: '#', substack: '#' }
-              },
-              isVerifiedCreator: b.isVerifiedCreator ?? true,
-              taggedPropertyId: b.taggedPropertyId || '1',
-              likesCount: b.likesCount || 38,
-              authorReferralCode: b.authorUser?.referralCode || 'HIMALAYA8'
-            }));
-            setStories(mapped);
-          } else {
-            setStories(blogLogs);
+        const [blogsRes, threadsRes, trailsRes, recipesRes, staysRes] = await Promise.allSettled([
+          api.get('/api/blogs'),
+          api.get('/api/community/threads'),
+          api.get('/api/community/trails'),
+          api.get('/api/community/recipes'),
+          api.get('/api/properties/get-all-properties')
+        ]);
+
+        if (blogsRes.status === 'fulfilled' && Array.isArray(blogsRes.value.data)) {
+          const mapped: BlogItem[] = blogsRes.value.data.map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            excerpt: b.excerpt,
+            content: b.content,
+            altitude: b.altitude || '2,400m',
+            duration: b.duration || '3 Days',
+            difficulty: (b.difficulty as any) || 'Moderate',
+            bestSeason: b.bestSeason || 'Autumn',
+            images: Array.isArray(b.images) && b.images.length > 0 ? b.images : [
+              'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop'
+            ],
+            views: b.views || '1.4K',
+            tags: b.tags || ['SlowLiving', 'Himalayas'],
+            gearList: b.gearList || [],
+            routeCoordinates: b.routeCoordinates || [],
+            author: {
+              name: b.authorName || b.authorUser?.fullName || 'Himalayan Explorer',
+              role: b.authorRole || 'Verified Himalayan Creator',
+              avatar: b.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+              socials: { instagram: '#', twitter: '#', substack: '#' }
+            },
+            isVerifiedCreator: b.isVerifiedCreator ?? true,
+            taggedPropertyId: b.taggedPropertyId || '1',
+            likesCount: b.likesCount || 0,
+            authorReferralCode: b.authorUser?.referralCode || 'HIMALAYA8'
+          }));
+          setStories(mapped);
+        } else {
+          setStories([]);
+        }
+
+        if (threadsRes.status === 'fulfilled' && Array.isArray(threadsRes.value.data)) {
+          setThreads(threadsRes.value.data);
+        } else {
+          setThreads([]);
+        }
+
+        if (trailsRes.status === 'fulfilled' && Array.isArray(trailsRes.value.data)) {
+          setTrails(trailsRes.value.data);
+        } else {
+          setTrails([]);
+        }
+
+        if (recipesRes.status === 'fulfilled' && Array.isArray(recipesRes.value.data)) {
+          setRecipes(recipesRes.value.data);
+        } else {
+          setRecipes([]);
+        }
+
+        if (staysRes.status === 'fulfilled' && Array.isArray(staysRes.value.data)) {
+          setAvailableStays(staysRes.value.data);
+          if (staysRes.value.data.length > 0) {
+            setNoteStayId(staysRes.value.data[0].id);
           }
         } else {
-          setStories(blogLogs);
+          setAvailableStays([]);
         }
       } catch (e) {
-        setStories(blogLogs);
+        console.error('Failed to load community data:', e);
+        setStories([]);
+        setThreads([]);
+        setTrails([]);
+        setRecipes([]);
+        setAvailableStays([]);
+      } finally {
+        setLoading(false);
       }
-
-      setThreads(communityThreads);
-      setTrails(communityTrails);
-      setRecipes(localRecipes);
-      setLoading(false);
     }
 
     loadData();
@@ -180,7 +210,7 @@ export default function CommunityHubPage() {
 
     if (!isLiked) {
       toast.success('Appreciated story');
-      fetch(`http://localhost:5000/api/blogs/${id}/like`, { method: 'POST' }).catch(() => {});
+      api.post(`/api/blogs/${id}/like`).catch(() => {});
     }
   };
 
@@ -258,18 +288,14 @@ export default function CommunityHubPage() {
     toast.success('Your Himalayan note has been published!');
 
     try {
-      await fetch('http://localhost:5000/api/blogs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newStory.title,
-          excerpt: newStory.excerpt,
-          content: newStory.content,
-          altitude: newStory.altitude,
-          images: newStory.images,
-          authorName: newStory.author.name,
-          taggedPropertyId: newStory.taggedPropertyId
-        })
+      await api.post('/api/blogs', {
+        title: newStory.title,
+        excerpt: newStory.excerpt,
+        content: newStory.content,
+        altitude: newStory.altitude,
+        images: newStory.images,
+        authorName: newStory.author.name,
+        taggedPropertyId: newStory.taggedPropertyId
       });
     } catch (e) {
       // offline fallback
@@ -479,7 +505,7 @@ export default function CommunityHubPage() {
                           onChange={(e) => setNoteStayId(e.target.value)}
                           className="bg-stone-50 border border-stone-200 rounded-lg px-2 py-0.5 text-[11px] text-stone-700 outline-none cursor-pointer max-w-[160px] truncate"
                         >
-                          {propertiesList.map(p => (
+                          {availableStays.map(p => (
                             <option key={p.id} value={p.id}>{p.title}</option>
                           ))}
                         </select>
@@ -518,7 +544,7 @@ export default function CommunityHubPage() {
                   const isLiked = likedMap[story.id] ?? false;
                   const likes = likeCounts[story.id] ?? (story.likesCount || 38);
                   const isSaved = savedMap[story.id] ?? false;
-                  const taggedStay = propertiesList.find(p => p.id === story.taggedPropertyId) || propertiesList[0];
+                  const taggedStay = availableStays.find(p => p.id === story.taggedPropertyId);
                   const replies = storyReplies[story.id] || [];
 
                   return (
@@ -717,7 +743,7 @@ export default function CommunityHubPage() {
             {/* TAB 2: Homestay Reviews */}
             {activeTab === 'homestays' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {propertiesList.slice(0, 6).map(prop => (
+                {availableStays.slice(0, 6).map(prop => (
                   <div key={prop.id} className="bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                     <img src={prop.bgImage || prop.image} alt={prop.title} className="w-full h-44 object-cover" />
                     <div className="p-4 space-y-2">
