@@ -41,7 +41,7 @@ const SearchBox = () => {
       'Chalet': 'RESORT',
       'Villa': 'VILLAS',
       'Cottage': 'COTTAGE',
-      'Homestay': 'HOMESAYS',
+      'Homestay': 'HOMESTAYS',
       'Glamping': 'APARTMENT',
     };
     if (typeMap[activeTab]) {

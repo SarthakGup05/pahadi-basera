@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
-import { prisma } from '../db/prisma..js'; // Import configured prisma instance
+import { prisma } from '../db/prisma.js'; // Import configured prisma instance
 import { AuthRequest } from '../middleware/auth.middleware.js';
 
 
 const normalizePropertyType = (typeStr: string): any => {
   if (!typeStr) return undefined;
   const formatted = typeStr.trim().toUpperCase().replace(/\s+/g, '_');
-  const validTypes = ['RESORT', 'VILLAS', 'CASTLE', 'HOMESAYS', 'COTTAGE', 'GUEST_HOUSE', 'APARTMENT'];
+  if (formatted === 'HOMESTAY' || formatted === 'HOMESTAYS' || formatted === 'HOMESAYS') {
+    return 'HOMESTAYS';
+  }
+  const validTypes = ['RESORT', 'VILLAS', 'CASTLE', 'HOMESTAYS', 'COTTAGE', 'GUEST_HOUSE', 'APARTMENT'];
   if (validTypes.includes(formatted)) {
     return formatted;
   }
@@ -81,7 +84,7 @@ export const createProperty = async (req: AuthRequest, res: Response) => {
     const normalizedType = normalizePropertyType(type);
     if (!normalizedType) {
       return res.status(400).json({ 
-        error: `Invalid property type. Must be one of: resort, villas, castle, homesays, cottage, guest house, apartment` 
+        error: `Invalid property type. Must be one of: resort, villas, castle, homestays, cottage, guest house, apartment` 
       });
     }
 
@@ -166,7 +169,7 @@ export const updateProperty = async (req: AuthRequest, res: Response) => {
       const normalizedType = normalizePropertyType(type);
       if (!normalizedType) {
         return res.status(400).json({ 
-          error: `Invalid property type. Must be one of: resort, villas, castle, homesays, cottage, guest house, apartment` 
+          error: `Invalid property type. Must be one of: resort, villas, castle, homestays, cottage, guest house, apartment` 
         });
       }
       updateData.type = normalizedType;
@@ -259,7 +262,7 @@ export const updatePropertyById = async (req: AuthRequest, res: Response) => {
       const normalizedType = normalizePropertyType(type);
       if (!normalizedType) {
         return res.status(400).json({ 
-          error: `Invalid property type. Must be one of: resort, villas, castle, homesays, cottage, guest house, apartment` 
+          error: `Invalid property type. Must be one of: resort, villas, castle, homestays, cottage, guest house, apartment` 
         });
       }
       updateData.type = normalizedType;

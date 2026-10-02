@@ -12,12 +12,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { PropertyItem } from '@/lib/propertiesData';
+import { useAuth } from '@/hooks/useAuth';
+import AuthModal from '@/components/auth/AuthModal';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
 /* ─── Types ─── */
 interface BookingFormProps {
   property: PropertyItem;
   totalAmount: number;
   nights: number;
+  checkIn?: string;
+  checkOut?: string;
+  selectedServices?: Map<string, boolean>;
   onSubmit?: (data: BookingFormData) => void;
   onClose?: () => void;
 }
@@ -110,9 +117,16 @@ export default function BookingForm({
   property,
   totalAmount,
   nights,
+  checkIn = '2026-06-01',
+  checkOut = '2026-06-05',
+  selectedServices,
   onSubmit,
   onClose,
 }: BookingFormProps) {
+  const { user, isAuthenticated } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [createdBooking, setCreatedBooking] = useState<any>(null);
+
   /* Text fields */
   const [formData, setFormData] = useState({
     firstName: '',
@@ -121,6 +135,19 @@ export default function BookingForm({
     phone: '',
     specialRequests: '',
   });
+
+  // Pre-fill user data if authenticated
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        email: prev.email || user.email || '',
+        firstName: prev.firstName || (user.fullName ? user.fullName.split(' ')[0] : ''),
+        lastName: prev.lastName || (user.fullName ? user.fullName.split(' ').slice(1).join(' ') : ''),
+        phone: prev.phone || user.phoneNumber || '',
+      }));
+    }
+  }, [user]);
 
   /* Guest counters */
   const [guests, setGuests] = useState<GuestCounts>({
@@ -178,32 +205,80 @@ export default function BookingForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    if (!isAuthenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1400));
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    onSubmit?.({ ...formData, ...guests });
+    try {
+      const servicesPayload = selectedServices
+        ? Array.from(selectedServices.entries())
+            .filter(([_, val]) => val)
+            .map(([serviceId]) => ({ serviceId, quantity: 1 }))
+        : [];
+
+      const payload = {
+        propertyId: property.id,
+        checkIn,
+        checkOut,
+        selectedServices: servicesPayload,
+        specialRequests: formData.specialRequests || undefined,
+        guestsCount: totalPeople,
+      };
+
+      const { data } = await api.post('/api/bookings/create-booking', payload);
+      setCreatedBooking(data.booking);
+      setIsSuccess(true);
+      toast.success('Reservation successfully requested!');
+      onSubmit?.({ ...formData, ...guests });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to place booking.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   /* ── Success State ── */
   if (isSuccess) {
+    const bookingCode = createdBooking?.id ? `PB-${createdBooking.id.slice(0, 8).toUpperCase()}` : 'CONFIRMED';
     return (
-      <div className="flex flex-col items-center justify-center py-10 text-center gap-4">
+      <div className="flex flex-col items-center justify-center py-8 text-center gap-4">
         <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-100 flex items-center justify-center mb-1 shadow-inner">
           <CheckCircle2 className="w-8 h-8 text-[#10b981]" strokeWidth={1.8} />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 tracking-tight">
-          Reservation Requested! 🏔️
-        </h3>
+        <div>
+          <span className="inline-block px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold tracking-widest uppercase mb-2">
+            Reference: #{bookingCode}
+          </span>
+          <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+            Reservation Requested! 🏔️
+          </h3>
+        </div>
         <p className="text-xs text-gray-500 leading-relaxed max-w-xs">
-          We've received your booking request for{' '}
-          <span className="font-semibold text-gray-700">{property.title}</span>. Our team will
-          confirm within 2 hours via email.
+          Your booking request for <span className="font-semibold text-gray-700">{property.title}</span> ({nights} nights, {checkIn} to {checkOut}) for <span className="font-semibold text-gray-700">{totalPeople} {totalPeople === 1 ? 'guest' : 'guests'}</span> has been confirmed in the ledger.
         </p>
-        <div className="flex items-center gap-2 bg-emerald-50/70 border border-emerald-100 rounded-xl px-4 py-2.5 mt-2">
+
+        <div className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl p-4 text-left space-y-2">
+          <div className="flex justify-between text-xs text-stone-600">
+            <span>Status:</span>
+            <span className="font-bold text-amber-600 uppercase text-[10px] tracking-wider">Awaiting Confirmation</span>
+          </div>
+          <div className="flex justify-between text-xs text-stone-600">
+            <span>Total with Taxes:</span>
+            <span className="font-bold text-[#10b981]">₹{(createdBooking?.totalCost || totalAmount).toLocaleString('en-IN')}</span>
+          </div>
+          <div className="flex justify-between text-xs text-stone-600">
+            <span>Refundable Deposit:</span>
+            <span className="font-medium text-stone-700">₹{(createdBooking?.securityDeposit || property.securityDeposit || 0).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-emerald-50/70 border border-emerald-100 rounded-xl px-4 py-2.5">
           <Shield className="w-4 h-4 text-[#10b981] flex-shrink-0" />
           <span className="text-[11px] font-semibold text-emerald-700">
-            No payment taken yet — only charged after confirmation.
+            Saved securely in your Pahadi Basera bookings.
           </span>
         </div>
         {onClose && (
@@ -220,6 +295,7 @@ export default function BookingForm({
 
   /* ── Form ── */
   return (
+    <>
     <form onSubmit={handleSubmit} className="flex flex-col gap-0" noValidate>
       {/* Header */}
       <div className="mb-5">
@@ -520,5 +596,22 @@ export default function BookingForm({
         </div>
       </div>
     </form>
+
+    <AuthModal
+      open={authModalOpen}
+      onOpenChange={setAuthModalOpen}
+      title="Sign In to Reserve"
+      description="Please sign in or create an account to finalize your Basera booking."
+      onSuccess={(u) => {
+        setFormData(prev => ({
+          ...prev,
+          email: u.email || prev.email,
+          firstName: u.fullName ? u.fullName.split(' ')[0] : prev.firstName,
+          lastName: u.fullName ? u.fullName.split(' ').slice(1).join(' ') : prev.lastName,
+          phone: u.phoneNumber || prev.phone,
+        }));
+      }}
+    />
+    </>
   );
 }

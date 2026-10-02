@@ -1,4 +1,4 @@
-import { prisma } from '../prisma..js';
+import { prisma } from '../prisma.js';
 import bcrypt from 'bcryptjs';
 
 async function seed() {
@@ -251,7 +251,7 @@ async function seed() {
       title: 'Traditional Apple Orchard Homestay',
       description: 'Live like a local in this cozy traditional homestay in Kotgarh. Help pick apples, enjoy homemade Siddu, and experience authentic pahadi life.',
       rules: 'Treat it like your own home. Respect the host family.',
-      type: 'HOMESAYS' as const,
+      type: 'HOMESTAYS' as const,
       location: 'Kotgarh, Himachal Pradesh',
       bedrooms: 2,
       bathrooms: 2,
@@ -442,7 +442,7 @@ async function seed() {
       title: 'Trishul View Ancestral Homestead',
       description: 'A quiet pine-wooded ridge offering an uninterrupted 300km panorama of the high snow peaks. The Switzerland of India.',
       rules: 'Allowed in tea gardens only. Respect Kumaoni traditions.',
-      type: 'HOMESAYS' as const,
+      type: 'HOMESTAYS' as const,
       location: 'Kausani, Uttarakhand',
       bedrooms: 2,
       bathrooms: 2,

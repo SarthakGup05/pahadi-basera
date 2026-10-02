@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../db/prisma..js';
+import { prisma } from '../db/prisma.js';
 
 // Fetch all notifications sorted by newest first
 export const getNotifications = async (req: Request, res: Response) => {

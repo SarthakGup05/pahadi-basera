@@ -26,7 +26,7 @@ const CATEGORIES = [
   { id: 'RESORT', name: 'Alpine Chalets', icon: Home },
   { id: 'COTTAGE', name: 'Pine Cottages', icon: Trees },
   { id: 'VILLAS', name: 'Valley Villas', icon: Compass },
-  { id: 'HOMESAYS', name: 'Native Homestays', icon: Coffee },
+  { id: 'HOMESTAYS', name: 'Native Homestays', icon: Coffee },
   { id: 'APARTMENT', name: 'Glamping & Pods', icon: Mountain },
 ];
 

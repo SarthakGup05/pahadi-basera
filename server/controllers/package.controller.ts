@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../db/prisma..js';
+import { prisma } from '../db/prisma.js';
 
 // Get all active packages (Public)
 export const getPackages = async (req: Request, res: Response) => {

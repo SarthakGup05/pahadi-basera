@@ -236,6 +236,9 @@ export default function BillingSection({
 
           <BookingForm
             property={property}
+            checkIn={dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '2026-06-01'}
+            checkOut={dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : '2026-06-05'}
+            selectedServices={selectedServices}
             totalAmount={quotation?.totalWithTaxes ?? 0}
             nights={quotation?.nights ?? 0}
             onClose={() => setShowForm(false)}

@@ -46,7 +46,8 @@ interface Booking {
   status: string;
   createdAt: string;
   guest: { email: string; phoneNumber: string };
-  property: { title: string; location: string };
+  property?: { title: string; location: string } | null;
+  package?: { title: string; location: string } | null;
   selectedServices: BookingService[];
 }
 
@@ -91,11 +92,14 @@ export default function AdminBookings() {
     }
   };
 
-  const filteredBookings = bookings.filter(b => 
-    b.property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.guest.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredBookings = bookings.filter(b => {
+    const title = b.property?.title || b.package?.title || '';
+    return (
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.guest?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.id.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -196,10 +200,10 @@ export default function AdminBookings() {
                   <TableRow key={b.id} className="hover:bg-gray-50/50 transition-colors border-gray-100">
                     {/* Stay details */}
                     <TableCell className="pl-6 py-4 font-bold text-gray-900 text-xs">
-                      <div>{b.property.title}</div>
+                      <div>{b.property?.title || b.package?.title || 'Mountain Expedition'}</div>
                       <div className="flex items-center gap-1 text-[9px] font-medium text-gray-400 mt-1">
                         <MapPin className="w-3 h-3 text-gray-400" />
-                        <span>{b.property.location}</span>
+                        <span>{b.property?.location || b.package?.location || 'Himalayan Ridge'}</span>
                       </div>
                     </TableCell>
 
@@ -328,7 +332,7 @@ export default function AdminBookings() {
               <div className="grid grid-cols-2 gap-4 bg-gray-50/50 border border-gray-100 rounded-xl p-4">
                 <div>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 block">Dwelling</span>
-                  <span className="font-bold text-gray-900">{selectedBooking.property.title}</span>
+                  <span className="font-bold text-gray-900">{selectedBooking.property?.title || selectedBooking.package?.title || 'Mountain Expedition'}</span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 block">Guest Profile</span>

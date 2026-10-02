@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware.js';
-import { prisma } from '../db/prisma..js';
+import { prisma } from '../db/prisma.js';
 import { BookingStatus, PropertyType } from '../generated/prisma/index.js';
 
 /**
@@ -147,6 +147,12 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
             location: true,
           },
         },
+        package: {
+          select: {
+            title: true,
+            location: true,
+          },
+        },
       },
     });
 
@@ -245,6 +251,12 @@ export const getAllBookings = async (req: AuthRequest, res: Response) => {
           },
         },
         property: {
+          select: {
+            title: true,
+            location: true,
+          },
+        },
+        package: {
           select: {
             title: true,
             location: true,

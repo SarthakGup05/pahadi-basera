@@ -1,4 +1,4 @@
-import { prisma } from '../db/prisma..js';
+import { prisma } from '../db/prisma.js';
 
 /**
  * Checks if a requested check-in and check-out date range is available for a property.

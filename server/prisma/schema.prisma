@@ -45,7 +45,7 @@ enum PropertyType {
   RESORT
   VILLAS
   CASTLE
-  HOMESAYS
+  HOMESTAYS
   COTTAGE
   GUEST_HOUSE
   APARTMENT
@@ -227,8 +227,13 @@ model Booking {
   guestId         String
   guest           User             @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Cascade)
   
-  propertyId      String
-  property        Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId      String?
+  property        Property?        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  packageId       String?
+  package         Package?         @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  
+  guestsCount     Int?             @default(1)
   
   // Strict Timestamps
   checkIn         DateTime
@@ -392,6 +397,8 @@ model Package {
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  bookings        Booking[]
 }
 
 model Notification {

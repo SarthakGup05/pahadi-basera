@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../db/prisma..js';
+import { prisma } from '../db/prisma.js';
 import { AuthRequest } from '../middleware/auth.middleware.js';
 
 // Get current blogger referral stats & earnings

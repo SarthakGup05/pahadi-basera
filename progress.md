@@ -107,14 +107,23 @@ Created a comprehensive regional exploration system to simplify travel discovery
 * **Dynamic Region Detail Pages (`regions/[slug]/page.tsx`):** Guides the traveler along a cohesive single-scroll travel journal. Integrates weather widgets, driving directions cards, high-altitude security checklists, a self-drawing hidden secrets timeline, and filtered lists displaying local homestays (Baseras) and expeditions matching that specific valley.
 * **Unified Link Mapping:** Linked homepage cards inside [ExploreRegion.tsx](file:///f:/pahadi%20basera/client/components/home/ExploreRegion.tsx) to target dynamic `/regions/${id}` routes and synchronized the main navbar link to target `/regions` globally.
 
+### 12. End-to-End Booking Checkout & Guest Authentication
+* **Unified Stays & Packages Booking Model:** Updated `prisma/schema.prisma` so `Booking` supports both Basera Stays (`propertyId`) and Curated Expeditions (`packageId`).
+* **Live Booking Integration:** Connected [BookingForm.tsx](file:///f:/pahadi%20basera/client/components/property-detail/BookingForm.tsx) and `/packages/[slug]` checkout to `POST /api/bookings/create-booking`, eliminating simulated delays with real database records and high-altitude receipts.
+* **Customer-Facing Authentication System:** Developed [useAuth.ts](file:///f:/pahadi%20basera/client/hooks/useAuth.ts) and [AuthModal.tsx](file:///f:/pahadi%20basera/client/components/auth/AuthModal.tsx) supporting Login and Registration with reactive cross-tab and cross-component session updates.
+* **Navbar Guest Controls:** Updated [navbar.tsx](file:///f:/pahadi%20basera/client/components/navbar.tsx) with Sign In triggers and authenticated user profile dropdown menus for both desktop and mobile views.
+* **Database & Codebase Integrity:**
+  * Fixed `PropertyType` enum typo (`HOMESAYS` ➔ `HOMESTAYS`) across backend schema, seeder, controllers, and frontend filters.
+  * Corrected `server/db/prisma..ts` double-dot filename to `server/db/prisma.ts` and updated all 12 controller imports.
+  * Pruned unused `featuredStays` array and unreferenced imports in [client/app/page.tsx](file:///f:/pahadi%20basera/client/app/page.tsx).
+
 ---
 
 ## 📈 Current Project Health
 
-* **TypeScript Type Safety:** **100% Pass**. Both `/server` and `/client` codebases compile with zero warnings or errors under TypeScript build configurations (verified via `npx tsc --noEmit` checks).
-* **Git Commit History:** Fully split and committed local changes across **4 clean, descriptive commits** mapping modular features (Packages Catalog, Dynamic Booking details, Regions Hub, and Global Navbar navigation).
-* **Prisma Engine Sync:** Fully migrated and synced using PostgreSQL database adapter layers.
-* **Design Consistency:** Cohesive high-end styling utilizing modern emerald-green HSL color palettes (`#10b981`), glassmorphism, responsive visual column structures, and fluid micro-animations.
+* **TypeScript Type Safety:** **100% Pass**. Both `/server` and `/client` codebases compile with zero warnings or errors (`tsc && node ...` and `npx tsc --noEmit` checks verified).
+* **Database Engine Sync:** Prisma client regenerated (`v7.8.0`) supporting dual-entity bookings for stays and expeditions.
+* **Live Auth & Checkout:** End-to-end booking records and guest session storage are fully live.
 
 ---
 
@@ -128,6 +137,6 @@ Created a comprehensive regional exploration system to simplify travel discovery
    cd client && npm run dev
    ```
 2. **Explore the Dynamic Routes:**
-   * Visit `/packages` to test out region filters, adventure vibes, and guest count limits.
-   * Visit `/packages/chopta-trek` to check out check-in date rules, premium checklists, and order confirmations.
-   * Visit `/regions/munsiyari` to read local secrets, transit guides, local delicacies, and see stays/packages filtered for Munsiyari.
+   * Test guest sign-in / registration from the global navbar or when reserving on `/properties/[id]`.
+   * Visit `/packages/chopta-trek` to check out live package booking with server-side tax/deposit calculation.
+   * Visit `/admin/bookings` to inspect the unified stays and expeditions ledger.

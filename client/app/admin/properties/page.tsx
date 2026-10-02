@@ -551,7 +551,7 @@ export default function AdminProperties() {
                     <option value="RESORT">Resort</option>
                     <option value="VILLAS">Villa</option>
                     <option value="CASTLE">Castle</option>
-                    <option value="HOMESAYS">Homestay</option>
+                    <option value="HOMESTAYS">Homestay</option>
                     <option value="COTTAGE">Cottage</option>
                     <option value="GUEST_HOUSE">Guest House</option>
                     <option value="APARTMENT">Apartment</option>

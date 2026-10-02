@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Loader from "@/components/Loader";
+import { Toaster } from "@/components/ui/sonner";
 
 
 const inter = Inter({
@@ -12,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Pahadi Basera | Bespoke Himalayan Retreays & Homestays",
+  title: "Pahadi Basera | Bespoke Himalayan Retreats & Homestays",
   description: "Discover curated handpicked luxury mountain cottages, villas, and homestays in Uttarakhand's hidden gems.",
 };
 
@@ -29,6 +30,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col loader-active" suppressHydrationWarning>
         <Loader />
+        <Toaster position="top-right" richColors />
         <Navbar />
         <main className="flex-1">
           {children}

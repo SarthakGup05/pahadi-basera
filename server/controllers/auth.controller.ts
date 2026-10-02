@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../db/prisma..js'; // Import configured prisma instance
+import { prisma } from '../db/prisma.js'; // Import configured prisma instance
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import {
@@ -90,7 +90,14 @@ export const loginWithPassword = async (req: Request, res: Response) => {
       message: 'Login successful',
       accessToken,
       refreshToken: encryptedRefreshToken, // Also send in body as a fallback
-      role: user.role
+      role: user.role,
+      user: {
+        id: user.id,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        fullName: user.fullName,
+        role: user.role,
+      }
     });
   } catch (error: any) {
     return res.status(500).json({ error: 'Login failed', details: error.message });

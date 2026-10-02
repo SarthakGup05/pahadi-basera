@@ -1,26 +1,37 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware.js';
-import { prisma } from '../db/prisma..js';
+import { prisma } from '../db/prisma.js';
 
 /**
  * Creates a new booking using a strict Prisma interactive transaction.
+ * Supports both Basera Stays (propertyId) and Curated Expeditions (packageId).
  * Re-verifies availability inside the database lock to guarantee race-condition safety,
- * and processes all financials strictly on the server-side to prevent client tempering.
+ * and processes all financials strictly on the server-side to prevent client tampering.
  */
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
-    const { propertyId, checkIn, checkOut, selectedServices, specialRequests } = req.body;
+    const { 
+      propertyId, 
+      packageId, 
+      checkIn, 
+      checkOut, 
+      selectedServices, 
+      specialRequests,
+      guestsCount = 1 
+    } = req.body;
     const user = req.user!; // AuthRequest user
 
-    if (!propertyId || !checkIn || !checkOut) {
-      return res.status(400).json({ error: 'propertyId, checkIn, and checkOut are required.' });
+    if (!propertyId && !packageId) {
+      return res.status(400).json({ error: 'Either propertyId or packageId is required.' });
+    }
+
+    if (!checkIn) {
+      return res.status(400).json({ error: 'checkIn date is required.' });
     }
 
     const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-
-    if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
-      return res.status(400).json({ error: 'Invalid check-in or check-out date format.' });
+    if (isNaN(checkInDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid check-in date format.' });
     }
 
     const today = new Date();
@@ -29,12 +40,115 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Check-in date cannot be in the past.' });
     }
 
-    if (checkInDate >= checkOutDate) {
-      return res.status(400).json({ error: 'Check-out date must be strictly after check-in date.' });
-    }
+    const guests = Math.max(1, parseInt(guestsCount.toString(), 10) || 1);
 
     // Run interactive transaction for race-condition isolation
     const newBooking = await prisma.$transaction(async (tx) => {
+      // ───────────────────────────────────────────────
+      // A. PACKAGE EXPEDITION BOOKING FLOW
+      // ───────────────────────────────────────────────
+      if (packageId) {
+        // Find package by ID or num / slug
+        const pkg = await tx.package.findFirst({
+          where: {
+            OR: [
+              { id: packageId },
+              { num: packageId }
+            ]
+          }
+        });
+
+        if (!pkg) {
+          throw new Error('PACKAGE_NOT_FOUND');
+        }
+        if (!pkg.isActive) {
+          throw new Error('PACKAGE_NOT_ACTIVE');
+        }
+
+        // Calculate checkout date from package duration if not provided
+        let checkOutDate: Date;
+        if (checkOut) {
+          checkOutDate = new Date(checkOut);
+          if (isNaN(checkOutDate.getTime()) || checkOutDate <= checkInDate) {
+            checkOutDate = new Date(checkInDate.getTime() + (pkg.durationDays || 3) * 24 * 60 * 60 * 1000);
+          }
+        } else {
+          checkOutDate = new Date(checkInDate.getTime() + (pkg.durationDays || 3) * 24 * 60 * 60 * 1000);
+        }
+
+        // Compute Package Financials Server-Side
+        const baseStayCost = pkg.price * guests;
+        
+        let servicesCost = 0;
+        if (Array.isArray(selectedServices) && selectedServices.length > 0) {
+          for (const item of selectedServices) {
+            const price = Number(item.price) || 0;
+            const quantity = Number(item.quantity) || 1;
+            servicesCost += price * quantity;
+          }
+        }
+
+        // 5% Tax on taxable items (base stay + accessory services)
+        const subtotal = baseStayCost + servicesCost;
+        const taxAmount = Math.round(subtotal * 0.05);
+        const securityDeposit = 5000; // Flat tax-exempt refundable security deposit
+        const totalCost = subtotal + taxAmount + securityDeposit;
+
+        const booking = await tx.booking.create({
+          data: {
+            guestId: user.userId,
+            packageId: pkg.id,
+            checkIn: checkInDate,
+            checkOut: checkOutDate,
+            baseStayCost,
+            servicesCost,
+            securityDeposit,
+            totalCost,
+            guestsCount: guests,
+            status: 'PENDING',
+            specialRequests: specialRequests || null,
+          },
+          include: {
+            package: {
+              select: {
+                title: true,
+                price: true,
+                duration: true,
+                location: true,
+              }
+            }
+          }
+        });
+
+        // Trigger in-app notification for Super Admin
+        await tx.notification.create({
+          data: {
+            title: 'New Package Expedition Reserved',
+            desc: `Guest reserved "${pkg.title}" starting ${checkInDate.toLocaleDateString('en-IN')} for ₹${totalCost.toLocaleString('en-IN')}.`,
+            type: 'package',
+            unread: true
+          }
+        });
+
+        return booking;
+      }
+
+      // ───────────────────────────────────────────────
+      // B. BASERA HOMESTAY / CHALET BOOKING FLOW
+      // ───────────────────────────────────────────────
+      if (!checkOut) {
+        throw new Error('CHECKOUT_REQUIRED');
+      }
+
+      const checkOutDate = new Date(checkOut);
+      if (isNaN(checkOutDate.getTime())) {
+        throw new Error('INVALID_CHECKOUT_DATE');
+      }
+
+      if (checkInDate >= checkOutDate) {
+        throw new Error('CHECKOUT_MUST_BE_AFTER_CHECKIN');
+      }
+
       // 1. Fetch Property details and lock/fetch within transaction
       const property = await tx.property.findUnique({
         where: { id: propertyId },
@@ -97,10 +211,12 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
         }
       }
 
-      const totalCost = baseStayCost + servicesCost + securityDeposit;
+      const subtotal = baseStayCost + servicesCost;
+      const taxAmount = Math.round(subtotal * 0.05); // 5% VAT / GST
+      const totalCost = subtotal + taxAmount + securityDeposit;
 
       // 4. Record Booking
-      return await tx.booking.create({
+      const booking = await tx.booking.create({
         data: {
           guestId: user.userId,
           propertyId,
@@ -110,8 +226,9 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
           servicesCost,
           securityDeposit,
           totalCost,
+          guestsCount: guests,
           status: 'PENDING',
-          specialRequests,
+          specialRequests: specialRequests || null,
           selectedServices: {
             create: servicesDataToCreate
           }
@@ -131,6 +248,18 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
           }
         }
       });
+
+      // In-app Notification for Platform / Host
+      await tx.notification.create({
+        data: {
+          title: 'New Basera Stay Reserved',
+          desc: `Reservation placed for "${property.title}" (${nights} nights) starting ${checkInDate.toLocaleDateString('en-IN')}.`,
+          type: 'booking',
+          unread: true
+        }
+      });
+
+      return booking;
     });
 
     return res.status(201).json({
@@ -142,8 +271,17 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
     if (error.message === 'PROPERTY_NOT_FOUND') {
       return res.status(404).json({ error: 'Property not found.' });
     }
-    if (error.message === 'PROPERTY_NOT_ACTIVE') {
-      return res.status(400).json({ error: 'This property is currently inactive and cannot be booked.' });
+    if (error.message === 'PACKAGE_NOT_FOUND') {
+      return res.status(404).json({ error: 'Package expedition not found.' });
+    }
+    if (error.message === 'PROPERTY_NOT_ACTIVE' || error.message === 'PACKAGE_NOT_ACTIVE') {
+      return res.status(400).json({ error: 'This listing is currently inactive and cannot be booked.' });
+    }
+    if (error.message === 'CHECKOUT_REQUIRED') {
+      return res.status(400).json({ error: 'checkOut date is required for property bookings.' });
+    }
+    if (error.message === 'CHECKOUT_MUST_BE_AFTER_CHECKIN') {
+      return res.status(400).json({ error: 'Check-out date must be strictly after check-in date.' });
     }
     if (error.message === 'DATES_ALREADY_BOOKED') {
       return res.status(409).json({ error: 'The requested check-in dates have already been booked.' });
@@ -176,7 +314,10 @@ export const confirmBookingPayment = async (req: AuthRequest, res: Response) => 
 
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { property: true }
+      include: { 
+        property: true,
+        package: true
+      }
     });
 
     if (!booking) {
@@ -185,7 +326,7 @@ export const confirmBookingPayment = async (req: AuthRequest, res: Response) => 
 
     // Authorization: only the guest, the property host, or an admin can confirm payment
     const isGuest = booking.guestId === user.userId;
-    const isHost = booking.property.hostId === user.userId;
+    const isHost = booking.property ? booking.property.hostId === user.userId : false;
     const isAdmin = user.role === 'ADMIN';
 
     if (!isGuest && !isHost && !isAdmin) {
@@ -215,7 +356,7 @@ export const confirmBookingPayment = async (req: AuthRequest, res: Response) => 
  */
 export const cancelBooking = async (req: AuthRequest, res: Response) => {
   try {
-    const id = req.params.id || req.body.id;
+    const id = (req.params.id || req.body.id) as string;
     const user = req.user!;
 
     if (!id) {
@@ -224,7 +365,10 @@ export const cancelBooking = async (req: AuthRequest, res: Response) => {
 
     const booking = await prisma.booking.findUnique({
       where: { id },
-      include: { property: true }
+      include: { 
+        property: true,
+        package: true 
+      }
     });
 
     if (!booking) {
@@ -232,7 +376,7 @@ export const cancelBooking = async (req: AuthRequest, res: Response) => {
     }
 
     const isGuest = booking.guestId === user.userId;
-    const isHost = booking.property.hostId === user.userId;
+    const isHost = booking.property ? booking.property.hostId === user.userId : false;
     const isAdmin = user.role === 'ADMIN';
 
     if (!isGuest && !isHost && !isAdmin) {
@@ -262,25 +406,21 @@ export const cancelBooking = async (req: AuthRequest, res: Response) => {
 };
 
 /**
- * Retrieves a booking by its unique ID.
+ * Retrieves a single booking by ID.
  */
 export const getBookingById = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+    if (!id) {
+      return res.status(400).json({ error: 'Booking ID is required.' });
+    }
     const user = req.user!;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
       include: {
-        property: {
-          select: {
-            title: true,
-            hostId: true,
-            latitude: true,
-            longitude: true,
-            altitude: true
-          }
-        },
+        property: true,
+        package: true,
         selectedServices: {
           include: {
             service: true
@@ -290,7 +430,8 @@ export const getBookingById = async (req: AuthRequest, res: Response) => {
           select: {
             id: true,
             email: true,
-            phoneNumber: true
+            phoneNumber: true,
+            fullName: true
           }
         }
       }
@@ -300,7 +441,11 @@ export const getBookingById = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Booking not found.' });
     }
 
-    if (booking.guestId !== user.userId && booking.property.hostId !== user.userId && user.role !== 'ADMIN') {
+    const isGuest = booking.guestId === user.userId;
+    const isHost = booking.property ? booking.property.hostId === user.userId : false;
+    const isAdmin = user.role === 'ADMIN';
+
+    if (!isGuest && !isHost && !isAdmin) {
       return res.status(403).json({ error: 'Not authorized to view this booking.' });
     }
 
@@ -324,7 +469,18 @@ export const getMyBookings = async (req: AuthRequest, res: Response) => {
           select: {
             title: true,
             basePrice: true,
-            securityDeposit: true
+            securityDeposit: true,
+            location: true,
+            images: { take: 1, select: { url: true } }
+          }
+        },
+        package: {
+          select: {
+            title: true,
+            price: true,
+            duration: true,
+            location: true,
+            image: true
           }
         },
         selectedServices: {
@@ -362,13 +518,15 @@ export const getPropertyBookings = async (req: AuthRequest, res: Response) => {
       include: {
         property: {
           select: {
-            title: true
+            title: true,
+            location: true
           }
         },
         guest: {
           select: {
             email: true,
-            phoneNumber: true
+            phoneNumber: true,
+            fullName: true
           }
         },
         selectedServices: {

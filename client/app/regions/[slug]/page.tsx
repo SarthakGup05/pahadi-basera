@@ -61,13 +61,13 @@ export default function RegionDetailPage() {
             id: p.id,
             title: p.title,
             location: p.location,
-            image: (Array.isArray(p.images) && p.images[0]) || p.bgImage || 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop',
+            image: (Array.isArray(p.images) && p.images[0]?.url) || (typeof p.images?.[0] === 'string' ? p.images[0] : null) || p.bgImage || 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop',
             rating: p.rating || '4.9',
-            pricePerNight: Number(p.pricePerNight) || 4500,
-            guests: p.guests || 2,
+            pricePerNight: Number(p.basePrice || p.pricePerNight) || 4500,
+            guests: p.maxGuests || p.guests || 2,
             bedrooms: p.bedrooms || 1,
             bathrooms: p.bathrooms || 1,
-            badge: p.badge || 'Signature'
+            badge: p.isFeatured ? 'Featured' : p.isPopular ? 'Popular' : (p.badge || 'Signature')
           }));
           setMatchingProperties(filtered);
         }

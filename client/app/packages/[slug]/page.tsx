@@ -22,11 +22,15 @@ import {
   Tent,
   Coffee,
   Car,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Loader2
 } from 'lucide-react';
 import Banner from '@/components/ui/Banner';
 import { Button } from '@/components/ui/button';
 import { PackageItem } from '@/lib/packagesData';
+import { useAuth } from '@/hooks/useAuth';
+import AuthModal from '@/components/auth/AuthModal';
+import { toast } from 'sonner';
 
 // Dynamic icon mapping helper
 const getIconComponent = (name: string) => {
@@ -50,6 +54,11 @@ export default function PackageDetailPage() {
   const [pkg, setPkg] = useState<PackageItem | null>(null);
 
   // Booking Flow States
+  const { isAuthenticated } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdBooking, setCreatedBooking] = useState<any>(null);
+
   const [travelers, setTravelers] = useState<number>(1);
   const [startDate, setStartDate] = useState<string>('2026-06-15');
   const [extraTransit, setExtraTransit] = useState(false);
@@ -125,6 +134,56 @@ export default function PackageDetailPage() {
     tax,
     deposit: securityDeposit,
     grandTotal
+  };
+
+  const handlePackageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const selectedServicesPayload = [];
+      if (extraTransit) {
+        selectedServicesPayload.push({
+          serviceId: '4x4-chauffeur',
+          price: 2500,
+          quantity: pkg?.durationDays || 3
+        });
+      }
+      if (extraChef) {
+        selectedServicesPayload.push({
+          serviceId: 'traditional-chef',
+          price: 1500,
+          quantity: pkg?.durationDays || 3
+        });
+      }
+      if (extraSpa) {
+        selectedServicesPayload.push({
+          serviceId: 'herbal-spa',
+          price: 3000,
+          quantity: travelers
+        });
+      }
+
+      const payload = {
+        packageId: pkg.id,
+        checkIn: startDate,
+        guestsCount: travelers,
+        selectedServices: selectedServicesPayload,
+      };
+
+      const { data } = await api.post('/api/bookings/create-booking', payload);
+      setCreatedBooking(data.booking);
+      setBookingSuccess(true);
+      toast.success('Expedition reservation successfully placed!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to place expedition reservation.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const breadcrumbs = [
@@ -276,16 +335,22 @@ export default function PackageDetailPage() {
             {bookingSuccess ? (
               /* Booking success screen */
               <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-full bg-emerald-50 text-[#10b981] flex items-center justify-center mx-auto mb-6 border border-emerald-100 shadow-inner">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 text-[#10b981] flex items-center justify-center mx-auto mb-5 border border-emerald-100 shadow-inner">
                   <Check className="w-8 h-8" strokeWidth={3} />
                 </div>
+
+                {createdBooking?.id && (
+                  <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold tracking-widest uppercase mb-3">
+                    Booking #{`PB-${createdBooking.id.slice(0, 8).toUpperCase()}`}
+                  </span>
+                )}
                 
-                <h3 className="text-3xl font-light tracking-tight text-stone-900 mb-2">Order Initiated!</h3>
+                <h3 className="text-2xl font-light tracking-tight text-stone-900 mb-2">Expedition Reserved!</h3>
                 <p className="text-xs font-light text-stone-500 leading-relaxed mb-6 max-w-sm mx-auto">
-                  A booking request for <span className="font-semibold text-stone-900">"{pkg.title}"</span> on <span className="font-semibold text-stone-900">{startDate}</span> for <span className="font-semibold text-stone-900">{travelers} {travelers === 1 ? 'guest' : 'guests'}</span> has been successfully logged. Sourced native operators are preparing your chalet.
+                  Your expedition reservation for <span className="font-semibold text-stone-900">"{pkg.title}"</span> starting on <span className="font-semibold text-stone-900">{startDate}</span> for <span className="font-semibold text-stone-900">{travelers} {travelers === 1 ? 'traveler' : 'travelers'}</span> has been confirmed in the ledger. Native guides have been notified.
                 </p>
 
-                <div className="bg-stone-50 border border-stone-100 rounded-2xl p-4 text-left max-w-xs mx-auto mb-8">
+                <div className="bg-stone-50 border border-stone-100 rounded-2xl p-4 text-left max-w-xs mx-auto mb-6">
                   <span className="block text-[8.5px] font-bold text-stone-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <ShieldCheck className="w-4.5 h-4.5 text-[#10b981]" /> High Altitude Receipt
                   </span>
@@ -293,17 +358,19 @@ export default function PackageDetailPage() {
                     <span>Base Fare ({travelers} pp):</span>
                     <span className="font-semibold text-stone-850">₹{quote.base.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between text-xs mb-1 text-stone-600">
-                    <span>Accessory Additions:</span>
-                    <span className="font-semibold text-stone-850">₹{quote.services.toLocaleString('en-IN')}</span>
-                  </div>
+                  {quote.services > 0 && (
+                    <div className="flex justify-between text-xs mb-1 text-stone-600">
+                      <span>Accessory Additions:</span>
+                      <span className="font-semibold text-stone-850">₹{quote.services.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs mb-1 text-stone-600 border-b border-stone-200/50 pb-2">
                     <span>GST Tourist Tax (5%):</span>
                     <span className="font-semibold text-stone-850">₹{quote.tax.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="flex justify-between items-baseline pt-2">
-                    <span className="text-xs font-bold text-stone-900">Paid Total:</span>
-                    <span className="text-base font-bold text-[#10b981]">₹{quote.grandTotal.toLocaleString('en-IN')}</span>
+                    <span className="text-xs font-bold text-stone-900">Grand Total:</span>
+                    <span className="text-base font-bold text-[#10b981]">₹{(createdBooking?.totalCost || quote.grandTotal).toLocaleString('en-IN')}</span>
                   </div>
                   <span className="block text-[7.5px] text-stone-400 mt-1 text-center font-medium">*Includes ₹{quote.deposit.toLocaleString('en-IN')} Refundable Deposit</span>
                 </div>
@@ -320,13 +387,13 @@ export default function PackageDetailPage() {
                     onClick={() => { router.push('/packages'); }}
                     className="rounded-xl bg-stone-900 hover:bg-[#10b981] text-white font-bold tracking-widest text-[10px] uppercase h-11 border-0 cursor-pointer w-full"
                   >
-                    Explore Other Chalets
+                    Explore Other Expeditions
                   </Button>
                 </div>
               </div>
             ) : (
               /* Quotation Calculator Form */
-              <form onSubmit={(e) => { e.preventDefault(); setBookingSuccess(true); }} className="space-y-6">
+              <form onSubmit={handlePackageSubmit} className="space-y-6">
                 
                 {/* Section Header */}
                 <div>
@@ -492,9 +559,17 @@ export default function PackageDetailPage() {
                 {/* Action Reserve Button */}
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-stone-950 hover:bg-[#10b981] text-white rounded-xl font-bold tracking-widest text-xs uppercase flex items-center justify-center gap-1.5 border-0 shadow-lg hover:shadow-[0_8px_25px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-stone-950 hover:bg-[#10b981] text-white rounded-xl font-bold tracking-widest text-xs uppercase flex items-center justify-center gap-1.5 border-0 shadow-lg hover:shadow-[0_8px_25px_rgba(16,185,129,0.3)] transition-all cursor-pointer disabled:opacity-60"
                 >
-                  Reserve Chalet
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                      Securing Chalet...
+                    </>
+                  ) : (
+                    'Reserve Chalet'
+                  )}
                 </Button>
               </form>
             )}
@@ -504,6 +579,13 @@ export default function PackageDetailPage() {
         </div>
 
       </div>
+
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        title="Sign In to Reserve Expedition"
+        description="Please sign in or create an account to reserve this mountain expedition."
+      />
 
     </div>
   );
