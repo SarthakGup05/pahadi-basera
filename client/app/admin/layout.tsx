@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Home, CalendarDays, Compass } from 'lucide-react';
+import { LayoutDashboard, Home, CalendarDays, Compass, Mountain } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 
 // Modular Subcomponents
@@ -83,6 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Stays Moderation', href: '/admin/properties', icon: Home },
+    { name: 'Himalayan Creators', href: '/admin/creators', icon: Mountain },
     { name: 'Booking Ledger', href: '/admin/bookings', icon: CalendarDays },
     { name: 'Package Ledger', href: '/admin/packages', icon: Compass },
   ];

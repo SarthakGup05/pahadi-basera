@@ -34,6 +34,7 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
   // Navigation sections
   const coreWorkspaceItems = navItems.filter(item => item.href === '/admin' || item.href.includes('properties'));
+  const creatorItems = navItems.filter(item => item.href.includes('creators'));
   const ledgerItems = navItems.filter(item => item.href.includes('bookings') || item.href.includes('packages'));
 
   return (
@@ -122,6 +123,44 @@ export default function AdminSidebar({
             })}
           </nav>
         </div>
+
+        {/* Creator Guild Section */}
+        {creatorItems.length > 0 && (
+          <div>
+            {!sidebarCollapsed && (
+              <div className="px-3 mb-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400">Creator Guild</span>
+                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Super Admin</span>
+              </div>
+            )}
+            <nav className="space-y-1">
+              {creatorItems.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={sidebarCollapsed ? item.name : undefined}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer ${
+                      isActive 
+                        ? 'bg-white text-stone-900 font-semibold border border-stone-200/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)]' 
+                        : 'text-stone-600 hover:bg-stone-200/40 hover:text-stone-900'
+                    } ${sidebarCollapsed ? 'justify-center' : ''}`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-emerald-700' : 'text-stone-400 group-hover:text-stone-700'}`} />
+                    {!sidebarCollapsed && (
+                      <span className="text-xs tracking-normal font-medium">{item.name}</span>
+                    )}
+                    {isActive && !sidebarCollapsed && (
+                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        )}
 
         {/* Ledgers Section */}
         <div>

@@ -19,7 +19,9 @@ import {
   MapPin,
   Calendar,
   Sparkles,
-  Plus
+  Plus,
+  Clock,
+  Mountain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +50,9 @@ interface DashboardStats {
     usersByRole: Array<{ role: string; _count: { id: number } }>;
     totalPackages: number;
     activePackages: number;
+    pendingCreatorsCount?: number;
+    verifiedCreatorsCount?: number;
+    totalDispatchesCount?: number;
   };
   monthlyStats: Array<{ month: string; bookings: number; revenue: number }>;
   regionStats: Array<{ name: string; value: number }>;
@@ -371,6 +376,34 @@ export default function AdminDashboard() {
         </div>
 
       </div>
+
+      {/* Super Admin Creator Onboarding Alert Banner */}
+      {Boolean(stats.counters.pendingCreatorsCount && stats.counters.pendingCreatorsCount > 0) && (
+        <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-amber-950 block">
+                {stats.counters.pendingCreatorsCount} Creator Onboarding Application(s) Awaiting Super Admin Review
+              </span>
+              <span className="text-xs text-amber-800 font-light">
+                New applicants have submitted DigiLocker verification and cannot onboard until approved.
+              </span>
+            </div>
+          </div>
+          <Button
+            asChild
+            size="sm"
+            className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-5 h-9 shrink-0 shadow-xs transition-all"
+          >
+            <Link href="/admin/creators">
+              Review Applications &rarr;
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {/* Modern Data Visualizations Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

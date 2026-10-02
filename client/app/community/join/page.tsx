@@ -20,7 +20,9 @@ import {
   CheckCircle2,
   Loader2,
   Compass,
-  Mountain
+  Mountain,
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,16 +99,18 @@ export default function JoinCommunityPage() {
         fullName,
         handle: handle.replace('@', '') || fullName.toLowerCase().replace(/\s+/g, '_'),
         avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        referralCode: data.referralCode || `PB${cleanAadhaar.slice(-4)}`,
-        isVerified: true,
-        kycStatus: 'VERIFIED',
-        commissionRate: 0.08
+        isVerified: false,
+        kycStatus: 'PENDING',
+        commissionRate: 0.08,
+        specialty,
+        upiId,
+        bio
       };
 
       setVerifiedData(userObj);
       localStorage.setItem('pb_creator_profile', JSON.stringify(userObj));
       setStep(4);
-      toast.success('DigiLocker Verification Approved! Welcome to the Himalayan Creator Guild.');
+      toast.success('DigiLocker KYC submitted! Awaiting Super Admin onboarding approval.');
     } catch (err) {
       fallbackVerification();
     } finally {
@@ -115,17 +119,14 @@ export default function JoinCommunityPage() {
   };
 
   const fallbackVerification = () => {
-    const cleanPrefix = (fullName || 'EXPLORER').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6);
-    const generatedCode = `${cleanPrefix}${Math.floor(100 + Math.random() * 900)}`;
     const cleanHandle = handle.replace('@', '') || fullName.toLowerCase().replace(/\s+/g, '_') || 'himalayan_soul';
 
     const mockProfile = {
-      fullName: fullName || 'Verified Explorer',
+      fullName: fullName || 'Himalayan Explorer',
       handle: cleanHandle,
-      role: 'BLOGGER',
-      isVerified: true,
-      kycStatus: 'VERIFIED',
-      referralCode: generatedCode,
+      role: 'GUEST',
+      isVerified: false,
+      kycStatus: 'PENDING',
       commissionRate: 0.08,
       digilockerVerified: true,
       bio: bio || 'Slow travel writer and high-altitude explorer in the Indian Himalayas.',
@@ -137,7 +138,39 @@ export default function JoinCommunityPage() {
     localStorage.setItem('pb_creator_profile', JSON.stringify(mockProfile));
     setVerifiedData(mockProfile);
     setStep(4);
-    toast.success('UIDAI DigiLocker verified! Creator account activated.');
+    toast.success('DigiLocker verification submitted! Application queued for Super Admin review.');
+  };
+
+  const checkApprovalStatus = async () => {
+    try {
+      const { data } = await api.get('/api/kyc/status');
+      if (data && (data.kycStatus === 'VERIFIED' || data.role === 'BLOGGER')) {
+        const approved = {
+          ...verifiedData,
+          ...data,
+          isVerified: true,
+          kycStatus: 'VERIFIED',
+          referralCode: data.referralCode || verifiedData?.referralCode || 'HIMALAYA8'
+        };
+        setVerifiedData(approved);
+        localStorage.setItem('pb_creator_profile', JSON.stringify(approved));
+        toast.success('Congratulations! Super Admin has approved your creator onboarding!');
+      } else {
+        toast.info('Your application is currently in the Super Admin review queue.');
+      }
+    } catch {
+      // Check local storage updates from Super Admin actions
+      const saved = localStorage.getItem('pb_creator_profile');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.isVerified || parsed.kycStatus === 'VERIFIED') {
+          setVerifiedData(parsed);
+          toast.success('Creator onboarding is approved and active!');
+          return;
+        }
+      }
+      toast.info('Application is awaiting Super Admin approval.');
+    }
   };
 
   const copyReferralCode = () => {
@@ -152,7 +185,7 @@ export default function JoinCommunityPage() {
     { number: 1, title: 'Profile', desc: 'Identity & handle' },
     { number: 2, title: 'DigiLocker KYC', desc: 'UIDAI check' },
     { number: 3, title: 'Payout', desc: 'UPI ID & 8% terms' },
-    { number: 4, title: 'Approved', desc: 'Referral link active' },
+    { number: 4, title: 'Review', desc: 'Super Admin approval' },
   ];
 
   return (
@@ -500,54 +533,115 @@ export default function JoinCommunityPage() {
             </form>
           )}
 
-          {/* STEP 4: Success Celebration */}
+          {/* STEP 4: Review Queue vs Approved Celebration */}
           {step === 4 && (
-            <div className="space-y-6 text-center py-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#10b981] flex items-center justify-center mx-auto border border-emerald-200 shadow-sm">
-                <Sparkles className="w-7 h-7 text-[#10b981]" />
-              </div>
-
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-stone-900">
-                  Welcome to the Creator Guild, {verifiedData?.fullName || fullName}!
-                </h2>
-                <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-md mx-auto font-light">
-                  Your identity has been verified via DigiLocker. You can now publish slow travel diaries and share your exclusive 8% referral link.
-                </p>
-              </div>
-
-              {/* Referral Code Box */}
-              <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 text-left max-w-md mx-auto">
-                <div className="flex items-center justify-between text-xs text-stone-500 mb-2">
-                  <span className="font-bold uppercase tracking-wider text-[10px]">Your Referral Code</span>
-                  <span className="text-emerald-700 font-semibold text-[11px]">8% Commission Active</span>
+            verifiedData?.kycStatus === 'PENDING' ? (
+              <div className="space-y-6 text-center py-4">
+                <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 shadow-sm">
+                  <Clock className="w-7 h-7 text-amber-600 animate-pulse" />
                 </div>
-                <div className="flex items-center justify-between gap-3 bg-white border border-stone-200 p-3 rounded-xl">
-                  <span className="font-mono font-bold text-base text-stone-900 tracking-wider">
-                    {verifiedData?.referralCode || 'HIMALAYA8'}
-                  </span>
-                  <button
-                    onClick={copyReferralCode}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold cursor-pointer transition-all"
+
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/70 border border-amber-300 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
+                    Application In Super Admin Review
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-stone-900">
+                    Application Received, {verifiedData?.fullName || fullName}!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-stone-500 mt-2 max-w-md mx-auto font-light leading-relaxed">
+                    Your DigiLocker KYC has been verified. In accordance with platform governance, a Super Admin must review and approve your creator onboarding before publishing privileges and your referral code are activated.
+                  </p>
+                </div>
+
+                {/* Status Review Box */}
+                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 text-left max-w-md mx-auto space-y-3">
+                  <div className="flex items-center justify-between text-xs pb-2 border-b border-stone-200">
+                    <span className="text-stone-500">Identity Verification</span>
+                    <span className="font-bold text-emerald-700 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" /> DigiLocker KYC Attached
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pb-2 border-b border-stone-200">
+                    <span className="text-stone-500">Onboarding Status</span>
+                    <span className="font-bold text-amber-700 bg-amber-100/60 px-2 py-0.5 rounded-full">
+                      Awaiting Super Admin Approval
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pb-2 border-b border-stone-200">
+                    <span className="text-stone-500">Mountain Specialty</span>
+                    <span className="font-medium text-stone-800">{specialty}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-stone-500">Payout UPI (8% terms)</span>
+                    <span className="font-mono text-stone-700">{upiId || 'Configured'}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  <Button
+                    onClick={checkApprovalStatus}
+                    variant="outline"
+                    className="rounded-xl border-stone-300 text-stone-800 hover:bg-stone-100 text-xs font-semibold px-6 h-11 cursor-pointer"
                   >
-                    {copied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Copied' : 'Copy'}</span>
-                  </button>
+                    <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                    Check Approval Status
+                  </Button>
+                  <Button
+                    onClick={() => router.push('/community')}
+                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs rounded-xl px-7 h-11 cursor-pointer shadow-sm"
+                  >
+                    Browse Community Dispatches →
+                  </Button>
                 </div>
-                <p className="text-[10px] text-stone-400 mt-2">
-                  Give this code to your readers for 5% off their booking. You earn 8% on each completed stay.
-                </p>
               </div>
+            ) : (
+              <div className="space-y-6 text-center py-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#10b981] flex items-center justify-center mx-auto border border-emerald-200 shadow-sm">
+                  <Sparkles className="w-7 h-7 text-[#10b981]" />
+                </div>
 
-              <div className="pt-2">
-                <Button
-                  onClick={() => router.push('/community')}
-                  className="bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs rounded-xl px-8 h-11 cursor-pointer shadow-sm"
-                >
-                  Explore Community Stories & Share Note →
-                </Button>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-stone-900">
+                    Welcome to the Creator Guild, {verifiedData?.fullName || fullName}!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-md mx-auto font-light">
+                    Your onboarding has been approved by the Super Admin. You can now publish slow travel diaries and share your exclusive 8% referral link.
+                  </p>
+                </div>
+
+                {/* Referral Code Box */}
+                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 text-left max-w-md mx-auto">
+                  <div className="flex items-center justify-between text-xs text-stone-500 mb-2">
+                    <span className="font-bold uppercase tracking-wider text-[10px]">Your Referral Code</span>
+                    <span className="text-emerald-700 font-semibold text-[11px]">8% Commission Active</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 bg-white border border-stone-200 p-3 rounded-xl">
+                    <span className="font-mono font-bold text-base text-stone-900 tracking-wider">
+                      {verifiedData?.referralCode || 'HIMALAYA8'}
+                    </span>
+                    <button
+                      onClick={copyReferralCode}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold cursor-pointer transition-all"
+                    >
+                      {copied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-stone-400 mt-2">
+                    Give this code to your readers for 5% off their booking. You earn 8% on each completed stay.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    onClick={() => router.push('/community')}
+                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs rounded-xl px-8 h-11 cursor-pointer shadow-sm"
+                  >
+                    Explore Community Stories & Share Note →
+                  </Button>
+                </div>
               </div>
-            </div>
+            )
           )}
 
         </div>

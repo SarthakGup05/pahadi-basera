@@ -69,7 +69,7 @@ export const verifyAadhaarDigilocker = async (req: AuthRequest, res: Response) =
     // Masked Aadhaar for storage privacy (e.g. "XXXXXXXX9823")
     const maskedAadhaar = `XXXXXXXX${cleanAadhaar.slice(-4)}`;
 
-    // Automated Instant Approval via DigiLocker Trust Anchor
+    // Set Creator application to PENDING awaiting Super Admin approval
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -78,35 +78,33 @@ export const verifyAadhaarDigilocker = async (req: AuthRequest, res: Response) =
         socialProfile: socialProfile ? socialProfile.trim() : null,
         aadhaarNumber: maskedAadhaar,
         digilockerVerified: true,
-        kycStatus: 'VERIFIED',
-        role: 'BLOGGER',
-        kycVerifiedAt: new Date(),
-        referralCode: referralCode,
-        commissionRate: 0.08, // 8% commission on referrals
+        kycStatus: 'PENDING',
+        // Role remains GUEST until Super Admin approves onboarding
+        role: existingUser.role === 'ADMIN' ? 'ADMIN' : 'GUEST',
         upiId: upiId ? upiId.trim() : null
       }
     });
 
-    // Notify Super Admin of newly certified creator
+    // Notify Super Admin of incoming creator application
     await prisma.notification.create({
       data: {
-        title: 'New Verified Himalayan Creator',
-        desc: `${fullName} has completed automated DigiLocker verification. Referral code: ${referralCode}`,
+        title: 'New Creator Onboarding Application',
+        desc: `${fullName} has submitted DigiLocker verification. Awaiting Super Admin review and onboarding approval.`,
         type: 'kyc',
         unread: true
       }
     });
 
     return res.status(200).json({
-      message: 'DigiLocker KYC verification successful! You are now a Verified Himalayan Blogger.',
+      message: 'DigiLocker verification submitted! Your application is awaiting Super Admin review and onboarding approval.',
+      status: 'PENDING',
       user: {
         id: updatedUser.id,
         email: updatedUser.email,
         fullName: updatedUser.fullName,
         role: updatedUser.role,
         kycStatus: updatedUser.kycStatus,
-        referralCode: updatedUser.referralCode,
-        commissionRate: updatedUser.commissionRate,
+        isVerified: false,
         digilockerVerified: updatedUser.digilockerVerified
       }
     });

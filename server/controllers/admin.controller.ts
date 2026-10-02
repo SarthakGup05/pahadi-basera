@@ -30,6 +30,23 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       where: { isActive: true }
     });
 
+    const pendingCreatorsCount = await prisma.user.count({
+      where: { 
+        kycStatus: 'PENDING',
+        OR: [
+          { aadhaarNumber: { not: null } },
+          { bio: { not: null } },
+          { socialProfile: { not: null } }
+        ]
+      }
+    });
+
+    const verifiedCreatorsCount = await prisma.user.count({
+      where: { role: 'BLOGGER' }
+    });
+
+    const totalDispatchesCount = await prisma.blogPost.count();
+
     // 2. Financial Metrics
     // Calculate total revenue from Confirmed & Completed bookings
     const revenueSum = await prisma.booking.aggregate({
@@ -165,7 +182,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         totalRevenue,
         usersByRole,
         totalPackages,
-        activePackages
+        activePackages,
+        pendingCreatorsCount,
+        verifiedCreatorsCount,
+        totalDispatchesCount
       },
       monthlyStats,
       regionStats,
@@ -311,5 +331,267 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response) => {
       error: 'Failed to update booking status',
       details: error.message,
     });
+  }
+};
+
+/**
+ * Super Admin: Get all pending creator onboarding applications
+ */
+export const getPendingCreators = async (req: AuthRequest, res: Response) => {
+  try {
+    const pending = await prisma.user.findMany({
+      where: {
+        kycStatus: 'PENDING',
+        OR: [
+          { aadhaarNumber: { not: null } },
+          { bio: { not: null } },
+          { socialProfile: { not: null } }
+        ]
+      },
+      select: {
+        id: true,
+        email: true,
+        phoneNumber: true,
+        fullName: true,
+        bio: true,
+        avatarUrl: true,
+        socialProfile: true,
+        aadhaarNumber: true,
+        digilockerVerified: true,
+        kycStatus: true,
+        upiId: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+    return res.status(200).json(pending);
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to fetch pending creator applications', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Get all active/onboarded creators
+ */
+export const getOnboardedCreators = async (req: AuthRequest, res: Response) => {
+  try {
+    const creators = await prisma.user.findMany({
+      where: {
+        OR: [
+          { role: 'BLOGGER' },
+          { kycStatus: 'VERIFIED', referralCode: { not: null } }
+        ]
+      },
+      select: {
+        id: true,
+        email: true,
+        phoneNumber: true,
+        fullName: true,
+        bio: true,
+        avatarUrl: true,
+        socialProfile: true,
+        role: true,
+        kycStatus: true,
+        kycVerifiedAt: true,
+        referralCode: true,
+        commissionRate: true,
+        upiId: true,
+        totalEarnings: true,
+        pendingBalance: true,
+        createdAt: true,
+        _count: {
+          select: {
+            blogPosts: true,
+            referralEarnings: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return res.status(200).json(creators);
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to fetch onboarded creators', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Approve creator onboarding application
+ */
+export const approveCreatorOnboarding = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Creator application not found' });
+    }
+
+    // Generate unique referral code if missing
+    let referralCode = user.referralCode;
+    if (!referralCode) {
+      let unique = false;
+      const cleanName = (user.fullName || 'HIMALAYA').replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 6) || 'HIMA';
+      while (!unique) {
+        const candidate = `${cleanName}${Math.floor(100 + Math.random() * 900)}`;
+        const check = await prisma.user.findUnique({ where: { referralCode: candidate } });
+        if (!check) {
+          referralCode = candidate;
+          unique = true;
+        }
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        kycStatus: 'VERIFIED',
+        role: 'BLOGGER',
+        digilockerVerified: true,
+        kycVerifiedAt: new Date(),
+        referralCode,
+        commissionRate: 0.08
+      }
+    });
+
+    await prisma.notification.create({
+      data: {
+        title: 'Creator Onboarding Approved',
+        desc: `Super Admin approved onboarding for ${updated.fullName || updated.email}. Referral code: ${referralCode}`,
+        type: 'kyc',
+        unread: true
+      }
+    });
+
+    return res.status(200).json({
+      message: 'Creator application approved successfully! Creator is now onboarded and active.',
+      creator: updated
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to approve creator', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Reject creator onboarding application
+ */
+export const rejectCreatorOnboarding = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: 'Creator application not found' });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        kycStatus: 'REJECTED'
+      }
+    });
+
+    return res.status(200).json({
+      message: 'Creator application rejected.',
+      creator: updated
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to reject creator', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Toggle creator role (e.g. BLOGGER <-> GUEST) or revoke privileges
+ */
+export const toggleCreatorRole = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { role } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        role: role === 'BLOGGER' ? 'BLOGGER' : 'GUEST'
+      }
+    });
+
+    return res.status(200).json({
+      message: `Creator status updated to ${updated.role}`,
+      creator: updated
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to update creator role', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Get all creator dispatches & content for review
+ */
+export const getAllCreatorDispatches = async (req: AuthRequest, res: Response) => {
+  try {
+    const dispatches = await prisma.blogPost.findMany({
+      include: {
+        authorUser: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            referralCode: true,
+            kycStatus: true,
+            role: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return res.status(200).json(dispatches);
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to fetch creator dispatches', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Delete creator dispatch
+ */
+export const deleteCreatorDispatch = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const post = await prisma.blogPost.findUnique({ where: { id } });
+    if (!post) {
+      return res.status(404).json({ error: 'Dispatch not found' });
+    }
+    await prisma.blogPost.delete({ where: { id } });
+    return res.status(200).json({ message: 'Dispatch removed from Himalayan Journal.' });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to delete dispatch', details: error.message });
+  }
+};
+
+/**
+ * Super Admin: Toggle verification/featured status on creator dispatch
+ */
+export const toggleDispatchVerification = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const post = await prisma.blogPost.findUnique({ where: { id } });
+    if (!post) {
+      return res.status(404).json({ error: 'Dispatch not found' });
+    }
+    const updated = await prisma.blogPost.update({
+      where: { id },
+      data: {
+        isVerifiedCreator: !post.isVerifiedCreator
+      }
+    });
+    return res.status(200).json({
+      message: `Dispatch ${updated.isVerifiedCreator ? 'marked as verified/featured' : 'unmarked'}`,
+      post: updated
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Failed to toggle dispatch verification', details: error.message });
   }
 };
