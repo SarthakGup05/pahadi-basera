@@ -47,10 +47,25 @@ export const register = async (req: Request, res: Response) => {
 export const loginWithPassword = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findFirst({
+      where: {
+        email: { equals: cleanEmail, mode: 'insensitive' }
+      }
+    });
+
     if (!user || !user.password) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Ensure primary admin email always retains ADMIN role
+    if (user.email.toLowerCase() === 'admin@pahadibasera.com' && user.role !== 'ADMIN') {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'ADMIN' }
+      });
+      user.role = 'ADMIN' as any;
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);

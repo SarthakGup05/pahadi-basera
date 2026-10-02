@@ -52,20 +52,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsSubmitting(true);
     try {
       const { data } = await api.post('/api/auth/login', {
-        email: loginEmail,
+        email: loginEmail.trim().toLowerCase(),
         password: loginPassword
       });
 
-      if (data.role !== 'ADMIN') {
+      const userRole = data.role || data.user?.role;
+
+      if (userRole !== 'ADMIN') {
         throw new Error('Access denied. Super Admin permissions required.');
       }
 
       localStorage.setItem('pb_admin_token', data.accessToken);
-      localStorage.setItem('pb_admin_role', data.role);
+      localStorage.setItem('pb_admin_role', userRole);
       setIsAuthenticated(true);
       toast.success('Access granted. Welcome back, Super Admin!');
     } catch (error: any) {
-      toast.error(error.message || 'Login failed');
+      toast.error(error.response?.data?.error || error.message || 'Login failed');
     } finally {
       setIsSubmitting(false);
     }

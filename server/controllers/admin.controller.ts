@@ -446,7 +446,7 @@ export const approveCreatorOnboarding = async (req: AuthRequest, res: Response) 
       where: { id },
       data: {
         kycStatus: 'VERIFIED',
-        role: 'BLOGGER',
+        role: user.role === 'ADMIN' ? 'ADMIN' : 'BLOGGER',
         digilockerVerified: true,
         kycVerifiedAt: new Date(),
         referralCode,
@@ -510,6 +510,10 @@ export const toggleCreatorRole = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    if (user.role === 'ADMIN' || user.email.toLowerCase() === 'admin@pahadibasera.com') {
+      return res.status(400).json({ error: 'Cannot alter role of Super Admin account.' });
     }
 
     const updated = await prisma.user.update({
