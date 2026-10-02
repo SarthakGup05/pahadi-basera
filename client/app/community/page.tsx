@@ -38,15 +38,29 @@ import { PropertyItem } from '@/lib/propertiesData';
 import CreatorKycModal from '@/components/community/CreatorKycModal';
 import CreateStoryModal from '@/components/community/CreateStoryModal';
 import CreatorDashboardModal from '@/components/community/CreatorDashboardModal';
+import StoryShareModal from '@/components/community/StoryShareModal';
+import ImageUploadDropzone from '@/components/ui/ImageUploadDropzone';
 import { toast } from 'sonner';
 
-// Format relative time
+const HIMALAYAN_REGIONS = [
+  { name: 'Chopta', altitude: '2,680m', temp: '14°C', tag: '📍 Chopta • 2,680m • 14°C' },
+  { name: 'Munsiyari', altitude: '2,200m', temp: '11°C', tag: '🌲 Munsiyari • 2,200m • 11°C' },
+  { name: 'Spiti Valley', altitude: '3,800m', temp: '6°C', tag: '❄️ Spiti Valley • 3,800m • 6°C' },
+  { name: 'Kausani', altitude: '1,890m', temp: '16°C', tag: '🍃 Kausani • 1,890m • 16°C' },
+  { name: 'Auli', altitude: '2,800m', temp: '9°C', tag: '⛷️ Auli • 2,800m • 9°C' },
+];
+
+// Format relative time safely
 const formatTimeAgo = (dateString?: string) => {
   if (!dateString) return '2h ago';
+  if (typeof dateString === 'string' && (dateString.includes('ago') || dateString === 'Yesterday' || dateString === 'Just now')) {
+    return dateString;
+  }
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+  if (isNaN(seconds)) return '2h ago';
   if (seconds < 60) return 'Just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
@@ -86,11 +100,16 @@ export default function CommunityHubPage() {
 
   // Field note composer
   const [noteContent, setNoteContent] = useState('');
-  const [noteAltitude, setNoteAltitude] = useState('2,400m');
+  const [noteAltitude, setNoteAltitude] = useState('2,680m');
+  const [selectedRegionTag, setSelectedRegionTag] = useState<string>('📍 Chopta • 2,680m • 14°C');
   const [noteStayId, setNoteStayId] = useState('1');
   const [noteImage, setNoteImage] = useState('');
   const [showImageField, setShowImageField] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Social Share Sheet & Story Card Modal
+  const [selectedStoryToShare, setSelectedStoryToShare] = useState<BlogItem | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Search & following
   const [searchQuery, setSearchQuery] = useState('');
@@ -221,9 +240,8 @@ export default function CommunityHubPage() {
   };
 
   const handleShare = (story: BlogItem) => {
-    const url = `${window.location.origin}/community#${story.id}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Story link copied to clipboard');
+    setSelectedStoryToShare(story);
+    setIsShareModalOpen(true);
   };
 
   const handleSendReply = (storyId: string) => {
@@ -252,6 +270,8 @@ export default function CommunityHubPage() {
     const authorName = creatorProfile?.fullName || 'Mountain Explorer';
     const authorRefCode = creatorProfile?.referralCode || 'HIMALAYA8';
 
+    const parsedTag = selectedRegionTag.replace(/[📍🌲❄️🍃⛷️]/g, '').trim().split('•')[0].trim();
+
     const newStory: BlogItem = {
       id: `note-${Date.now()}`,
       title: noteContent.slice(0, 60),
@@ -265,7 +285,7 @@ export default function CommunityHubPage() {
         'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
       ],
       views: '1',
-      tags: ['FieldNote', 'SlowLiving'],
+      tags: [parsedTag || 'Chopta', 'SlowLiving'],
       gearList: [],
       routeCoordinates: [],
       author: {
@@ -469,47 +489,94 @@ export default function CommunityHubPage() {
                       className="w-full text-xs sm:text-sm text-stone-800 placeholder:text-stone-400 border-0 focus:ring-0 p-0 resize-none outline-none leading-relaxed"
                     />
 
-                    {/* Image URL toggle */}
+                    {/* Direct Drag-and-Drop / Camera Upload */}
                     {showImageField && (
-                      <div className="mt-2 mb-2">
-                        <Input
-                          type="text"
-                          placeholder="Paste image link from Unsplash or trail camera..."
-                          value={noteImage}
-                          onChange={(e) => setNoteImage(e.target.value)}
-                          className="text-xs h-9 border-stone-200 rounded-xl"
+                      <div className="mt-3 mb-3 p-3 bg-stone-50/80 rounded-2xl border border-stone-200/80 space-y-2">
+                        <ImageUploadDropzone
+                          folder="blogs"
+                          multiple={false}
+                          label="Camera or Photo Gallery Upload"
+                          hint="Drop mountain trails, sunrise views, or cabin photos (PNG, JPG, WebP)"
+                          onUploadSuccess={(results) => {
+                            if (results.length > 0) {
+                              setNoteImage(results[0].url);
+                              toast.success('Trail photo attached to field note!');
+                            }
+                          }}
                         />
+
+                        {/* Or URL fallback */}
+                        <div className="pt-2 flex items-center gap-2">
+                          <span className="text-[10px] uppercase font-bold text-stone-400">Or URL:</span>
+                          <Input
+                            type="text"
+                            placeholder="https://..."
+                            value={noteImage}
+                            onChange={(e) => setNoteImage(e.target.value)}
+                            className="text-xs h-8 border-stone-200 rounded-lg flex-1"
+                          />
+                        </div>
+
+                        {noteImage && (
+                          <div className="flex items-center justify-between text-xs bg-emerald-50 text-emerald-800 p-2 rounded-xl border border-emerald-200">
+                            <span className="truncate max-w-[260px] font-medium">📷 Photo Ready: {noteImage}</span>
+                            <button 
+                              type="button" 
+                              onClick={() => setNoteImage('')} 
+                              className="text-rose-600 hover:text-rose-700 font-bold text-[11px] cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* Metadata tags */}
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-stone-100">
-                      <div className="flex items-center gap-1 text-[11px] text-stone-500">
-                        <Mountain className="w-3.5 h-3.5 text-[#10b981]" />
-                        <select
-                          value={noteAltitude}
-                          onChange={(e) => setNoteAltitude(e.target.value)}
-                          className="bg-stone-50 border border-stone-200 rounded-lg px-2 py-0.5 text-[11px] text-stone-700 outline-none cursor-pointer"
-                        >
-                          <option value="1,800m">1,800m (Mukteshwar)</option>
-                          <option value="2,400m">2,400m (Jibhi Ridge)</option>
-                          <option value="3,200m">3,200m (Jalori Pass)</option>
-                          <option value="4,100m">4,100m (High Ridge)</option>
-                        </select>
+                    {/* Regional Live Weather & Elevation Chips */}
+                    <div className="space-y-1.5 pt-2.5 border-t border-stone-100">
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block text-left">
+                        Himalayan Region & Live Weather Tag:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {HIMALAYAN_REGIONS.map((r) => (
+                          <button
+                            key={r.name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRegionTag(r.tag);
+                              setNoteAltitude(r.altitude);
+                            }}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition cursor-pointer border ${
+                              selectedRegionTag === r.tag
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
+                            }`}
+                          >
+                            {r.tag}
+                          </button>
+                        ))}
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-1 text-[11px] text-stone-500 ml-2">
+                    {/* Homestay Mention Tagging with Discount Pill */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-stone-100">
+                      <div className="flex items-center gap-1.5 text-xs text-stone-600">
                         <Tag className="w-3.5 h-3.5 text-[#10b981]" />
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Tag Stayed Basera:</span>
                         <select
                           value={noteStayId}
                           onChange={(e) => setNoteStayId(e.target.value)}
-                          className="bg-stone-50 border border-stone-200 rounded-lg px-2 py-0.5 text-[11px] text-stone-700 outline-none cursor-pointer max-w-[160px] truncate"
+                          className="bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-800 outline-none cursor-pointer max-w-[200px] truncate font-medium"
                         >
                           {availableStays.map(p => (
-                            <option key={p.id} value={p.id}>{p.title}</option>
+                            <option key={p.id} value={p.id}>@{p.title}</option>
                           ))}
                         </select>
                       </div>
+
+                      <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2 py-0.5 rounded-full font-bold">
+                        🏷️ Code {creatorProfile?.referralCode || 'HIMALAYA8'} (5% OFF) Attached
+                      </span>
                     </div>
 
                     {/* Submit Bar */}
@@ -517,16 +584,16 @@ export default function CommunityHubPage() {
                       <button
                         type="button"
                         onClick={() => setShowImageField(!showImageField)}
-                        className="text-xs font-semibold text-stone-500 hover:text-stone-800 flex items-center gap-1.5 cursor-pointer"
+                        className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer"
                       >
                         <ImageIcon className="w-3.5 h-3.5 text-[#10b981]" />
-                        <span>{showImageField ? 'Hide Photo' : 'Attach Photo'}</span>
+                        <span>{showImageField ? 'Hide Camera / Photo' : 'Upload / Attach Photo'}</span>
                       </button>
 
                       <Button
                         onClick={handlePublishNote}
                         disabled={!noteContent.trim() || isPublishing}
-                        className="bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-semibold px-5 h-9 cursor-pointer shadow-sm"
+                        className="bg-stone-900 hover:bg-[#10b981] text-white rounded-xl text-xs font-bold uppercase tracking-wider px-6 h-9 cursor-pointer shadow-sm transition-all"
                       >
                         {isPublishing ? 'Sharing...' : 'Share Note'}
                       </Button>
@@ -1004,6 +1071,13 @@ export default function CommunityHubPage() {
         isOpen={isDashboardModalOpen}
         onClose={() => setIsDashboardModalOpen(false)}
         creatorProfile={creatorProfile}
+      />
+
+      {/* Multi-Platform Social Share Sheet & Story Card Generator */}
+      <StoryShareModal
+        open={isShareModalOpen}
+        onOpenChange={setIsShareModalOpen}
+        story={selectedStoryToShare}
       />
 
     </div>

@@ -32,18 +32,27 @@ export default function PropertyDetailPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // Quotation States
-  const [checkIn, setCheckIn] = useState('2026-06-01');
-  const [checkOut, setCheckOut] = useState('2026-06-05');
+  // Quotation States initialized to dynamic future dates
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const from = new Date();
+    from.setDate(from.getDate() + 7);
+    const to = new Date();
+    to.setDate(to.getDate() + 11);
+    return { from, to };
+  });
+  const [checkIn, setCheckIn] = useState<string>(() => {
+    const from = new Date();
+    from.setDate(from.getDate() + 7);
+    return format(from, 'yyyy-MM-dd');
+  });
+  const [checkOut, setCheckOut] = useState<string>(() => {
+    const to = new Date();
+    to.setDate(to.getDate() + 11);
+    return format(to, 'yyyy-MM-dd');
+  });
   const [selectedServices, setSelectedServices] = useState<Map<string, boolean>>(new Map());
   const [quotation, setQuotation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Date Range Picker State initialized with default dates
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date('2026-06-01'),
-    to: new Date('2026-06-05')
-  });
 
   // Fetch property dynamically from backend
   useEffect(() => {
@@ -84,8 +93,10 @@ export default function PropertyDetailPage() {
             hostEmail: data.hostEmail || 'host@pahadibasera.com',
             hostAvatar: data.hostAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
             hostResponseTime: data.hostResponseTime || 'Within 2 hours',
-            checkIn: data.checkIn || '02:00 PM',
-            checkOut: data.checkOut || '11:00 AM',
+            checkInTime: data.checkInTime || data.checkIn || '02:00 PM',
+            checkOutTime: data.checkOutTime || data.checkOut || '11:00 AM',
+            checkIn: data.checkInTime || data.checkIn || '02:00 PM',
+            checkOut: data.checkOutTime || data.checkOut || '11:00 AM',
             selfCheckIn: data.selfCheckIn || 'Self check-in available',
             petsAllowed: data.petsAllowed || false,
             smokingPolicy: data.smokingPolicy || 'Designated outdoor zones only',

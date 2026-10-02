@@ -7,15 +7,37 @@ import {
   ArrowRight,
   Globe,
   ArrowUpRight,
-  Sparkles
+  Sparkles,
+  MessageSquare,
+  Phone,
+  Compass,
+  CheckCircle2,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from '@/components/ui/dialog';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { toast } from 'sonner';
 
 const TravelCommunity = () => {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Explorers Club Invite Modal state
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
+  const [hubChoice, setHubChoice] = useState<'whatsapp' | 'discord'>('whatsapp');
+  const [contactValue, setContactValue] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -50,10 +72,23 @@ const TravelCommunity = () => {
   }, []);
 
   const handleJoinCommunity = () => {
-    alert(
-      `💚 Welcome to the Pahadi Explorers Community!\n\n` +
-      `We have sent your invite token to join our exclusive WhatsApp & Discord Hub of 12,000+ mountain hikers, native guides, and homestay hosts.`
-    );
+    setIsSubmitted(false);
+    setIsInviteModalOpen(true);
+  };
+
+  const handleInviteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactValue.trim()) {
+      toast.error('Please enter your contact details to receive your invite.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      toast.success('Welcome to Pahadi Explorers Club! Your invitation has been dispatched.');
+    }, 600);
   };
 
   return (
@@ -252,6 +287,183 @@ const TravelCommunity = () => {
         </div>
 
       </div>
+
+      {/* Explorers Club Frosted-Glass Dialog */}
+      <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <DialogContent className="max-w-md w-full bg-white/95 backdrop-blur-2xl border border-stone-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] text-stone-900">
+          <DialogHeader className="text-center sm:text-center space-y-2">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#10b981] mb-1 shadow-xs">
+              <Compass className="w-6 h-6 animate-pulse" />
+            </div>
+            <DialogTitle className="text-2xl font-light tracking-tight text-stone-900">
+              The Pahadi <span className="font-semibold text-[#10b981]">Explorers Club</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-stone-500 font-light leading-relaxed">
+              Join 12,000+ high-altitude backpackers, photographers, native guides, and homestay hosts across the Himalayas.
+            </DialogDescription>
+          </DialogHeader>
+
+          {!isSubmitted ? (
+            <form onSubmit={handleInviteSubmit} className="mt-5 space-y-4">
+              {/* Field 1: Hub Preference Toggle Buttons */}
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block text-left">
+                  1. Select Preferred Community Hub
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => { setHubChoice('whatsapp'); setContactValue(''); }}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between h-20 ${
+                      hubChoice === 'whatsapp'
+                        ? 'border-emerald-500 bg-emerald-50/70 text-emerald-950 shadow-xs'
+                        : 'border-stone-200 hover:border-stone-300 bg-stone-50/60 text-stone-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-xs font-bold flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#10b981]" /> WhatsApp
+                      </span>
+                      {hubChoice === 'whatsapp' && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      )}
+                    </div>
+                    <span className="text-[10px] text-stone-500 font-normal leading-tight">
+                      Live trail alerts, road closures & rides
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setHubChoice('discord'); setContactValue(''); }}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between h-20 ${
+                      hubChoice === 'discord'
+                        ? 'border-[#5865F2] bg-indigo-50/70 text-indigo-950 shadow-xs'
+                        : 'border-stone-200 hover:border-stone-300 bg-stone-50/60 text-stone-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-xs font-bold flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#5865F2]" /> Discord Server
+                      </span>
+                      {hubChoice === 'discord' && (
+                        <span className="w-2 h-2 rounded-full bg-[#5865F2]" />
+                      )}
+                    </div>
+                    <span className="text-[10px] text-stone-500 font-normal leading-tight">
+                      Photo critiques, maps & route planning
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Field 2: Contact Information */}
+              <div className="space-y-1.5 text-left pt-1">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block">
+                  {hubChoice === 'whatsapp' ? '2. WhatsApp Phone Number' : '2. Discord Username or Tag'}
+                </label>
+
+                {hubChoice === 'whatsapp' ? (
+                  <div className="flex gap-2">
+                    <span className="h-11 px-3.5 bg-stone-100 border border-stone-200 rounded-xl flex items-center font-bold text-xs text-stone-700 select-none">
+                      +91
+                    </span>
+                    <Input
+                      type="tel"
+                      placeholder="98765 43210"
+                      value={contactValue}
+                      onChange={(e) => setContactValue(e.target.value)}
+                      required
+                      className="h-11 rounded-xl bg-stone-50/80 border-stone-200 text-xs focus-visible:ring-[#10b981] font-medium"
+                    />
+                  </div>
+                ) : (
+                  <Input
+                    type="text"
+                    placeholder="@mountain_explorer or username#1234"
+                    value={contactValue}
+                    onChange={(e) => setContactValue(e.target.value)}
+                    required
+                    className="h-11 rounded-xl bg-stone-50/80 border-stone-200 text-xs focus-visible:ring-[#5865F2] font-medium"
+                  />
+                )}
+                <p className="text-[10px] text-stone-400 font-light">
+                  {hubChoice === 'whatsapp' 
+                    ? 'We will send your one-time private group invitation link via SMS.' 
+                    : 'We will dispatch a direct server invitation bot link.'}
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 rounded-xl bg-stone-900 hover:bg-[#10b981] text-white text-xs uppercase tracking-widest font-bold border-0 shadow-lg hover:shadow-emerald-500/20 transition-all cursor-pointer mt-3"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Dispatching Invite...
+                  </>
+                ) : (
+                  'Request Access Code'
+                )}
+              </Button>
+            </form>
+          ) : (
+            /* Instant Action Step */
+            <div className="mt-5 space-y-4 text-center py-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-stone-900">Invitation Granted!</h4>
+                <p className="text-xs text-stone-500 mt-1 max-w-xs mx-auto leading-relaxed">
+                  Your token has been verified. You can now jump straight into the sanctuary:
+                </p>
+              </div>
+
+              {hubChoice === 'whatsapp' ? (
+                <a
+                  href="https://chat.whatsapp.com/invite/pahadibasera"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Open WhatsApp Community
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              ) : (
+                <a
+                  href="https://discord.gg/pahadibasera"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-12 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all cursor-pointer"
+                >
+                  <Users className="w-4 h-4" />
+                  Join Discord Sanctuary
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(false)}
+                className="text-[11px] text-stone-400 hover:text-stone-700 transition cursor-pointer font-medium pt-1"
+              >
+                Close Window
+              </button>
+            </div>
+          )}
+
+          <div className="mt-4 pt-3 border-t border-stone-100 text-center">
+            <p className="text-[10px] text-stone-400 font-light flex items-center justify-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#10b981]" /> Verified Himalayan Community &bull; Zero Spam Policy
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

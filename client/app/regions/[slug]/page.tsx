@@ -81,6 +81,8 @@ export default function RegionDetailPage() {
             pkg.region?.toLowerCase() === idKey ||
             pkg.region?.toLowerCase().includes(regionKey) ||
             pkg.location?.toLowerCase().includes(regionKey) ||
+            pkg.title?.toLowerCase().includes(regionKey) ||
+            pkg.description?.toLowerCase().includes(regionKey) ||
             region.featuredPackageIds?.includes(pkg.id)
           );
           setMatchingPackages(filtered);
@@ -363,7 +365,7 @@ export default function RegionDetailPage() {
           </div>
         ) : (
           <div className="py-12 bg-white rounded-3xl border border-stone-150 text-center max-w-md mx-auto">
-            <span className="text-stone-400 text-xs font-light block">Ch chalets are being seeded for this specific region.</span>
+            <span className="text-stone-400 text-xs font-light block">Exclusive chalets and homestays for {region.title} are being curated. Check back shortly!</span>
           </div>
         )}
       </div>

@@ -293,7 +293,7 @@ export default function PropertiesGridPage() {
               <div className="flex flex-col gap-2">
                 {stayTypes.map((type) => {
                   const isChecked = selectedTypes.includes(type);
-                  const displayType = type.toLowerCase().replace('_', ' ');
+                  const displayType = type.toUpperCase() === 'HOMESAYS' ? 'Homestay' : type.toLowerCase().replace('_', ' ');
                   return (
                     <label 
                       key={type} 
@@ -447,7 +447,7 @@ export default function PropertiesGridPage() {
                 ))}
                 {selectedTypes.map((type) => (
                   <span key={type} className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full py-1.5 pl-4 pr-2 text-xs font-medium text-gray-700 shadow-sm capitalize">
-                    {type.toLowerCase().replace('_', ' ')}
+                    {type.toUpperCase() === 'HOMESAYS' ? 'Homestay' : type.toLowerCase().replace('_', ' ')}
                     <button onClick={() => handleToggleType(type)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -693,7 +693,7 @@ export default function PropertiesGridPage() {
                           : 'bg-white border-gray-200 text-gray-600'
                       }`}
                     >
-                      {type.toLowerCase().replace('_', ' ')}
+                      {type.toUpperCase() === 'HOMESAYS' ? 'Homestay' : type.toLowerCase().replace('_', ' ')}
                     </button>
                   );
                 })}

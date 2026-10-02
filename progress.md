@@ -134,13 +134,32 @@ Created a comprehensive regional exploration system to simplify travel discovery
   * Displays `#PB-XXXX` reference codes, status badges (`CONFIRMED`, `PENDING`, `CANCELLED`), traveler counters, dates, addon services, and cancellation options.
   * Integrated direct "My Bookings" navigation in [navbar.tsx](file:///f:/pahadi%20basera/client/components/navbar.tsx) desktop profile dropdown and mobile drawer.
 
+### 14. Community Hub & Creator Experience Elevators
+* **Explorers Club Frosted-Glass Dialog ([TravelCommunity.tsx](file:///f:/pahadi%20basera/client/components/home/TravelCommunity.tsx)):**
+  * Replaced native browser `alert()` with a frosted-glass modal.
+  * Integrated hub selection (WhatsApp Community vs. Discord Sanctuary), phone (+91) / Discord tag validation, and instant action deep links.
+* **Multi-Platform Social Share Sheet & 9:16 Story Card Generator ([StoryShareModal.tsx](file:///f:/pahadi%20basera/client/components/community/StoryShareModal.tsx)):**
+  * Implemented Native Web Share API (`navigator.share()`) for mobile devices with fallbacks.
+  * Added 1-click sharing triggers for WhatsApp, X (Twitter), and Telegram, plus clipboard copy.
+  * Built client-side HTML5 `<canvas>` rendering to export 1080x1920 9:16 vertical cards with altitude badges, author tags, and watermarks ready for Instagram Stories.
+* **Upgraded Field Note Composer ([client/app/community/page.tsx](file:///f:/pahadi%20basera/client/app/community/page.tsx)):**
+  * Integrated `ImageUploadDropzone.tsx` for direct camera roll / drag-and-drop uploads.
+  * Added one-touch live elevation & weather chip selectors (`📍 Chopta • 2,680m • 14°C`, `🌲 Munsiyari • 2,200m • 11°C`, etc.).
+  * Added homestay tagging with an automated 5% guest discount code pill.
+* **Creator Profile & Social Hub Enhancements ([client/app/community/creator/[slug]/page.tsx](file:///f:/pahadi%20basera/client/app/community/creator/%5Bslug%5D/page.tsx)):**
+  * Added "Verified Himalayan Chronicler • Mountain Guild Tier 1" status pill.
+  * Added interactive Social Hub with Instagram & YouTube links and subscriber/follower counts.
+  * Added creator commission callout banner (`Book with code [CODE] to get ₹1,000 off your stay & support expeditions`).
+* **Dynamic OpenGraph Meta Tags:**
+  * Added server-rendered layouts generating dynamic `og:image`, `og:title`, and `og:description` meta tags for `/packages/[slug]`, `/blog/[slug]`, and `/community/creator/[slug]` for rich WhatsApp, iMessage, and Twitter link cards.
+
 ---
 
 ## 📈 Current Project Health
 
 * **TypeScript Type Safety:** **100% Pass**. Both `/server` and `/client` codebases compile with zero warnings or errors (`tsc && node ...` and `npx tsc --noEmit` checks verified).
 * **Database Engine Sync:** Prisma client regenerated (`v7.8.0`) supporting dual-entity bookings for stays and expeditions.
-* **Isolated Auth & Real Checkout:** Complete isolation between `/admin` super admin authentication and customer guest explorer authentication.
+* **UX/UI Maturity:** Complete luxury mountain aesthetic across checkouts, community hubs, social sharing, and creator profiles.
 
 ---
 
@@ -153,6 +172,8 @@ Created a comprehensive regional exploration system to simplify travel discovery
    # Start the Next.js client
    cd client && npm run dev
    ```
-2. **Verify Separated Authentication Portals:**
-   * **Guest Login:** Open the main site, click **Guest Sign In / Register** in the navbar (or trigger booking), and use `guest1@pahadibasera.com` / `password123`. Click "My Bookings" in the profile dropdown to view `/bookings`.
-   * **Admin Login:** Navigate directly to `/admin`, and unlock the super admin console using `admin@pahadibasera.com` / `AdminPassword123`. Notice that guest and admin tokens operate completely independently without cross-session interference.
+2. **Test Community Features:**
+   * Click "Request Free Invite" on homepage to test the new Explorers Club Dialog.
+   * On `/community`, click Share on any story to open the Multi-Platform Share Sheet or export a 9:16 Instagram Story card.
+   * In Field Note Composer, test dragging a photo and selecting live weather chips.
+   * Visit `/community/creator/aarav-semwal` to view the Verified Mountain Guild badge, social follower counts, and ₹1,000 discount commission callout.

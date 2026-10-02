@@ -79,12 +79,19 @@ export default function PackageDetailPage() {
     };
     fetchPkg();
 
-    // Determine today's date string for min date boundary
+    // Determine today's date string for min date boundary and default check-in to 7 days ahead
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     setTodayStr(`${yyyy}-${mm}-${dd}`);
+
+    const defaultDate = new Date();
+    defaultDate.setDate(today.getDate() + 7);
+    const dYyyy = defaultDate.getFullYear();
+    const dMm = String(defaultDate.getMonth() + 1).padStart(2, '0');
+    const dDd = String(defaultDate.getDate()).padStart(2, '0');
+    setStartDate(`${dYyyy}-${dMm}-${dDd}`);
   }, [slug]);
 
   if (!mounted) {

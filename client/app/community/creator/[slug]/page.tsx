@@ -53,7 +53,11 @@ export default function CreatorPublicProfilePage() {
       altitudeRecord: '3,680m',
       valleysExplored: ['Chopta', 'Tungnath', 'Mukteshwar', 'Sari'],
       bannerImage: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1400&q=80',
-      tripsCount: 14
+      tripsCount: 14,
+      socials: {
+        instagram: { handle: '@aarav_semwal', followers: '28.4K', url: 'https://instagram.com/aarav_semwal' },
+        youtube: { channel: 'Aarav Alpine Films', subscribers: '14.2K', url: 'https://youtube.com/@aarav_semwal' }
+      }
     },
     'tenzing-norbu': {
       name: 'Tenzing Norbu',
@@ -66,7 +70,11 @@ export default function CreatorPublicProfilePage() {
       altitudeRecord: '4,270m',
       valleysExplored: ['Spiti', 'Kinnaur', 'Zanskar', 'Jalori'],
       bannerImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80',
-      tripsCount: 22
+      tripsCount: 22,
+      socials: {
+        instagram: { handle: '@tenzing_norbu', followers: '34.1K', url: 'https://instagram.com/tenzing_norbu' },
+        youtube: { channel: 'Himalayan Ridge Scout', subscribers: '19.5K', url: 'https://youtube.com/@tenzing_norbu' }
+      }
     },
     'meera-joshi': {
       name: 'Meera Joshi',
@@ -79,7 +87,11 @@ export default function CreatorPublicProfilePage() {
       altitudeRecord: '2,400m',
       valleysExplored: ['Mukteshwar', 'Almora', 'Binsar', 'Naukuchiatal'],
       bannerImage: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1400&q=80',
-      tripsCount: 18
+      tripsCount: 18,
+      socials: {
+        instagram: { handle: '@meera_joshi', followers: '19.8K', url: 'https://instagram.com/meera_joshi' },
+        youtube: { channel: 'Kumaon Slow Kitchen', subscribers: '11.3K', url: 'https://youtube.com/@meera_joshi' }
+      }
     },
     'priyanka-rawat': {
       name: 'Priyanka Rawat',
@@ -92,7 +104,11 @@ export default function CreatorPublicProfilePage() {
       altitudeRecord: '2,100m',
       valleysExplored: ['Almora', 'Ranikhet', 'Mukteshwar'],
       bannerImage: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1400&q=80',
-      tripsCount: 12
+      tripsCount: 12,
+      socials: {
+        instagram: { handle: '@priyanka_rawat', followers: '16.7K', url: 'https://instagram.com/priyanka_rawat' },
+        youtube: { channel: 'Mountain Hearth Tales', subscribers: '8.9K', url: 'https://youtube.com/@priyanka_rawat' }
+      }
     }
   };
 
@@ -108,7 +124,11 @@ export default function CreatorPublicProfilePage() {
     altitudeRecord: '2,400m',
     valleysExplored: ['Mukteshwar', 'Garhwal', 'Kumaon'],
     bannerImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80',
-    tripsCount: 8
+    tripsCount: 8,
+    socials: {
+      instagram: { handle: '@' + slug.replace(/-/g, '_'), followers: '15.2K', url: `https://instagram.com/${slug.replace(/-/g, '_')}` },
+      youtube: { channel: slug.replace(/-/g, ' ') + ' Expeditions', subscribers: '7.8K', url: `https://youtube.com` }
+    }
   };
 
   useEffect(() => {
@@ -244,15 +264,24 @@ export default function CreatorPublicProfilePage() {
               </div>
             </div>
 
-            {/* Title & Bio */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-                  {creator.name}
-                </h1>
-                <span className="w-5 h-5 rounded-full bg-[#10b981] text-white flex items-center justify-center shrink-0" title="DigiLocker Verified Creator">
-                  <Check className="w-3 h-3 stroke-[3]" />
-                </span>
+            {/* Title & Mountain Guild Status */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+                    {creator.name}
+                  </h1>
+                  <span className="w-5 h-5 rounded-full bg-[#10b981] text-white flex items-center justify-center shrink-0" title="DigiLocker Verified Creator">
+                    <Check className="w-3 h-3 stroke-[3]" />
+                  </span>
+                </div>
+
+                {/* Verified Mountain Guild Pill */}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-50 to-emerald-50 border border-emerald-300/80 rounded-full text-emerald-900 font-bold text-[11px] shadow-xs">
+                  <Mountain className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Verified Himalayan Chronicler</span>
+                  <span className="text-[10px] text-amber-700 font-semibold">&bull; Mountain Guild Tier 1</span>
+                </div>
               </div>
 
               <p className="text-xs font-mono text-stone-500">
@@ -262,6 +291,65 @@ export default function CreatorPublicProfilePage() {
               <p className="text-sm text-stone-600 font-light leading-relaxed max-w-2xl pt-1">
                 {creator.bio}
               </p>
+
+              {/* Social Media Hub with live follower counts & handles */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                {creator.socials?.instagram && (
+                  <a
+                    href={creator.socials.instagram.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-900 border border-pink-200/80 text-xs font-semibold transition-all hover:scale-105"
+                  >
+                    <span className="font-bold">📸 Instagram:</span>
+                    <span className="text-pink-700">{creator.socials.instagram.handle}</span>
+                    <span className="text-[10px] bg-pink-200/60 px-1.5 py-0.5 rounded-md font-mono text-pink-800">
+                      {creator.socials.instagram.followers}
+                    </span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {creator.socials?.youtube && (
+                  <a
+                    href={creator.socials.youtube.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200/80 text-xs font-semibold transition-all hover:scale-105"
+                  >
+                    <span className="font-bold">🎥 YouTube:</span>
+                    <span className="text-rose-700">{creator.socials.youtube.channel}</span>
+                    <span className="text-[10px] bg-rose-200/60 px-1.5 py-0.5 rounded-md font-mono text-rose-800">
+                      {creator.socials.youtube.subscribers}
+                    </span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
+
+              {/* Creator Commission Callout */}
+              <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-stone-900 to-emerald-950 text-white border border-emerald-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+                <div className="flex items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold tracking-wide">
+                      Support {creator.name}&apos;s Himalayan Expeditions
+                    </p>
+                    <p className="text-[11px] text-stone-300 font-light leading-snug">
+                      Book with code <strong className="font-mono text-emerald-400 font-bold">{creator.referralCode}</strong> to get <strong className="text-white font-bold">₹1,000 off</strong> your stay &amp; support {creator.name}&apos;s expeditions.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={copyCode}
+                  className="shrink-0 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer"
+                >
+                  {copiedCode ? 'Code Copied!' : `Claim ₹1,000 OFF`}
+                </button>
+              </div>
             </div>
 
             {/* Creator Metrics Strip */}
