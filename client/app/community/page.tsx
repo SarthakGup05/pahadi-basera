@@ -247,8 +247,20 @@ export default function CommunityHubPage() {
   const handleSendReply = (storyId: string) => {
     if (!replyInput.trim()) return;
 
+    let authorName = 'Fellow Explorer';
+    try {
+      const guestUser = localStorage.getItem('guest_user');
+      if (guestUser) {
+        const parsed = JSON.parse(guestUser);
+        if (parsed.name) authorName = parsed.name;
+      }
+    } catch {}
+    if (creatorProfile?.fullName) {
+      authorName = creatorProfile.fullName;
+    }
+
     const reply = {
-      author: creatorProfile?.fullName || 'Fellow Explorer',
+      author: authorName,
       text: replyInput.trim(),
       time: 'Just now'
     };
@@ -259,11 +271,15 @@ export default function CommunityHubPage() {
     }));
 
     setReplyInput('');
-    toast.success('Note reply added');
+    toast.success('Your comment has been posted!');
   };
 
   const handlePublishNote = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!creatorProfile?.isVerified) {
+      toast.error('Only Verified Himalayan Creators can publish field notes. Others can view, like, and comment on dispatches.');
+      return;
+    }
     if (!noteContent.trim()) return;
 
     setIsPublishing(true);
@@ -473,137 +489,173 @@ export default function CommunityHubPage() {
               </button>
             </div>
 
-            {/* Field Note Composer (Clean & Tasteful) */}
+            {/* Field Note Composer: Exclusively for Verified Creators */}
             {activeTab === 'stories' && (
-              <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-stone-100 border border-stone-200 text-stone-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                    {creatorProfile?.fullName ? creatorProfile.fullName.slice(0, 2).toUpperCase() : 'PB'}
-                  </div>
-                  <div className="flex-1">
-                    <textarea
-                      rows={showImageField ? 2 : 3}
-                      placeholder="Share a quiet mountain thought, morning ridge view, or trail update..."
-                      value={noteContent}
-                      onChange={(e) => setNoteContent(e.target.value)}
-                      className="w-full text-xs sm:text-sm text-stone-800 placeholder:text-stone-400 border-0 focus:ring-0 p-0 resize-none outline-none leading-relaxed"
-                    />
+              creatorProfile?.isVerified ? (
+                <div className="bg-white border border-stone-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                      {creatorProfile?.fullName ? creatorProfile.fullName.slice(0, 2).toUpperCase() : 'PB'}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-100">
+                        <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                          Verified Chronicler Composer &bull; {creatorProfile.fullName}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-mono">
+                          Mountain Guild Tier 1
+                        </span>
+                      </div>
 
-                    {/* Direct Drag-and-Drop / Camera Upload */}
-                    {showImageField && (
-                      <div className="mt-3 mb-3 p-3 bg-stone-50/80 rounded-2xl border border-stone-200/80 space-y-2">
-                        <ImageUploadDropzone
-                          folder="blogs"
-                          multiple={false}
-                          label="Camera or Photo Gallery Upload"
-                          hint="Drop mountain trails, sunrise views, or cabin photos (PNG, JPG, WebP)"
-                          onUploadSuccess={(results) => {
-                            if (results.length > 0) {
-                              setNoteImage(results[0].url);
-                              toast.success('Trail photo attached to field note!');
-                            }
-                          }}
-                        />
+                      <textarea
+                        rows={showImageField ? 2 : 3}
+                        placeholder="Share a quiet mountain thought, morning ridge view, or trail update..."
+                        value={noteContent}
+                        onChange={(e) => setNoteContent(e.target.value)}
+                        className="w-full text-xs sm:text-sm text-stone-800 placeholder:text-stone-400 border-0 focus:ring-0 p-0 resize-none outline-none leading-relaxed"
+                      />
 
-                        {/* Or URL fallback */}
-                        <div className="pt-2 flex items-center gap-2">
-                          <span className="text-[10px] uppercase font-bold text-stone-400">Or URL:</span>
-                          <Input
-                            type="text"
-                            placeholder="https://..."
-                            value={noteImage}
-                            onChange={(e) => setNoteImage(e.target.value)}
-                            className="text-xs h-8 border-stone-200 rounded-lg flex-1"
+                      {/* Direct Drag-and-Drop / Camera Upload */}
+                      {showImageField && (
+                        <div className="mt-3 mb-3 p-3 bg-stone-50/80 rounded-2xl border border-stone-200/80 space-y-2">
+                          <ImageUploadDropzone
+                            folder="blogs"
+                            multiple={false}
+                            label="Camera or Photo Gallery Upload"
+                            hint="Drop mountain trails, sunrise views, or cabin photos (PNG, JPG, WebP)"
+                            onUploadSuccess={(results) => {
+                              if (results.length > 0) {
+                                setNoteImage(results[0].url);
+                                toast.success('Trail photo attached to field note!');
+                              }
+                            }}
                           />
+
+                          {/* Or URL fallback */}
+                          <div className="pt-2 flex items-center gap-2">
+                            <span className="text-[10px] uppercase font-bold text-stone-400">Or URL:</span>
+                            <Input
+                              type="text"
+                              placeholder="https://..."
+                              value={noteImage}
+                              onChange={(e) => setNoteImage(e.target.value)}
+                              className="text-xs h-8 border-stone-200 rounded-lg flex-1"
+                            />
+                          </div>
+
+                          {noteImage && (
+                            <div className="flex items-center justify-between text-xs bg-emerald-50 text-emerald-800 p-2 rounded-xl border border-emerald-200">
+                              <span className="truncate max-w-[260px] font-medium">📷 Photo Ready: {noteImage}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => setNoteImage('')} 
+                                className="text-rose-600 hover:text-rose-700 font-bold text-[11px] cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Regional Live Weather & Elevation Chips */}
+                      <div className="space-y-1.5 pt-2.5 border-t border-stone-100">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block text-left">
+                          Himalayan Region & Live Weather Tag:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {HIMALAYAN_REGIONS.map((r) => (
+                            <button
+                              key={r.name}
+                              type="button"
+                              onClick={() => {
+                                setSelectedRegionTag(r.tag);
+                                setNoteAltitude(r.altitude);
+                              }}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition cursor-pointer border ${
+                                selectedRegionTag === r.tag
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                  : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
+                              }`}
+                            >
+                              {r.tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Homestay Mention Tagging with Discount Pill */}
+                      <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-stone-100">
+                        <div className="flex items-center gap-1.5 text-xs text-stone-600">
+                          <Tag className="w-3.5 h-3.5 text-[#10b981]" />
+                          <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Tag Stayed Basera:</span>
+                          <select
+                            value={noteStayId}
+                            onChange={(e) => setNoteStayId(e.target.value)}
+                            className="bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-800 outline-none cursor-pointer max-w-[200px] truncate font-medium"
+                          >
+                            {availableStays.map(p => (
+                              <option key={p.id} value={p.id}>@{p.title}</option>
+                            ))}
+                          </select>
                         </div>
 
-                        {noteImage && (
-                          <div className="flex items-center justify-between text-xs bg-emerald-50 text-emerald-800 p-2 rounded-xl border border-emerald-200">
-                            <span className="truncate max-w-[260px] font-medium">📷 Photo Ready: {noteImage}</span>
-                            <button 
-                              type="button" 
-                              onClick={() => setNoteImage('')} 
-                              className="text-rose-600 hover:text-rose-700 font-bold text-[11px] cursor-pointer"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Regional Live Weather & Elevation Chips */}
-                    <div className="space-y-1.5 pt-2.5 border-t border-stone-100">
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400 block text-left">
-                        Himalayan Region & Live Weather Tag:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {HIMALAYAN_REGIONS.map((r) => (
-                          <button
-                            key={r.name}
-                            type="button"
-                            onClick={() => {
-                              setSelectedRegionTag(r.tag);
-                              setNoteAltitude(r.altitude);
-                            }}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition cursor-pointer border ${
-                              selectedRegionTag === r.tag
-                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                                : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
-                            }`}
-                          >
-                            {r.tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Homestay Mention Tagging with Discount Pill */}
-                    <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-stone-100">
-                      <div className="flex items-center gap-1.5 text-xs text-stone-600">
-                        <Tag className="w-3.5 h-3.5 text-[#10b981]" />
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Tag Stayed Basera:</span>
-                        <select
-                          value={noteStayId}
-                          onChange={(e) => setNoteStayId(e.target.value)}
-                          className="bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1 text-xs text-stone-800 outline-none cursor-pointer max-w-[200px] truncate font-medium"
-                        >
-                          {availableStays.map(p => (
-                            <option key={p.id} value={p.id}>@{p.title}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {creatorProfile?.isVerified && (
                         <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2 py-0.5 rounded-full font-bold">
                           🏷️ Code {creatorProfile.referralCode || 'HIMALAYA8'} (5% OFF) Attached
                         </span>
-                      )}
+                      </div>
+
+                      {/* Submit Bar */}
+                      <div className="flex items-center justify-between pt-3 mt-2 border-t border-stone-100">
+                        <button
+                          type="button"
+                          onClick={() => setShowImageField(!showImageField)}
+                          className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5 text-[#10b981]" />
+                          <span>{showImageField ? 'Hide Camera / Photo' : 'Upload / Attach Photo'}</span>
+                        </button>
+
+                        <Button
+                          onClick={handlePublishNote}
+                          disabled={!noteContent.trim() || isPublishing}
+                          className="bg-stone-900 hover:bg-[#10b981] text-white rounded-xl text-xs font-bold uppercase tracking-wider px-6 h-9 cursor-pointer shadow-sm transition-all"
+                        >
+                          {isPublishing ? 'Sharing...' : 'Share Note'}
+                        </Button>
+                      </div>
+
                     </div>
-
-                    {/* Submit Bar */}
-                    <div className="flex items-center justify-between pt-3 mt-2 border-t border-stone-100">
-                      <button
-                        type="button"
-                        onClick={() => setShowImageField(!showImageField)}
-                        className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <ImageIcon className="w-3.5 h-3.5 text-[#10b981]" />
-                        <span>{showImageField ? 'Hide Camera / Photo' : 'Upload / Attach Photo'}</span>
-                      </button>
-
-                      <Button
-                        onClick={handlePublishNote}
-                        disabled={!noteContent.trim() || isPublishing}
-                        className="bg-stone-900 hover:bg-[#10b981] text-white rounded-xl text-xs font-bold uppercase tracking-wider px-6 h-9 cursor-pointer shadow-sm transition-all"
-                      >
-                        {isPublishing ? 'Sharing...' : 'Share Note'}
-                      </Button>
-                    </div>
-
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-gradient-to-r from-stone-900 via-stone-800 to-stone-900 rounded-2xl p-5 sm:p-6 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5 border border-stone-700/50">
+                  <div className="space-y-1.5 max-w-xl">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                      <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">
+                        Himalayan Chronicler Guild
+                      </span>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-bold tracking-tight">
+                      Field Notes & Dispatches are published by Verified Creators
+                    </h3>
+                    <p className="text-xs text-stone-300 font-light leading-relaxed">
+                      All travelers can explore dispatches, like stories, and participate in discussion threads below. Only verified creators can publish new field notes. Want to document your slow stays and expeditions? Apply for DigiLocker creator verification.
+                    </p>
+                  </div>
+                  <Button
+                    asChild
+                    className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white text-xs font-semibold px-6 h-10 shadow-sm shrink-0 transition-all cursor-pointer"
+                  >
+                    <Link href="/community/join" className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Become a Creator</span>
+                    </Link>
+                  </Button>
+                </div>
+              )
             )}
 
             {/* TAB 1: Stories & Field Notes Feed */}

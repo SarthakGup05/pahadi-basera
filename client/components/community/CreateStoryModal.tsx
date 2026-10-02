@@ -60,6 +60,10 @@ export default function CreateStoryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!creatorProfile?.isVerified) {
+      toast.error('Only Verified Himalayan Creators can publish dispatches. Join the Mountain Guild to post stories.');
+      return;
+    }
     if (!title.trim() || !content.trim()) {
       toast.error('Please enter a title and story content.');
       return;
