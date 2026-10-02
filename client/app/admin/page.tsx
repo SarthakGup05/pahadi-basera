@@ -64,8 +64,9 @@ interface DashboardStats {
     createdAt: string;
     checkIn: string;
     checkOut: string;
-    guest: { email: string; phoneNumber: string };
-    property: { title: string; location: string };
+    guest?: { email?: string; phoneNumber?: string } | null;
+    property?: { title?: string; location?: string } | null;
+    package?: { title?: string; location?: string } | null;
   }>;
 }
 
@@ -183,11 +184,14 @@ export default function AdminDashboard() {
     return stats.recentBookings.filter((b) => {
       const matchesStatus = statusFilter === 'ALL' || b.status.toUpperCase() === statusFilter;
       const searchLower = tableSearch.toLowerCase();
+      const propTitle = b.property?.title || b.package?.title || 'Mountain Expedition';
+      const propLocation = b.property?.location || b.package?.location || '';
+      const guestEmail = b.guest?.email || '';
       const matchesSearch = 
         !tableSearch ||
-        b.property.title.toLowerCase().includes(searchLower) ||
-        (b.property.location && b.property.location.toLowerCase().includes(searchLower)) ||
-        b.guest.email.toLowerCase().includes(searchLower);
+        propTitle.toLowerCase().includes(searchLower) ||
+        propLocation.toLowerCase().includes(searchLower) ||
+        guestEmail.toLowerCase().includes(searchLower);
       return matchesStatus && matchesSearch;
     });
   }, [stats, statusFilter, tableSearch]);
@@ -689,12 +693,19 @@ export default function AdminDashboard() {
                 filteredBookings.map((b) => (
                   <tr key={b.id} className="hover:bg-stone-50/60 transition-colors">
                     
-                    {/* Property Column */}
+                    {/* Property / Package Column */}
                     <td className="py-4 pl-6 pr-4">
-                      <div className="font-semibold text-stone-900">{b.property.title}</div>
+                      <div className="font-semibold text-stone-900">
+                        {b.property?.title || b.package?.title || 'Mountain Expedition'}
+                      </div>
                       <div className="flex items-center gap-1 text-[11px] text-stone-400 mt-0.5">
                         <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
-                        <span>{b.property.location || 'Himalayan Ridge'}</span>
+                        <span>{b.property?.location || b.package?.location || 'Himalayan Ridge'}</span>
+                        {b.package && (
+                          <span className="ml-1 text-[9px] bg-stone-100 text-stone-600 px-1.5 py-0.2 rounded font-semibold uppercase">
+                            Package
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -702,11 +713,11 @@ export default function AdminDashboard() {
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-full bg-stone-100 text-stone-700 font-semibold text-[10px] flex items-center justify-center shrink-0 border border-stone-200">
-                          {b.guest.email.charAt(0).toUpperCase()}
+                          {(b.guest?.email || 'G').charAt(0).toUpperCase()}
                         </div>
                         <div className="truncate max-w-[200px]">
-                          <div className="font-medium text-stone-800 truncate">{b.guest.email}</div>
-                          <div className="text-[10px] text-stone-400 font-mono">{b.guest.phoneNumber}</div>
+                          <div className="font-medium text-stone-800 truncate">{b.guest?.email || 'Guest Explorer'}</div>
+                          <div className="text-[10px] text-stone-400 font-mono">{b.guest?.phoneNumber || '—'}</div>
                         </div>
                       </div>
                     </td>
