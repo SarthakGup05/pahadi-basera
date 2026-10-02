@@ -117,13 +117,30 @@ Created a comprehensive regional exploration system to simplify travel discovery
   * Corrected `server/db/prisma..ts` double-dot filename to `server/db/prisma.ts` and updated all 12 controller imports.
   * Pruned unused `featuredStays` array and unreferenced imports in [client/app/page.tsx](file:///f:/pahadi%20basera/client/app/page.tsx).
 
+### 13. Strict Separation of Guest Authentication & Admin Portal (`/admin`)
+* **Dedicated Admin Authentication on `/admin`:**
+  * The Admin portal ([client/app/admin/layout.tsx](file:///f:/pahadi%20basera/client/app/admin/layout.tsx) and [AdminLoginForm.tsx](file:///f:/pahadi%20basera/client/components/admin/AdminLoginForm.tsx)) is strictly restricted to `role === 'ADMIN'`.
+  * Non-admin logins on `/admin` are rejected with `"Access denied. Super Admin permissions required."`.
+  * Added clear operations notice and a "Return to Public Website" navigation link.
+* **Pure Guest Authentication Modal & Guard:**
+  * In [useAuth.ts](file:///f:/pahadi%20basera/client/hooks/useAuth.ts), guest login guards strictly reject `ADMIN` credentials with a descriptive alert directing administrators to the separate `/admin` portal.
+  * Removed "Admin Demo" quick-fill buttons from [AuthModal.tsx](file:///f:/pahadi%20basera/client/components/auth/AuthModal.tsx) to eliminate confusion and maintain clean customer boundaries.
+  * Preserved 1-click "Guest Demo" quick-fill for fast testing.
+* **Context-Aware API Token Interceptor (`client/lib/api.ts`):**
+  * Updated Axios interceptor to dynamically resolve auth tokens based on context: requests on `/admin` and `/api/admin` exclusively transmit `pb_admin_token`, while customer journeys (booking stays, browsing, joining community) exclusively transmit `pb_token`.
+  * Admin logout no longer flushes or disrupts guest sessions, and guest sign-out never flushes admin tokens.
+* **Guest Journeys & Ledger Portal (`client/app/bookings/page.tsx`):**
+  * Built a customer-facing "My Trips & Stays" dashboard (`/bookings`) where authenticated travelers can review all their confirmed and pending reservations (both homestays and expeditions).
+  * Displays `#PB-XXXX` reference codes, status badges (`CONFIRMED`, `PENDING`, `CANCELLED`), traveler counters, dates, addon services, and cancellation options.
+  * Integrated direct "My Bookings" navigation in [navbar.tsx](file:///f:/pahadi%20basera/client/components/navbar.tsx) desktop profile dropdown and mobile drawer.
+
 ---
 
 ## 📈 Current Project Health
 
 * **TypeScript Type Safety:** **100% Pass**. Both `/server` and `/client` codebases compile with zero warnings or errors (`tsc && node ...` and `npx tsc --noEmit` checks verified).
 * **Database Engine Sync:** Prisma client regenerated (`v7.8.0`) supporting dual-entity bookings for stays and expeditions.
-* **Live Auth & Checkout:** End-to-end booking records and guest session storage are fully live.
+* **Isolated Auth & Real Checkout:** Complete isolation between `/admin` super admin authentication and customer guest explorer authentication.
 
 ---
 
@@ -136,7 +153,6 @@ Created a comprehensive regional exploration system to simplify travel discovery
    # Start the Next.js client
    cd client && npm run dev
    ```
-2. **Explore the Dynamic Routes:**
-   * Test guest sign-in / registration from the global navbar or when reserving on `/properties/[id]`.
-   * Visit `/packages/chopta-trek` to check out live package booking with server-side tax/deposit calculation.
-   * Visit `/admin/bookings` to inspect the unified stays and expeditions ledger.
+2. **Verify Separated Authentication Portals:**
+   * **Guest Login:** Open the main site, click **Guest Sign In / Register** in the navbar (or trigger booking), and use `guest1@pahadibasera.com` / `password123`. Click "My Bookings" in the profile dropdown to view `/bookings`.
+   * **Admin Login:** Navigate directly to `/admin`, and unlock the super admin console using `admin@pahadibasera.com` / `AdminPassword123`. Notice that guest and admin tokens operate completely independently without cross-session interference.

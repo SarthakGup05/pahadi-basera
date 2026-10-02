@@ -30,10 +30,13 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
-      const token =
-        localStorage.getItem('pb_admin_token') ||
-        localStorage.getItem('pb_token') ||
-        localStorage.getItem('token');
+      const isAdminContext =
+        window.location.pathname.startsWith('/admin') ||
+        Boolean(config.url && config.url.startsWith('/api/admin'));
+
+      const token = isAdminContext
+        ? localStorage.getItem('pb_admin_token')
+        : (localStorage.getItem('pb_token') || localStorage.getItem('token'));
 
       if (token && config.headers && !config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${token}`;

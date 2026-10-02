@@ -97,8 +97,17 @@ export default function AdminLoginForm({
             <div className="mt-6 flex items-start gap-2.5 bg-emerald-950/20 border border-emerald-900/30 rounded-lg p-3">
               <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-[10px] leading-relaxed text-emerald-300/80">
-                <strong>Evaluation Mode Enabled:</strong> The default seeded super admin account is pre-filled above. Just click <em>Unlock Dashboard</em>.
+                <strong>Super Admin Access Only:</strong> This console is strictly reserved for Pahadi Basera operations. Guests and travelers must use the main site.
               </div>
+            </div>
+
+            <div className="mt-5 text-center">
+              <a 
+                href="/" 
+                className="text-xs text-gray-500 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 font-medium"
+              >
+                &larr; Return to Pahadi Basera Public Website
+              </a>
             </div>
           </CardContent>
         </Card>

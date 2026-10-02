@@ -170,14 +170,7 @@ export default function AuthModal({
                   onClick={() => fillQuickCredentials('guest1@pahadibasera.com', 'password123')}
                   className="text-[10px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-0.5 rounded-full font-medium transition cursor-pointer"
                 >
-                  Guest Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickCredentials('admin@pahadibasera.com', 'AdminPassword123')}
-                  className="text-[10px] bg-stone-100 text-stone-700 hover:bg-stone-200 px-2 py-0.5 rounded-full font-medium transition cursor-pointer"
-                >
-                  Admin Demo
+                  Guest Demo (guest1@pahadibasera.com)
                 </button>
               </div>
 
@@ -276,6 +269,9 @@ export default function AuthModal({
         <div className="mt-4 pt-3 border-t border-stone-100 text-center">
           <p className="text-[10px] text-stone-400 font-light flex items-center justify-center gap-1">
             <Sparkles className="w-3 h-3 text-[#10b981]" /> Slow Travel Sanctuary &bull; 100% Verified Baseras
+          </p>
+          <p className="text-[10px] text-stone-400 mt-2 font-light">
+            Staff & Administrators: Access the <a href="/admin" className="text-stone-600 hover:text-stone-900 underline font-medium">Admin Portal</a>
           </p>
         </div>
 

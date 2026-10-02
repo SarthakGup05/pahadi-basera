@@ -215,22 +215,20 @@ const Navbar = () => {
                     <p className="text-xs font-bold text-stone-900 truncate">{user.fullName || 'Explorer'}</p>
                     <p className="text-[10px] text-stone-500 truncate">{user.email}</p>
                     <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-emerald-50 text-[#10b981] text-[9px] font-bold uppercase tracking-wider">
-                      {user.role}
+                      Guest Explorer
                     </span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="my-1 bg-stone-100" />
+                  <DropdownMenuItem asChild>
+                    <Link href="/bookings" className="flex items-center gap-2 text-xs text-stone-700 py-2 cursor-pointer rounded-xl font-medium">
+                      <CalendarDays className="w-3.5 h-3.5 text-[#10b981]" /> My Bookings
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/community" className="flex items-center gap-2 text-xs text-stone-700 py-2 cursor-pointer rounded-xl">
                       <Compass className="w-3.5 h-3.5 text-[#10b981]" /> Mountain Community
                     </Link>
                   </DropdownMenuItem>
-                  {user.role === 'ADMIN' && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="flex items-center gap-2 text-xs text-stone-700 py-2 cursor-pointer rounded-xl font-semibold">
-                        <Shield className="w-3.5 h-3.5 text-indigo-500" /> Admin Console
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuSeparator className="my-1 bg-stone-100" />
                   <DropdownMenuItem 
                     onClick={logout}
@@ -393,18 +391,45 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Auth Button */}
-          {!isAuthenticated ? (
+          {/* Mobile Guest Auth & Session */}
+          {isAuthenticated && user ? (
+            <div className="mt-4 p-4 rounded-2xl bg-stone-100/80 border border-stone-200/60 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-[#10b981] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  {userInitial}
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-xs font-bold text-stone-900 truncate">{user.fullName || 'Explorer'}</p>
+                  <p className="text-[10px] text-stone-500 truncate">{user.email}</p>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-stone-200/50 flex flex-col gap-1.5 text-left">
+                <Link
+                  href="/bookings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 text-xs text-stone-700 py-1.5 font-medium hover:text-[#10b981]"
+                >
+                  <CalendarDays className="w-3.5 h-3.5 text-[#10b981]" /> My Bookings
+                </Link>
+                <button
+                  onClick={() => { logout(); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-2 text-xs text-rose-600 py-1.5 font-medium hover:text-rose-700 text-left cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Log Out
+                </button>
+              </div>
+            </div>
+          ) : (
             <div className="mt-4">
               <button
                 onClick={() => { setMobileMenuOpen(false); setAuthModalOpen(true); }}
                 className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 bg-stone-900 hover:bg-[#10b981] text-white rounded-xl text-xs uppercase tracking-wider font-bold shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
                 <User className="w-4 h-4" />
-                Sign In / Register
+                Guest Sign In / Register
               </button>
             </div>
-          ) : null}
+          )}
 
           {/* Mobile Join Community Button */}
           <div className="mt-2">

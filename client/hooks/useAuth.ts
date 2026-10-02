@@ -23,8 +23,7 @@ export function useAuth() {
     try {
       const storedToken =
         localStorage.getItem('pb_token') ||
-        localStorage.getItem('token') ||
-        localStorage.getItem('pb_admin_token');
+        localStorage.getItem('token');
 
       const storedUser = localStorage.getItem('pb_user');
 
@@ -36,8 +35,8 @@ export function useAuth() {
           // Fallback minimal user
           setUser({
             id: 'current-user',
-            email: localStorage.getItem('pb_email') || 'explorer@pahadibasera.com',
-            role: localStorage.getItem('pb_admin_role') || 'GUEST',
+            email: 'explorer@pahadibasera.com',
+            role: 'GUEST',
           });
         }
       } else {
@@ -77,6 +76,11 @@ export function useAuth() {
         throw new Error('No access token received from authentication server.');
       }
 
+      // Guest login guard: Reject admin credentials here to keep admin & guest authentication separate
+      if (data.role === 'ADMIN') {
+        throw new Error('Admin credentials detected. Super Admins must sign in separately at the /admin portal.');
+      }
+
       const authUser: AuthUser = data.user || {
         id: data.userId || 'user-' + Date.now(),
         email,
@@ -85,10 +89,6 @@ export function useAuth() {
 
       localStorage.setItem('pb_token', authToken);
       localStorage.setItem('pb_user', JSON.stringify(authUser));
-      if (data.role === 'ADMIN') {
-        localStorage.setItem('pb_admin_token', authToken);
-        localStorage.setItem('pb_admin_role', 'ADMIN');
-      }
 
       setToken(authToken);
       setUser(authUser);
@@ -137,8 +137,6 @@ export function useAuth() {
     localStorage.removeItem('pb_token');
     localStorage.removeItem('token');
     localStorage.removeItem('pb_user');
-    localStorage.removeItem('pb_admin_token');
-    localStorage.removeItem('pb_admin_role');
     setToken(null);
     setUser(null);
     window.dispatchEvent(new Event('pb:auth-change'));
