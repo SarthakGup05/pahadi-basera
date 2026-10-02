@@ -268,7 +268,7 @@ export default function CommunityHubPage() {
 
     setIsPublishing(true);
     const authorName = creatorProfile?.fullName || 'Mountain Explorer';
-    const authorRefCode = creatorProfile?.referralCode || 'HIMALAYA8';
+    const authorRefCode = creatorProfile?.isVerified ? (creatorProfile?.referralCode || 'HIMALAYA8') : undefined;
 
     const parsedTag = selectedRegionTag.replace(/[📍🌲❄️🍃⛷️]/g, '').trim().split('•')[0].trim();
 
@@ -574,9 +574,11 @@ export default function CommunityHubPage() {
                         </select>
                       </div>
 
-                      <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2 py-0.5 rounded-full font-bold">
-                        🏷️ Code {creatorProfile?.referralCode || 'HIMALAYA8'} (5% OFF) Attached
-                      </span>
+                      {creatorProfile?.isVerified && (
+                        <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2 py-0.5 rounded-full font-bold">
+                          🏷️ Code {creatorProfile.referralCode || 'HIMALAYA8'} (5% OFF) Attached
+                        </span>
+                      )}
                     </div>
 
                     {/* Submit Bar */}

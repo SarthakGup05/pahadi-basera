@@ -60,6 +60,23 @@ export default function PublicCreatorProfileModal({
 }: PublicCreatorProfileModalProps) {
   const [properties, setProperties] = useState<PropertyItem[]>([]);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{
+    handle?: string;
+    fullName?: string;
+    isVerified?: boolean;
+    referralCode?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('pb_creator_profile');
+      if (saved) {
+        setCurrentUserProfile(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   useEffect(() => {
     api.get('/api/properties/get-all-properties').then(({ data }) => {
@@ -69,6 +86,13 @@ export default function PublicCreatorProfileModal({
   const [activeTab, setActiveTab] = useState<'stories' | 'stays' | 'about'>('stories');
 
   if (!isOpen || !creator) return null;
+
+  const isOwnerVerifiedCreator = Boolean(
+    currentUserProfile?.isVerified &&
+    (currentUserProfile.handle?.toLowerCase() === creator.handle?.toLowerCase() ||
+     currentUserProfile.fullName?.toLowerCase() === creator.name?.toLowerCase() ||
+     currentUserProfile.referralCode === creator.referralCode)
+  );
 
   const refCode = creator.referralCode || 'HIMALAYA8';
 
@@ -150,14 +174,26 @@ export default function PublicCreatorProfileModal({
                 </Button>
               )}
 
-              <button
-                onClick={copyCode}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/70 text-emerald-800 text-xs font-semibold transition-all cursor-pointer"
-                title="Copy Creator Discount Code"
-              >
-                {copiedCode ? <CheckCheck className="w-3.5 h-3.5 text-emerald-700" /> : <Tag className="w-3.5 h-3.5 text-emerald-700" />}
-                <span>5% OFF: <strong className="font-mono">{refCode}</strong></span>
-              </button>
+              {isOwnerVerifiedCreator ? (
+                <button
+                  onClick={copyCode}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/70 text-emerald-800 text-xs font-semibold transition-all cursor-pointer"
+                  title="Your Creator Discount Code"
+                >
+                  {copiedCode ? <CheckCheck className="w-3.5 h-3.5 text-emerald-700" /> : <Tag className="w-3.5 h-3.5 text-emerald-700" />}
+                  <span>Your Code: <strong className="font-mono">{refCode}</strong></span>
+                </button>
+              ) : (
+                <Button
+                  asChild
+                  className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white text-xs font-semibold px-4 h-9 shadow-sm transition-all"
+                >
+                  <Link href="/community/join" className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Become a Creator</span>
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
 

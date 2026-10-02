@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { BlogItem, CommunityTrail } from '@/lib/blogData';
 import api from '@/lib/api';
 import { PropertyItem } from '@/lib/propertiesData';
+import CreatorDashboardModal from '@/components/community/CreatorDashboardModal';
 import { toast } from 'sonner';
 
 export default function CreatorPublicProfilePage() {
@@ -39,6 +40,8 @@ export default function CreatorPublicProfilePage() {
   const [properties, setProperties] = useState<PropertyItem[]>([]);
   const [trails, setTrails] = useState<CommunityTrail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
   // Directory of creators with rich content
   const creatorProfilesDirectory: Record<string, any> = {
@@ -132,6 +135,14 @@ export default function CreatorPublicProfilePage() {
   };
 
   useEffect(() => {
+    // Check if viewing user has an active verified creator profile
+    try {
+      const savedProfile = localStorage.getItem('pb_creator_profile');
+      if (savedProfile) {
+        setCurrentUserProfile(JSON.parse(savedProfile));
+      }
+    } catch (e) {}
+
     // Check local follow state
     const savedFollow = localStorage.getItem(`pb_following_${creator.handle}`);
     if (savedFollow) {
@@ -169,6 +180,14 @@ export default function CreatorPublicProfilePage() {
     const cName = creator.name.toLowerCase();
     return sAuthor.includes(cName) || cName.includes(sAuthor) || slug.includes(sAuthor.replace(/\s+/g, '-'));
   });
+
+  const isOwnerVerifiedCreator = Boolean(
+    currentUserProfile?.isVerified &&
+    (currentUserProfile.handle?.toLowerCase() === creator.handle?.toLowerCase() ||
+     currentUserProfile.fullName?.toLowerCase() === creator.name?.toLowerCase() ||
+     currentUserProfile.referralCode === creator.referralCode ||
+     slug === (currentUserProfile.handle || '').toLowerCase().replace(/_/g, '-'))
+  );
 
   const displayStories = creatorStories.length > 0 ? creatorStories : allStories.slice(0, 3);
 
@@ -240,7 +259,7 @@ export default function CreatorPublicProfilePage() {
                 />
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons: Verified Creator sees Ledger & Code; Normal User sees Follow & Become a Creator */}
               <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-end">
                 <Button
                   onClick={toggleFollow}
@@ -253,14 +272,35 @@ export default function CreatorPublicProfilePage() {
                   {isFollowing ? 'Following' : 'Follow Creator'}
                 </Button>
 
-                <button
-                  onClick={copyCode}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100/70 text-emerald-800 text-xs font-semibold transition-all cursor-pointer"
-                  title="Copy 5% discount code"
-                >
-                  {copiedCode ? <CheckCheck className="w-3.5 h-3.5 text-emerald-700" /> : <Tag className="w-3.5 h-3.5 text-emerald-700" />}
-                  <span>5% Guest OFF: <strong className="font-mono">{creator.referralCode}</strong></span>
-                </button>
+                {isOwnerVerifiedCreator ? (
+                  <>
+                    <Button
+                      onClick={() => setIsDashboardModalOpen(true)}
+                      variant="outline"
+                      className="rounded-full border-stone-300 text-stone-800 hover:bg-stone-100 text-xs font-semibold px-5 h-10 cursor-pointer shadow-xs"
+                    >
+                      Creator Ledger
+                    </Button>
+                    <button
+                      onClick={copyCode}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100/70 text-emerald-800 text-xs font-semibold transition-all cursor-pointer"
+                      title="Your Creator Referral Code"
+                    >
+                      {copiedCode ? <CheckCheck className="w-3.5 h-3.5 text-emerald-700" /> : <Tag className="w-3.5 h-3.5 text-emerald-700" />}
+                      <span>Your Code: <strong className="font-mono">{creator.referralCode}</strong></span>
+                    </button>
+                  </>
+                ) : (
+                  <Button
+                    asChild
+                    className="rounded-full bg-[#10b981] hover:bg-[#0e9f6e] text-white text-xs font-semibold px-5 h-10 shadow-sm transition-all"
+                  >
+                    <Link href="/community/join" className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Become a Creator
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -517,10 +557,15 @@ export default function CreatorPublicProfilePage() {
             </div>
 
           </div>
-
         </div>
-
       </div>
+
+      {/* Creator Ledger Dashboard Modal */}
+      <CreatorDashboardModal
+        isOpen={isDashboardModalOpen}
+        onClose={() => setIsDashboardModalOpen(false)}
+        creatorProfile={currentUserProfile || creator}
+      />
 
     </div>
   );
