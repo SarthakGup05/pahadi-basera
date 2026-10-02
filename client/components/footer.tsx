@@ -92,13 +92,13 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Community & Host Column */}
+        {/* Community Column */}
         <div className="flex flex-col gap-6">
           <h4 className="text-xs uppercase tracking-[0.25em] font-semibold text-white">
-            Community & Hosting
+            Community & Chroniclers
           </h4>
           <p className="text-sm font-light text-zinc-500 leading-relaxed">
-            Connect with verified Himalayan trekkers, share stories, or list your authentic mountain home with us.
+            Connect with verified Himalayan slow travelers, share field notes, and explore authentic mountain stays.
           </p>
           <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
             <Button
@@ -108,16 +108,6 @@ const Footer = () => {
               <Link href="/community/join">
                 <Users className="w-3.5 h-3.5" />
                 Join Community
-                <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-full border-white/10 hover:border-[#10b981] bg-white/5 hover:bg-white/10 text-white px-6 py-5 text-xs tracking-widest uppercase font-light transition-all duration-300 flex items-center justify-center gap-2 group h-10"
-            >
-              <Link href="#become-host">
-                Become a Host
                 <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </Button>
