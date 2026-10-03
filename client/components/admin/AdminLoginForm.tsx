@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Lock, User, Mountain, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -102,12 +103,12 @@ export default function AdminLoginForm({
             </div>
 
             <div className="mt-5 text-center">
-              <a 
+              <Link 
                 href="/" 
                 className="text-xs text-gray-500 hover:text-emerald-400 transition-colors inline-flex items-center gap-1.5 font-medium"
               >
                 &larr; Return to Pahadi Basera Public Website
-              </a>
+              </Link>
             </div>
           </CardContent>
         </Card>
