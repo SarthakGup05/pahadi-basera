@@ -242,7 +242,7 @@ export default function AdminCreatorsPage() {
     <div className="space-y-8 font-sans selection:bg-emerald-500 selection:text-white">
       
       {/* Top Header & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200/90 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#121212] p-6 rounded-3xl border border-stone-200/90 dark:border-[#262626] shadow-xs transition-colors">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -250,11 +250,11 @@ export default function AdminCreatorsPage() {
               Super Admin Authority
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight flex items-center gap-2.5">
             <Mountain className="w-6 h-6 text-emerald-600" />
             Himalayan Creators & Content Studio
           </h1>
-          <p className="text-xs sm:text-sm text-stone-500 font-light mt-1">
+          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-light mt-1">
             Manage creator onboarding applications, approve DigiLocker credentials, and moderate field notes & dispatches.
           </p>
         </div>
@@ -264,7 +264,7 @@ export default function AdminCreatorsPage() {
             onClick={loadData}
             variant="outline"
             disabled={isLoading}
-            className="rounded-full border-stone-200 text-stone-700 hover:bg-stone-50 text-xs font-semibold px-4 h-9 cursor-pointer"
+            className="rounded-full border-stone-200 dark:border-[#262626] text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#222222] text-xs font-semibold px-4 h-9 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
             Sync Records
@@ -280,8 +280,8 @@ export default function AdminCreatorsPage() {
           onClick={() => setActiveTab('pending')}
           className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             activeTab === 'pending'
-              ? 'bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/30 shadow-xs'
-              : 'bg-white border-stone-200/90 hover:border-amber-200'
+              ? 'bg-amber-50/70 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60 ring-2 ring-amber-400/30 shadow-xs'
+              : 'bg-white dark:bg-[#121212] border-stone-200/90 dark:border-[#262626] hover:border-amber-200 dark:hover:border-amber-900/50'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -293,10 +293,10 @@ export default function AdminCreatorsPage() {
               Needs Review
             </span>
           </div>
-          <p className="text-3xl font-extrabold text-stone-900 mt-3">
+          <p className="text-3xl font-extrabold text-stone-900 dark:text-stone-100 mt-3">
             {pendingList.length}
           </p>
-          <span className="text-xs text-stone-500 font-light block mt-1">
+          <span className="text-xs text-stone-500 dark:text-stone-400 font-light block mt-1">
             Awaiting Super Admin onboarding approval
           </span>
         </div>
@@ -306,8 +306,8 @@ export default function AdminCreatorsPage() {
           onClick={() => setActiveTab('onboarded')}
           className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             activeTab === 'onboarded'
-              ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-400/30 shadow-xs'
-              : 'bg-white border-stone-200/90 hover:border-emerald-200'
+              ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60 ring-2 ring-emerald-400/30 shadow-xs'
+              : 'bg-white dark:bg-[#121212] border-stone-200/90 dark:border-[#262626] hover:border-emerald-200 dark:hover:border-emerald-900/50'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -319,10 +319,10 @@ export default function AdminCreatorsPage() {
               Verified
             </span>
           </div>
-          <p className="text-3xl font-extrabold text-stone-900 mt-3">
+          <p className="text-3xl font-extrabold text-stone-900 dark:text-stone-100 mt-3">
             {onboardedList.length}
           </p>
-          <span className="text-xs text-stone-500 font-light block mt-1">
+          <span className="text-xs text-stone-500 dark:text-stone-400 font-light block mt-1">
             Mountain Guild Chroniclers with active referral codes
           </span>
         </div>
@@ -332,8 +332,8 @@ export default function AdminCreatorsPage() {
           onClick={() => setActiveTab('content')}
           className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             activeTab === 'content'
-              ? 'bg-stone-100 border-stone-400 ring-2 ring-stone-400/20 shadow-xs'
-              : 'bg-white border-stone-200/90 hover:border-stone-300'
+              ? 'bg-stone-100 dark:bg-[#202020]/80 border-stone-400 dark:border-stone-600 ring-2 ring-stone-400/20 shadow-xs'
+              : 'bg-white dark:bg-[#121212] border-stone-200/90 dark:border-[#262626] hover:border-stone-300 dark:hover:border-stone-700'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -345,10 +345,10 @@ export default function AdminCreatorsPage() {
               Live Feed
             </span>
           </div>
-          <p className="text-3xl font-extrabold text-stone-900 mt-3">
+          <p className="text-3xl font-extrabold text-stone-900 dark:text-stone-100 mt-3">
             {contentList.length}
           </p>
-          <span className="text-xs text-stone-500 font-light block mt-1">
+          <span className="text-xs text-stone-500 dark:text-stone-400 font-light block mt-1">
             Himalayan slow-travel dispatches published
           </span>
         </div>
@@ -356,9 +356,9 @@ export default function AdminCreatorsPage() {
       </div>
 
       {/* Tabs & Search Bar */}
-      <div className="bg-white rounded-3xl border border-stone-200/90 p-5 shadow-xs space-y-6">
+      <div className="bg-white dark:bg-[#121212] rounded-3xl border border-stone-200/90 dark:border-[#262626] p-5 shadow-xs space-y-6">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 dark:border-[#262626] pb-4">
           
           {/* Tab Selector */}
           <div className="flex items-center gap-2 overflow-x-auto">
@@ -367,7 +367,7 @@ export default function AdminCreatorsPage() {
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'pending'
                   ? 'bg-stone-900 text-white shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-[#222222]'
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -379,7 +379,7 @@ export default function AdminCreatorsPage() {
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'onboarded'
                   ? 'bg-stone-900 text-white shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-[#222222]'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -391,7 +391,7 @@ export default function AdminCreatorsPage() {
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'content'
                   ? 'bg-stone-900 text-white shadow-xs'
-                  : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-[#222222]'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -407,7 +407,7 @@ export default function AdminCreatorsPage() {
               placeholder="Search by name, handle, code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-xs pl-8 h-9 border-stone-200 rounded-xl bg-stone-50/50"
+              className="text-xs pl-8 h-9 border-stone-200 dark:border-[#262626] rounded-xl bg-stone-50/50 dark:bg-[#161616]/80 text-stone-900 dark:text-stone-100"
             />
           </div>
 
@@ -434,17 +434,17 @@ export default function AdminCreatorsPage() {
                 {filteredPending.map((applicant) => (
                   <div 
                     key={applicant.id}
-                    className="p-5 bg-[#fafaf7] border border-amber-200/80 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition-all hover:border-amber-300"
+                    className="p-5 bg-[#fafaf7] dark:bg-[#0a0a0a]/70 border border-amber-200/80 dark:border-amber-800/50 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition-all hover:border-amber-300 dark:hover:border-amber-700/60"
                   >
                     {/* Applicant Information */}
                     <div className="flex items-start gap-4 min-w-0">
-                      <div className="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center font-bold text-sm shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 flex items-center justify-center font-bold text-sm shrink-0">
                         {applicant.fullName ? applicant.fullName.slice(0, 2).toUpperCase() : 'AP'}
                       </div>
 
                       <div className="space-y-1.5 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="text-sm font-extrabold text-stone-900">
+                          <h4 className="text-sm font-extrabold text-stone-900 dark:text-stone-100">
                             {applicant.fullName}
                           </h4>
                           <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full border border-amber-200">
@@ -457,7 +457,7 @@ export default function AdminCreatorsPage() {
                           )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-600">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-600 dark:text-stone-300">
                           <span>📧 {applicant.email}</span>
                           {applicant.phoneNumber && <span>📞 {applicant.phoneNumber}</span>}
                           {applicant.socialProfile && (
@@ -473,7 +473,7 @@ export default function AdminCreatorsPage() {
                         </div>
 
                         {applicant.bio && (
-                          <p className="text-xs text-stone-600 font-light line-clamp-2 pt-1">
+                          <p className="text-xs text-stone-600 dark:text-stone-300 font-light line-clamp-2 pt-1">
                             &ldquo;{applicant.bio}&rdquo;
                           </p>
                         )}
@@ -532,9 +532,9 @@ export default function AdminCreatorsPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-stone-200">
-                <table className="w-full text-left text-xs text-stone-700">
-                  <thead className="bg-[#fafaf7] text-stone-500 font-bold uppercase tracking-wider text-[10px] border-b border-stone-200">
+              <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-[#262626]">
+                <table className="w-full text-left text-xs text-stone-700 dark:text-stone-300">
+                  <thead className="bg-[#fafaf7] dark:bg-[#161616]/80 text-stone-500 dark:text-stone-400 font-bold uppercase tracking-wider text-[10px] border-b border-stone-200 dark:border-[#262626]">
                     <tr>
                       <th className="py-3.5 px-4">Creator Identity</th>
                       <th className="py-3.5 px-4">Referral Code</th>
@@ -545,11 +545,11 @@ export default function AdminCreatorsPage() {
                       <th className="py-3.5 px-4 text-right">Super Admin Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-100 bg-white">
+                  <tbody className="divide-y divide-stone-100 dark:divide-[#262626]/60 bg-white dark:bg-[#0a0a0a]">
                     {filteredOnboarded.map((creator) => {
                       const cleanSlug = (creator.fullName || 'creator').toLowerCase().replace(/\s+/g, '-');
                       return (
-                        <tr key={creator.id} className="hover:bg-stone-50/70 transition-colors">
+                        <tr key={creator.id} className="hover:bg-stone-50/70 dark:hover:bg-[#222222]/40 transition-colors">
                           
                           {/* Name & Contact */}
                           <td className="py-3.5 px-4">
@@ -558,7 +558,7 @@ export default function AdminCreatorsPage() {
                                 {creator.fullName ? creator.fullName.slice(0, 2).toUpperCase() : 'CR'}
                               </div>
                               <div>
-                                <span className="font-bold text-stone-900 block">{creator.fullName}</span>
+                                <span className="font-bold text-stone-900 dark:text-stone-100 block">{creator.fullName}</span>
                                 <span className="text-[11px] text-stone-400">{creator.email}</span>
                               </div>
                             </div>
@@ -589,7 +589,7 @@ export default function AdminCreatorsPage() {
                           </td>
 
                           {/* Dispatches count */}
-                          <td className="py-3.5 px-4 font-semibold text-stone-900">
+                          <td className="py-3.5 px-4 font-semibold text-stone-900 dark:text-stone-100">
                             {creator._count?.blogPosts ?? 0} notes
                           </td>
 
@@ -610,7 +610,7 @@ export default function AdminCreatorsPage() {
                               <Link
                                 href={`/community/creator/${cleanSlug}`}
                                 target="_blank"
-                                className="px-2.5 py-1 rounded-lg border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50 font-semibold inline-flex items-center gap-1 transition-all"
+                                className="px-2.5 py-1 rounded-lg border border-stone-200 dark:border-[#262626] text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-[#222222] font-semibold inline-flex items-center gap-1 transition-all"
                                 title="View Public Profile"
                               >
                                 <span>Profile</span>
@@ -663,7 +663,7 @@ export default function AdminCreatorsPage() {
                 {filteredContent.map((dispatch) => (
                   <div
                     key={dispatch.id}
-                    className="p-5 bg-white border border-stone-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-stone-300 transition-all shadow-2xs"
+                    className="p-5 bg-white dark:bg-[#0a0a0a] border border-stone-200 dark:border-[#262626] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-stone-300 dark:hover:border-stone-700 transition-all shadow-2xs"
                   >
                     {/* Dispatch Preview */}
                     <div className="flex items-start gap-4 min-w-0">
@@ -680,7 +680,7 @@ export default function AdminCreatorsPage() {
                           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                             {dispatch.altitude || '2,400m'}
                           </span>
-                          <h4 className="text-sm font-bold text-stone-900 truncate max-w-md">
+                          <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate max-w-md">
                             {dispatch.title}
                           </h4>
                           {dispatch.isVerifiedCreator && (
@@ -690,7 +690,7 @@ export default function AdminCreatorsPage() {
                           )}
                         </div>
 
-                        <p className="text-xs text-stone-600 line-clamp-2 font-light">
+                        <p className="text-xs text-stone-600 dark:text-stone-300 line-clamp-2 font-light">
                           {dispatch.excerpt}
                         </p>
 
@@ -703,11 +703,11 @@ export default function AdminCreatorsPage() {
                     </div>
 
                     {/* Moderation Controls */}
-                    <div className="flex items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-stone-100">
+                    <div className="flex items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-stone-100 dark:border-[#262626]">
                       <Link
                         href={`/blog/${dispatch.id}`}
                         target="_blank"
-                        className="px-3 py-1.5 rounded-lg border border-stone-200 text-stone-700 hover:bg-stone-50 font-semibold text-xs inline-flex items-center gap-1.5 transition-all"
+                        className="px-3 py-1.5 rounded-lg border border-stone-200 dark:border-[#262626] text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#222222] font-semibold text-xs inline-flex items-center gap-1.5 transition-all"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View</span>
@@ -720,7 +720,7 @@ export default function AdminCreatorsPage() {
                         className={`text-xs h-8 px-3 rounded-lg font-semibold cursor-pointer ${
                           dispatch.isVerifiedCreator
                             ? 'border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100'
-                            : 'border-stone-200 text-stone-700 hover:bg-stone-50'
+                            : 'border-stone-200 dark:border-[#262626] text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#222222]'
                         }`}
                       >
                         <Award className="w-3.5 h-3.5 mr-1 text-amber-600" />
