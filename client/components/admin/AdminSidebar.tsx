@@ -39,14 +39,14 @@ export default function AdminSidebar({
 
   return (
     <aside 
-      className={`bg-[#FAFAF9] text-stone-800 flex flex-col transition-all duration-300 relative border-r border-stone-200/80 shadow-[1px_0_12px_rgba(0,0,0,0.015)] select-none shrink-0 z-30 ${
+      className={`bg-[#FAFAF9] dark:bg-[#0a0a0a] text-stone-800 dark:text-stone-200 flex flex-col transition-all duration-300 relative border-r border-stone-200/80 dark:border-[#262626] shadow-[1px_0_12px_rgba(0,0,0,0.015)] select-none shrink-0 z-30 ${
         sidebarCollapsed ? 'w-20' : 'w-64'
       } font-sans`}
     >
       {/* Collapse / Expand Toggle Button */}
       <button 
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="absolute -right-3 top-7 w-6 h-6 rounded-full bg-white text-stone-500 flex items-center justify-center shadow-sm border border-stone-200 hover:bg-stone-50 hover:text-stone-900 active:scale-95 transition-all z-40 cursor-pointer"
+        className="absolute -right-3 top-7 w-6 h-6 rounded-full bg-white dark:bg-[#161616] text-stone-500 dark:text-stone-400 flex items-center justify-center shadow-sm border border-stone-200 dark:border-[#2a2a2a] hover:bg-stone-50 dark:hover:bg-[#222222] hover:text-stone-900 dark:hover:text-stone-100 active:scale-95 transition-all z-40 cursor-pointer"
         title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         aria-label="Toggle navigation bar"
       >
@@ -54,12 +54,12 @@ export default function AdminSidebar({
       </button>
 
       {/* Brand & Studio Title */}
-      <div className={`h-20 px-5 border-b border-stone-200/70 flex items-center shrink-0 ${
+      <div className={`h-20 px-5 border-b border-stone-200/70 dark:border-[#262626] flex items-center shrink-0 ${
         sidebarCollapsed ? 'justify-center' : 'justify-between'
       }`}>
         <div className="flex items-center gap-3 overflow-hidden">
           {/* Minimalist Mountain Crest Vector */}
-          <div className="w-9 h-9 rounded-xl bg-stone-900 text-stone-100 flex items-center justify-center shrink-0 shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-stone-900 dark:bg-[#202020] text-stone-100 flex items-center justify-center shrink-0 shadow-sm border border-stone-800 dark:border-[#2a2a2a]">
             <svg 
               className="w-5 h-5 text-emerald-400" 
               viewBox="0 0 24 24" 
@@ -76,7 +76,7 @@ export default function AdminSidebar({
 
           {!sidebarCollapsed && (
             <div className="flex flex-col truncate">
-              <span className="text-xs font-bold tracking-widest text-stone-900 uppercase">Pahadi Basera</span>
+              <span className="text-xs font-bold tracking-widest text-stone-900 dark:text-stone-100 uppercase">Pahadi Basera</span>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[9px] uppercase tracking-wider font-semibold text-stone-400">Concierge Studio</span>
                 <span className="w-1 h-1 rounded-full bg-emerald-500"></span>
@@ -93,7 +93,7 @@ export default function AdminSidebar({
         <div>
           {!sidebarCollapsed && (
             <div className="px-3 mb-2 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400">Workspace</span>
+              <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 dark:text-stone-500">Workspace</span>
             </div>
           )}
           <nav className="space-y-1">
@@ -107,11 +107,11 @@ export default function AdminSidebar({
                   title={sidebarCollapsed ? item.name : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer ${
                     isActive 
-                      ? 'bg-white text-stone-900 font-semibold border border-stone-200/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)]' 
-                      : 'text-stone-600 hover:bg-stone-200/40 hover:text-stone-900'
+                      ? 'bg-white dark:bg-[#161616] text-stone-900 dark:text-stone-100 font-semibold border border-stone-200/90 dark:border-[#262626] shadow-[0_1px_4px_rgba(0,0,0,0.03)]' 
+                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-[#222222]/60 hover:text-stone-900 dark:hover:text-stone-100'
                   } ${sidebarCollapsed ? 'justify-center' : ''}`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-emerald-700' : 'text-stone-400 group-hover:text-stone-700'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-emerald-700 dark:text-emerald-400' : 'text-stone-400 group-hover:text-stone-700 dark:group-hover:text-stone-300'}`} />
                   {!sidebarCollapsed && (
                     <span className="text-xs tracking-normal font-medium">{item.name}</span>
                   )}
@@ -129,8 +129,8 @@ export default function AdminSidebar({
           <div>
             {!sidebarCollapsed && (
               <div className="px-3 mb-2 flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400">Creator Guild</span>
-                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Super Admin</span>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 dark:text-stone-500">Creator Guild</span>
+                <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded border border-transparent dark:border-emerald-800/40">Super Admin</span>
               </div>
             )}
             <nav className="space-y-1">
@@ -144,8 +144,8 @@ export default function AdminSidebar({
                     title={sidebarCollapsed ? item.name : undefined}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer ${
                       isActive 
-                        ? 'bg-white text-stone-900 font-semibold border border-stone-200/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)]' 
-                        : 'text-stone-600 hover:bg-stone-200/40 hover:text-stone-900'
+                        ? 'bg-white dark:bg-[#1a1a1a] text-stone-900 dark:text-emerald-400 font-semibold border border-stone-200/90 dark:border-emerald-500/30 shadow-[0_1px_4px_rgba(0,0,0,0.03)] dark:shadow-[0_0_12px_rgba(16,185,129,0.15)]' 
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-[#222222]/60 hover:text-stone-900 dark:hover:text-stone-100'
                     } ${sidebarCollapsed ? 'justify-center' : ''}`}
                   >
                     <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-emerald-700' : 'text-stone-400 group-hover:text-stone-700'}`} />
@@ -166,7 +166,7 @@ export default function AdminSidebar({
         <div>
           {!sidebarCollapsed && (
             <div className="px-3 mb-2 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400">Ledgers</span>
+              <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 dark:text-stone-500">Ledgers</span>
             </div>
           )}
           <nav className="space-y-1">
@@ -180,8 +180,8 @@ export default function AdminSidebar({
                   title={sidebarCollapsed ? item.name : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer ${
                     isActive 
-                      ? 'bg-white text-stone-900 font-semibold border border-stone-200/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)]' 
-                      : 'text-stone-600 hover:bg-stone-200/40 hover:text-stone-900'
+                      ? 'bg-white dark:bg-[#1a1a1a] text-stone-900 dark:text-emerald-400 font-semibold border border-stone-200/90 dark:border-emerald-500/30 shadow-[0_1px_4px_rgba(0,0,0,0.03)] dark:shadow-[0_0_12px_rgba(16,185,129,0.15)]' 
+                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-[#222222]/60 hover:text-stone-900 dark:hover:text-stone-100'
                   } ${sidebarCollapsed ? 'justify-center' : ''}`}
                 >
                   <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-emerald-700' : 'text-stone-400 group-hover:text-stone-700'}`} />
@@ -201,7 +201,7 @@ export default function AdminSidebar({
         <div>
           {!sidebarCollapsed && (
             <div className="px-3 mb-2 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400">Portal</span>
+              <span className="text-[10px] uppercase tracking-wider font-bold text-stone-400 dark:text-stone-500">Portal</span>
             </div>
           )}
           <nav className="space-y-1">
@@ -209,15 +209,15 @@ export default function AdminSidebar({
               href="/"
               target="_blank"
               title={sidebarCollapsed ? "Public Website" : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer text-stone-600 hover:bg-stone-200/40 hover:text-stone-900 ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer text-stone-600 dark:text-stone-400 hover:bg-stone-200/40 dark:hover:bg-[#222222]/60 hover:text-stone-900 dark:hover:text-stone-100 ${
                 sidebarCollapsed ? 'justify-center' : ''
               }`}
             >
-              <Globe className="w-4 h-4 shrink-0 text-stone-400 group-hover:text-stone-700" />
+              <Globe className="w-4 h-4 shrink-0 text-stone-400 dark:text-stone-500 group-hover:text-stone-700 dark:group-hover:text-stone-300" />
               {!sidebarCollapsed && (
                 <div className="flex items-center justify-between w-full">
                   <span className="text-xs tracking-normal font-medium">Public Site</span>
-                  <ExternalLink className="w-3 h-3 text-stone-300 group-hover:text-stone-500" />
+                  <ExternalLink className="w-3 h-3 text-stone-300 dark:text-stone-600 group-hover:text-stone-500 dark:group-hover:text-stone-400" />
                 </div>
               )}
             </Link>
@@ -227,19 +227,19 @@ export default function AdminSidebar({
       </div>
 
       {/* Admin User Footer Card */}
-      <div className="p-3 border-t border-stone-200/70 shrink-0 bg-[#FAFAF9]">
-        <div className={`flex items-center gap-2.5 p-2 rounded-xl border border-stone-200/60 bg-white/70 shadow-sm ${
+      <div className="p-3 border-t border-stone-200/70 dark:border-[#262626] shrink-0 bg-[#FAFAF9] dark:bg-[#0a0a0a]">
+        <div className={`flex items-center gap-2.5 p-2 rounded-xl border border-stone-200/60 dark:border-[#262626] bg-white/70 dark:bg-[#161616]/70 shadow-sm ${
           sidebarCollapsed ? 'justify-center' : 'justify-between'
         }`}>
           <div className="flex items-center gap-2.5 overflow-hidden">
             {/* Monogram Badge */}
-            <div className="w-8 h-8 rounded-lg bg-stone-900 text-stone-100 flex items-center justify-center text-xs font-bold shrink-0 tracking-tight">
+            <div className="w-8 h-8 rounded-lg bg-stone-900 dark:bg-emerald-600 text-stone-100 dark:text-white flex items-center justify-center text-xs font-bold shrink-0 tracking-tight shadow-xs">
               PB
             </div>
 
             {!sidebarCollapsed && (
               <div className="flex flex-col truncate">
-                <span className="text-xs font-semibold text-stone-900 truncate">Super Admin</span>
+                <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">Super Admin</span>
                 <div className="flex items-center gap-1.5 text-[10px] text-stone-400">
                   <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
                   <span className="truncate">Root Privileges</span>
@@ -251,7 +251,7 @@ export default function AdminSidebar({
           {!sidebarCollapsed && (
             <button
               onClick={handleLogout}
-              className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+              className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors cursor-pointer shrink-0"
               title="Sign Out"
               aria-label="Sign out"
             >
@@ -264,7 +264,7 @@ export default function AdminSidebar({
           <div className="mt-2 flex justify-center">
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+              className="p-2 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors cursor-pointer"
               title="Sign Out"
               aria-label="Sign out"
             >
