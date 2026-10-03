@@ -513,7 +513,15 @@ export default function AdminPackages() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmitForm} className="space-y-6 text-xs">
+          <form 
+            onSubmit={handleSubmitForm} 
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-6 text-xs"
+          >
             
             {/* Step 1: Core Specifications */}
             <div className={formStep === 1 ? "space-y-4" : "hidden"}>
@@ -527,7 +535,6 @@ export default function AdminPackages() {
                     value={title} 
                     onChange={e => setTitle(e.target.value)}
                     placeholder="e.g. Kedarnath Valley Spiritual Hike"
-                    required
                   />
                 </div>
 
@@ -553,7 +560,6 @@ export default function AdminPackages() {
                       value={locationName} 
                       onChange={e => setLocationName(e.target.value)}
                       placeholder="e.g. Kedarnath, Uttarakhand"
-                      required
                     />
                   </div>
                 </div>
@@ -567,7 +573,6 @@ export default function AdminPackages() {
                     value={duration} 
                     onChange={e => setDuration(e.target.value)}
                     placeholder="e.g. 5 Days / 4 Nights"
-                    required
                   />
                 </div>
 
@@ -577,7 +582,6 @@ export default function AdminPackages() {
                     type="number" 
                     value={durationDays} 
                     onChange={e => setDurationDays(e.target.value)}
-                    required
                   />
                 </div>
 
@@ -588,7 +592,6 @@ export default function AdminPackages() {
                     value={price} 
                     onChange={e => setPrice(e.target.value)}
                     placeholder="e.g. 14999"
-                    required
                   />
                 </div>
               </div>
@@ -735,7 +738,6 @@ export default function AdminPackages() {
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Summary displayed on listing index page..."
                   rows={2}
-                  required
                 />
               </div>
 
@@ -851,7 +853,6 @@ export default function AdminPackages() {
                           onChange={e => handleItineraryChange(index, 'title', e.target.value)}
                           placeholder={`Day ${index + 1} title (e.g. Ascent to high top camp)`}
                           className="h-8 rounded-lg text-xs"
-                          required
                         />
                       </div>
                       <Textarea
@@ -860,7 +861,6 @@ export default function AdminPackages() {
                         placeholder="Description of activities, meals, and overnight locations..."
                         className="rounded-lg text-xs"
                         rows={2}
-                        required
                       />
                     </div>
                   ))}

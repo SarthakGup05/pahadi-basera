@@ -537,7 +537,6 @@ export default function AdminProperties() {
                     value={title} 
                     onChange={e => setTitle(e.target.value)}
                     placeholder="e.g. Oakwood Premium Chalet"
-                    required
                   />
                 </div>
 
@@ -567,7 +566,6 @@ export default function AdminProperties() {
                     value={locationName} 
                     onChange={e => setLocationName(e.target.value)}
                     placeholder="e.g. Chopta, Uttarakhand"
-                    required
                   />
                 </div>
 
@@ -578,7 +576,6 @@ export default function AdminProperties() {
                     value={basePrice} 
                     onChange={e => setBasePrice(e.target.value)}
                     placeholder="INR e.g. 6500"
-                    required
                   />
                 </div>
 
@@ -589,7 +586,6 @@ export default function AdminProperties() {
                     value={altitude} 
                     onChange={e => setAltitude(e.target.value)}
                     placeholder="e.g. 2680"
-                    required
                   />
                 </div>
               </div>
