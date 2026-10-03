@@ -10,8 +10,10 @@ import AdminLoginForm from '@/components/admin/AdminLoginForm';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import api from '@/lib/api';
+import { useAdminTheme } from '@/hooks/useAdminTheme';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { isDark } = useAdminTheme();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loginEmail, setLoginEmail] = useState<string>('admin@pahadibasera.com');
@@ -175,7 +177,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#fcfbf9] flex items-center justify-center">
+      <div className={`min-h-screen ${isDark ? 'dark bg-[#000000]' : 'bg-[#fcfbf9]'} flex items-center justify-center`}>
         <div className="relative flex flex-col items-center">
           <div className="w-12 h-12 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin mb-4" />
           <p className="text-[11px] tracking-widest uppercase font-bold text-gray-500 font-sans">Checking Credentials...</p>
@@ -199,8 +201,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] text-stone-900 font-sans flex overflow-hidden w-full">
-      <Toaster position="top-right" richColors />
+    <div className={`min-h-screen ${isDark ? 'dark bg-[#000000] text-stone-100' : 'bg-[#FAFAF9] text-stone-900'} font-sans flex overflow-hidden w-full transition-colors duration-200`}>
+      <Toaster position="top-right" richColors theme={isDark ? 'dark' : 'light'} />
       
       {/* Collapsible Sidebar component */}
       <AdminSidebar 
@@ -217,7 +219,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AdminHeader pathname={pathname} />
 
         {/* Dynamic Inner Page Content */}
-        <div className="flex-1 overflow-y-auto bg-[#FAFAF9] p-8 lg:p-10">
+        <div className={`flex-1 overflow-y-auto ${isDark ? 'bg-[#000000]' : 'bg-[#FAFAF9]'} p-8 lg:p-10 transition-colors duration-200`}>
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
