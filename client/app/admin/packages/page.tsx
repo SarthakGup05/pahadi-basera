@@ -524,7 +524,7 @@ export default function AdminPackages() {
           >
             
             {/* Step 1: Core Specifications */}
-            <div className={formStep === 1 ? "space-y-4" : "hidden"}>
+            {formStep === 1 && (<div className="space-y-4">
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">1. General Specifications</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -633,10 +633,10 @@ export default function AdminPackages() {
                   </select>
                 </div>
               </div>
-            </div>
+            </div>)}
 
             {/* Step 2: Marketing & Media & Descriptions */}
-            <div className={formStep === 2 ? "space-y-4" : "hidden"}>
+            {formStep === 2 && (<div className="space-y-4">
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">2. Marketing & Overview</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -750,10 +750,10 @@ export default function AdminPackages() {
                   rows={3}
                 />
               </div>
-            </div>
+            </div>)}
 
             {/* Step 3: Inclusions, Amenities, and Itineraries */}
-            <div className={formStep === 3 ? "space-y-5" : "hidden"}>
+            {formStep === 3 && (<div className="space-y-5">
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">3. Inclusions, Amenities & Daily Itinerary</h3>
               
               {/* Inclusions Checkboxes */}
@@ -866,7 +866,7 @@ export default function AdminPackages() {
                   ))}
                 </div>
               </div>
-            </div>
+            </div>)}
 
             {/* Navigation buttons */}
             <div className="flex justify-between items-center border-t border-gray-100 pt-4 mt-6">

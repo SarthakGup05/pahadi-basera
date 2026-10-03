@@ -526,7 +526,7 @@ export default function AdminProperties() {
             className="space-y-6 text-xs"
           >
             {/* Step 1: General Specs */}
-            <div className={formStep === 1 ? "space-y-4" : "hidden"}>
+            {formStep === 1 && <div className="space-y-4">
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">1. General Specifications</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -618,10 +618,10 @@ export default function AdminProperties() {
                   />
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Step 2: Coordinates & Overview */}
-            <div className={formStep === 2 ? "space-y-4" : "hidden"}>
+            {formStep === 2 && (<div className="space-y-4">
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">2. Coordinates & Overview</h3>
               
               <div className="grid grid-cols-2 gap-4">
@@ -667,10 +667,10 @@ export default function AdminProperties() {
                   rows={3}
                 />
               </div>
-            </div>
+            </div>)}
 
             {/* Step 3: Policies & Amenities */}
-            <div className={formStep === 3 ? "space-y-4" : "hidden"}>
+            {formStep === 3 && (<div className="space-y-4">
               <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest border-b border-emerald-100 pb-1.5">3. Amenities, Policies & Media</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -757,10 +757,10 @@ export default function AdminProperties() {
                 />
                 <label htmlFor="petsAllowed" className="text-[10px] font-bold text-gray-600 uppercase tracking-wider cursor-pointer">Pets Allowed</label>
               </div>
-            </div>
+            </div>)}
 
             {/* Step 4: Photo Gallery & Media (ImageKit CDN) */}
-            <div className={formStep === 4 ? "space-y-4" : "hidden"}>
+            {formStep === 4 && (<div className="space-y-4">
               <div className="flex items-center justify-between border-b border-emerald-100 pb-1.5">
                 <h3 className="font-extrabold text-[10px] text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
                   <ImageIcon className="w-3.5 h-3.5" />
@@ -833,7 +833,7 @@ export default function AdminProperties() {
                   className="mt-1 text-xs font-mono"
                 />
               </details>
-            </div>
+            </div>)}
 
             {/* Navigation buttons */}
             <div className="flex justify-between items-center border-t border-gray-100 pt-4 mt-6">
