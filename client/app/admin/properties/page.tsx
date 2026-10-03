@@ -164,6 +164,11 @@ export default function AdminProperties() {
 
   useEffect(() => {
     fetchProperties();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q') || params.get('search');
+      if (q) setSearchQuery(q);
+    }
   }, []);
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
@@ -369,13 +374,13 @@ export default function AdminProperties() {
   return (
     <div className="space-y-6 animate-fade-in font-sans">
       {/* Title & Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-stone-200/80 rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.015)]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#121212] border border-stone-200/80 dark:border-[#262626] rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.015)] transition-colors">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <h1 className="text-xl font-black text-stone-900 tracking-tight uppercase">Stays Catalog Ledger</h1>
+            <h1 className="text-xl font-black text-stone-900 dark:text-stone-100 tracking-tight uppercase">Stays Catalog Ledger</h1>
           </div>
-          <p className="text-xs text-stone-500 mt-1">Manage verified Himalayan homestays, private chalets, and luxury lodges</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Manage verified Himalayan homestays, private chalets, and luxury lodges</p>
         </div>
         
         {/* Actions */}
@@ -393,7 +398,7 @@ export default function AdminProperties() {
               placeholder="Search stays by title, region..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-stone-50/70 border-stone-200 focus:bg-white focus:border-emerald-500 rounded-xl pl-9 text-xs transition-all font-sans py-4"
+              className="bg-stone-50/70 dark:bg-[#161616]/80 border-stone-200 dark:border-[#262626] focus:bg-white dark:focus:bg-stone-900 focus:border-emerald-500 rounded-xl pl-9 text-xs transition-all font-sans py-4 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
           </div>
@@ -402,7 +407,7 @@ export default function AdminProperties() {
             variant="outline" 
             onClick={fetchProperties}
             title="Refresh Ledger"
-            className="rounded-xl border-stone-200 bg-white hover:bg-stone-50 text-stone-600 gap-1.5 font-bold text-xs uppercase tracking-wider py-4 shrink-0 cursor-pointer"
+            className="rounded-xl border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 gap-1.5 font-bold text-xs uppercase tracking-wider py-4 shrink-0 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
           </Button>
@@ -416,13 +421,13 @@ export default function AdminProperties() {
           placeholder="Search stays catalog..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-white border-stone-200 focus:border-emerald-500 rounded-xl pl-9 text-xs py-4"
+          className="bg-white dark:bg-[#161616] border-stone-200 dark:border-[#262626] text-stone-900 dark:text-stone-100 focus:border-emerald-500 rounded-xl pl-9 text-xs py-4"
         />
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
       </div>
 
       {/* Main Table Card */}
-      <Card className="bg-white border-stone-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.015)] overflow-hidden rounded-2xl">
+      <Card className="bg-white dark:bg-[#121212] border-stone-200/80 dark:border-[#262626] shadow-[0_4px_25px_rgba(0,0,0,0.015)] overflow-hidden rounded-2xl transition-colors">
         <CardContent className="p-0">
           {isLoading && properties.length === 0 ? (
             <div className="py-24 flex flex-col items-center justify-center">
@@ -437,7 +442,7 @@ export default function AdminProperties() {
             </div>
           ) : (
             <Table>
-              <TableHeader className="bg-stone-50/70 border-b border-stone-100">
+              <TableHeader className="bg-stone-50/70 dark:bg-[#161616]/80 border-b border-stone-100 dark:border-[#262626]">
                 <TableRow className="hover:bg-transparent border-stone-100">
                   <TableHead className="text-[10px] font-bold uppercase text-stone-400 tracking-wider pl-6 py-4 w-[80px]">Cover</TableHead>
                   <TableHead className="text-[10px] font-bold uppercase text-stone-400 tracking-wider py-4">Title & Type</TableHead>
@@ -453,7 +458,7 @@ export default function AdminProperties() {
                     ? p.images[0].url 
                     : 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=200&auto=format&fit=crop';
                   return (
-                    <TableRow key={p.id} className="hover:bg-stone-50/40 transition-colors border-b border-stone-100/60">
+                    <TableRow key={p.id} className="hover:bg-stone-50/40 dark:hover:bg-[#222222]/40 transition-colors border-b border-stone-100/60 dark:border-[#262626]/60">
                       {/* Image Thumbnail */}
                       <TableCell className="pl-6 py-4">
                         <div className="w-14 h-11 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 relative shrink-0 shadow-2xs">
@@ -466,7 +471,7 @@ export default function AdminProperties() {
                       </TableCell>
 
                       {/* Title & Type */}
-                      <TableCell className="py-4 font-bold text-stone-900 text-xs">
+                      <TableCell className="py-4 font-bold text-stone-900 dark:text-stone-100 text-xs">
                         <div className="flex items-center gap-1.5">
                           <span>{p.title}</span>
                           <a href={`/properties/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600 transition-colors">
@@ -477,7 +482,7 @@ export default function AdminProperties() {
                       </TableCell>
 
                       {/* Location & Altitude */}
-                      <TableCell className="py-4 text-xs text-stone-600">
+                      <TableCell className="py-4 text-xs text-stone-600 dark:text-stone-300">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                           <span>{p.location || 'Unknown'}</span>
@@ -489,7 +494,7 @@ export default function AdminProperties() {
                       </TableCell>
 
                       {/* Price */}
-                      <TableCell className="py-4 text-xs text-stone-800">
+                      <TableCell className="py-4 text-xs text-stone-800 dark:text-stone-200">
                         <div className="font-extrabold">{formatCurrency(p.basePrice)}</div>
                         <div className="text-[9px] text-stone-400 uppercase tracking-wider font-semibold mt-0.5">per night stay</div>
                       </TableCell>
@@ -497,9 +502,9 @@ export default function AdminProperties() {
                       {/* Status Badge */}
                       <TableCell className="py-4 text-center">
                         {p.isActive ? (
-                          <Badge className="bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-50 text-[10px]">Active</Badge>
+                          <Badge className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-50 text-[10px] shadow-[0_0_10px_rgba(16,185,129,0.15)] font-bold">Active</Badge>
                         ) : (
-                          <Badge className="bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-100 text-[10px]">Inactive</Badge>
+                          <Badge className="bg-stone-100 dark:bg-[#1f1f1f] text-stone-600 dark:text-neutral-400 border border-stone-200 dark:border-[#333333] hover:bg-stone-100 text-[10px] font-medium">Inactive</Badge>
                         )}
                       </TableCell>
 
@@ -513,8 +518,8 @@ export default function AdminProperties() {
                             onClick={() => handleToggleActive(p.id, p.isActive)}
                             className={`rounded-lg font-bold text-[10px] uppercase tracking-widest px-2.5 py-1.5 h-8 transition-all cursor-pointer ${
                               p.isActive 
-                                ? 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 hover:text-amber-700' 
-                                : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700'
+                                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/50 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50' 
+                                : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
                             }`}
                           >
                             {updatingId === p.id ? (
@@ -530,7 +535,7 @@ export default function AdminProperties() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleOpenEditForm(p)}
-                            className="bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100 rounded-lg p-1.5 h-8 w-8 cursor-pointer"
+                            className="bg-stone-50 dark:bg-[#202020] text-stone-600 dark:text-stone-300 border-stone-200 dark:border-[#2a2a2a] hover:bg-stone-100 dark:hover:bg-[#282828] rounded-lg p-1.5 h-8 w-8 cursor-pointer"
                             title="Edit Stay"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -540,7 +545,7 @@ export default function AdminProperties() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleOpenDelete(p)}
-                            className="bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200 rounded-lg p-1.5 h-8 w-8 cursor-pointer"
+                            className="bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 rounded-lg p-1.5 h-8 w-8 cursor-pointer"
                             title="Delete Stay"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -558,28 +563,28 @@ export default function AdminProperties() {
 
       {/* Premium Modern 4-Step Creation / Edit Modal Dialog */}
       <Dialog open={isOpenForm} onOpenChange={setIsOpenForm}>
-        <DialogContent showCloseButton={false} className="sm:max-w-3xl lg:max-w-4xl w-full p-0 bg-white border border-stone-200/90 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col font-sans">
+        <DialogContent showCloseButton={false} className="sm:max-w-3xl lg:max-w-4xl w-full p-0 bg-white dark:bg-[#121212] border border-stone-200/90 dark:border-[#262626] text-stone-900 dark:text-stone-100 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col font-sans transition-colors">
           
           {/* Glowing Top Accent Bar */}
           <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 shrink-0" />
 
           {/* Dialog Header */}
-          <div className="px-8 pt-6 pb-5 border-b border-stone-100 shrink-0 bg-stone-50/40">
+          <div className="px-8 pt-6 pb-5 border-b border-stone-100 dark:border-[#262626] shrink-0 bg-stone-50/40 dark:bg-[#161616]/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center shrink-0 shadow-2xs">
                   <Mountain className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <DialogTitle className="text-lg font-black tracking-tight text-stone-900">
+                    <DialogTitle className="text-lg font-black tracking-tight text-stone-900 dark:text-stone-100">
                       {editingProperty ? `Modify Stay: ${editingProperty.title}` : 'List New Himalayan Basera'}
                     </DialogTitle>
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-100/70 text-emerald-800 border border-emerald-200">
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-100/70 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                       {editingProperty ? 'Live Edit' : 'New Listing'}
                     </span>
                   </div>
-                  <DialogDescription className="text-xs text-stone-500 mt-0.5">
+                  <DialogDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                     Curate a high-altitude sanctuary with verified specifications, amenities & photography
                   </DialogDescription>
                 </div>
@@ -588,7 +593,7 @@ export default function AdminProperties() {
               <button
                 type="button"
                 onClick={() => setIsOpenForm(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-stone-100 dark:bg-[#202020] hover:bg-stone-200 dark:hover:bg-[#282828] text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -607,23 +612,23 @@ export default function AdminProperties() {
                     onClick={() => setFormStep(s.id)}
                     className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       isCurrent
-                        ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+                        ? 'bg-white dark:bg-[#161616] border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs text-stone-900 dark:text-stone-100'
                         : isPassed
-                          ? 'bg-emerald-50/40 border-emerald-200/70 text-emerald-800 hover:bg-emerald-50'
-                          : 'bg-white/60 border-stone-200/70 text-stone-400 hover:border-stone-300'
+                          ? 'bg-emerald-50/40 dark:bg-emerald-950/30 border-emerald-200/70 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50'
+                          : 'bg-white/60 dark:bg-[#161616]/40 border-stone-200/70 dark:border-[#262626] text-stone-400 dark:text-stone-500 hover:border-stone-300 dark:hover:border-stone-700'
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
                       isCurrent
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : isPassed
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-stone-100 text-stone-400'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-stone-100 dark:bg-[#202020] text-stone-400 dark:text-neutral-500'
                     }`}>
                       {isPassed ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.id}
                     </div>
                     <div className="min-w-0">
-                      <p className={`text-xs font-bold truncate leading-tight ${isCurrent ? 'text-stone-900' : isPassed ? 'text-emerald-900' : 'text-stone-500'}`}>
+                      <p className={`text-xs font-bold truncate leading-tight ${isCurrent ? 'text-stone-900 dark:text-white' : isPassed ? 'text-emerald-900 dark:text-emerald-300' : 'text-stone-500 dark:text-neutral-400'}`}>
                         {s.title}
                       </p>
                       <p className="text-[10px] text-stone-400 truncate mt-0.5">{s.subtitle}</p>
@@ -657,29 +662,29 @@ export default function AdminProperties() {
               <div className="space-y-6 animate-fade-in">
                 
                 {/* Title & Category Header */}
-                <div className="border-b border-stone-100 pb-3">
-                  <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2">
+                <div className="border-b border-stone-100 dark:border-[#262626] pb-3">
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
                     <Home className="w-4 h-4 text-emerald-600" /> 1. Stay Identity & Category
                   </h3>
-                  <p className="text-stone-400 text-[11px] mt-0.5">Primary public listing title, mountain category, and nightly tariff</p>
+                  <p className="text-stone-400 dark:text-stone-500 text-[11px] mt-0.5">Primary public listing title, mountain category, and nightly tariff</p>
                 </div>
 
                 {/* Title */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Stay Title *</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">Stay Title *</label>
                   <Input 
                     type="text" 
                     value={title} 
                     onChange={e => setTitle(e.target.value)}
                     placeholder="e.g. Oakwood Alpine Chalet & Glasshouse"
-                    className="text-sm py-5 rounded-xl border-stone-200 focus:border-emerald-500 bg-stone-50/30 focus:bg-white"
+                    className="text-sm py-5 rounded-xl border-stone-200 dark:border-[#2a2a2a] focus:border-emerald-500 bg-stone-50/30 dark:bg-[#161616] focus:bg-white dark:focus:bg-[#181818] text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600"
                   />
                   <p className="text-[11px] text-stone-400">Make it evocative of Himalayan heritage and serenity</p>
                 </div>
 
                 {/* Interactive Property Type Selector Grid */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Property Architecture Type *</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Property Architecture Type *</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
                     {PROPERTY_TYPES.map((pt) => {
                       const TypeIcon = pt.icon;
@@ -690,12 +695,12 @@ export default function AdminProperties() {
                           onClick={() => setType(pt.value)}
                           className={`p-3 rounded-2xl border transition-all cursor-pointer select-none ${
                             isSelected 
-                              ? 'border-emerald-500 bg-emerald-50/50 shadow-xs ring-2 ring-emerald-500/20' 
-                              : 'border-stone-200 hover:border-stone-300 bg-white hover:bg-stone-50/50'
+                              ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-xs ring-2 ring-emerald-500/20' 
+                              : 'border-stone-200 dark:border-[#262626] hover:border-stone-300 dark:hover:border-stone-700 bg-white dark:bg-[#161616] hover:bg-stone-50/50 dark:hover:bg-[#222222]/40'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1.5">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-emerald-600 text-white' : 'bg-stone-100 dark:bg-[#202020] text-stone-600 dark:text-stone-300'}`}>
                               <TypeIcon className="w-4 h-4" />
                             </div>
                             {isSelected && (
@@ -704,7 +709,7 @@ export default function AdminProperties() {
                               </span>
                             )}
                           </div>
-                          <p className="font-bold text-xs text-stone-900">{pt.label}</p>
+                          <p className="font-bold text-xs text-stone-900 dark:text-stone-100">{pt.label}</p>
                           <p className="text-[10px] text-stone-400 line-clamp-1 mt-0.5">{pt.desc}</p>
                         </div>
                       );
@@ -724,7 +729,7 @@ export default function AdminProperties() {
                         value={locationName} 
                         onChange={e => setLocationName(e.target.value)}
                         placeholder="e.g. Chopta, Uttarakhand"
-                        className="pl-9 py-5 rounded-xl border-stone-200 text-xs"
+                        className="pl-9 py-5 rounded-xl border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] text-stone-900 dark:text-stone-100 text-xs"
                       />
                       <MapPin className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     </div>
@@ -759,7 +764,7 @@ export default function AdminProperties() {
                         value={basePrice} 
                         onChange={e => setBasePrice(e.target.value)}
                         placeholder="e.g. 6500"
-                        className="pl-8 py-5 rounded-xl border-stone-200 text-xs font-mono font-bold"
+                        className="pl-8 py-5 rounded-xl border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] text-stone-900 dark:text-stone-100 text-xs font-mono font-bold"
                       />
                       <span className="text-stone-400 font-bold absolute left-3 top-1/2 -translate-y-1/2">₹</span>
                     </div>
@@ -769,7 +774,7 @@ export default function AdminProperties() {
                           key={pVal}
                           type="button"
                           onClick={() => setBasePrice(pVal)}
-                          className="px-1.5 py-0.5 rounded bg-stone-100 text-[10px] text-stone-600 hover:bg-stone-200 cursor-pointer"
+                          className="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-[#202020] text-[10px] text-stone-600 dark:text-neutral-300 hover:bg-stone-200 dark:hover:bg-[#2a2a2a] cursor-pointer"
                         >
                           ₹{parseInt(pVal)/1000}k
                         </button>
@@ -779,14 +784,14 @@ export default function AdminProperties() {
 
                   {/* Altitude */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Altitude (Meters MASL) *</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Altitude (Meters MASL) *</label>
                     <div className="relative">
                       <Input 
                         type="number" 
                         value={altitude} 
                         onChange={e => setAltitude(e.target.value)}
                         placeholder="e.g. 2680"
-                        className="pl-9 py-5 rounded-xl border-stone-200 text-xs font-mono"
+                        className="pl-9 py-5 rounded-xl border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] text-stone-900 dark:text-stone-100 text-xs font-mono"
                       />
                       <Mountain className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     </div>
@@ -796,7 +801,7 @@ export default function AdminProperties() {
                           key={alt.m}
                           type="button"
                           onClick={() => setAltitude(alt.m)}
-                          className="px-1.5 py-0.5 rounded bg-stone-100 text-[10px] text-stone-600 hover:bg-stone-200 cursor-pointer"
+                          className="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-[#202020] text-[10px] text-stone-600 dark:text-neutral-300 hover:bg-stone-200 dark:hover:bg-[#2a2a2a] cursor-pointer"
                         >
                           {alt.m}m ({alt.lbl})
                         </button>
@@ -820,12 +825,12 @@ export default function AdminProperties() {
                 </div>
 
                 {/* Counter Steppers */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-stone-50/70 border border-stone-200/80 rounded-2xl p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-stone-50/70 dark:bg-[#161616]/60 border border-stone-200/80 dark:border-[#262626] rounded-2xl p-4">
                   
                   {/* Bedrooms */}
-                  <div className="flex items-center justify-between p-3 bg-white border border-stone-200/70 rounded-xl shadow-2xs">
+                  <div className="flex items-center justify-between p-3 bg-white dark:bg-[#161616] border border-stone-200/70 dark:border-[#262626] rounded-xl shadow-2xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-[#202020] flex items-center justify-center text-stone-600 dark:text-stone-300">
                         <Bed className="w-4 h-4" />
                       </div>
                       <div>
@@ -837,7 +842,7 @@ export default function AdminProperties() {
                       <button
                         type="button"
                         onClick={() => setBedrooms(prev => Math.max(1, (parseInt(prev) || 1) - 1).toString())}
-                        className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center hover:bg-stone-100 active:scale-95 cursor-pointer"
+                        className="w-7 h-7 rounded-lg border border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 active:scale-95 cursor-pointer"
                       >
                         <Minus className="w-3 h-3 text-stone-600" />
                       </button>
@@ -853,13 +858,13 @@ export default function AdminProperties() {
                   </div>
 
                   {/* Bathrooms */}
-                  <div className="flex items-center justify-between p-3 bg-white border border-stone-200/70 rounded-xl shadow-2xs">
+                  <div className="flex items-center justify-between p-3 bg-white dark:bg-[#161616] border border-stone-200/70 dark:border-[#262626] rounded-xl shadow-2xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-[#202020] flex items-center justify-center text-stone-600 dark:text-stone-300">
                         <Bath className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-stone-900">Bathrooms</p>
+                        <p className="text-xs font-bold text-stone-900 dark:text-stone-100">Bathrooms</p>
                         <p className="text-[10px] text-stone-400">Private & ensuite</p>
                       </div>
                     </div>
@@ -867,29 +872,29 @@ export default function AdminProperties() {
                       <button
                         type="button"
                         onClick={() => setBathrooms(prev => Math.max(1, (parseInt(prev) || 1) - 1).toString())}
-                        className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center hover:bg-stone-100 active:scale-95 cursor-pointer"
+                        className="w-7 h-7 rounded-lg border border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 active:scale-95 cursor-pointer"
                       >
-                        <Minus className="w-3 h-3 text-stone-600" />
+                        <Minus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
-                      <span className="w-6 text-center font-bold text-sm text-stone-900">{bathrooms}</span>
+                      <span className="w-6 text-center font-bold text-sm text-stone-900 dark:text-stone-100">{bathrooms}</span>
                       <button
                         type="button"
                         onClick={() => setBathrooms(prev => ((parseInt(prev) || 1) + 1).toString())}
-                        className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center hover:bg-stone-100 active:scale-95 cursor-pointer"
+                        className="w-7 h-7 rounded-lg border border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 active:scale-95 cursor-pointer"
                       >
-                        <Plus className="w-3 h-3 text-stone-600" />
+                        <Plus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
                     </div>
                   </div>
 
                   {/* Max Guests */}
-                  <div className="flex items-center justify-between p-3 bg-white border border-stone-200/70 rounded-xl shadow-2xs">
+                  <div className="flex items-center justify-between p-3 bg-white dark:bg-[#161616] border border-stone-200/70 dark:border-[#262626] rounded-xl shadow-2xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-[#202020] flex items-center justify-center text-stone-600 dark:text-stone-300">
                         <Users className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-stone-900">Max Guests</p>
+                        <p className="text-xs font-bold text-stone-900 dark:text-stone-100">Max Guests</p>
                         <p className="text-[10px] text-stone-400">Total capacity</p>
                       </div>
                     </div>
@@ -897,17 +902,17 @@ export default function AdminProperties() {
                       <button
                         type="button"
                         onClick={() => setMaxGuests(prev => Math.max(1, (parseInt(prev) || 1) - 1).toString())}
-                        className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center hover:bg-stone-100 active:scale-95 cursor-pointer"
+                        className="w-7 h-7 rounded-lg border border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 active:scale-95 cursor-pointer"
                       >
-                        <Minus className="w-3 h-3 text-stone-600" />
+                        <Minus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
-                      <span className="w-6 text-center font-bold text-sm text-stone-900">{maxGuests}</span>
+                      <span className="w-6 text-center font-bold text-sm text-stone-900 dark:text-stone-100">{maxGuests}</span>
                       <button
                         type="button"
                         onClick={() => setMaxGuests(prev => ((parseInt(prev) || 1) + 1).toString())}
-                        className="w-7 h-7 rounded-lg border border-stone-200 flex items-center justify-center hover:bg-stone-100 active:scale-95 cursor-pointer"
+                        className="w-7 h-7 rounded-lg border border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 active:scale-95 cursor-pointer"
                       >
-                        <Plus className="w-3 h-3 text-stone-600" />
+                        <Plus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
                     </div>
                   </div>
@@ -1004,7 +1009,7 @@ export default function AdminProperties() {
                   </div>
 
                   {/* Pills Grid */}
-                  <div className="flex flex-wrap gap-2 p-4 bg-stone-50/70 border border-stone-200/70 rounded-2xl">
+                  <div className="flex flex-wrap gap-2 p-4 bg-stone-50/70 dark:bg-[#161616]/60 border border-stone-200/70 dark:border-[#262626] rounded-2xl">
                     {POPULAR_AMENITIES.map((item) => {
                       const isSelected = amenitiesList.includes(item);
                       return (
@@ -1015,7 +1020,7 @@ export default function AdminProperties() {
                           className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none flex items-center gap-1.5 ${
                             isSelected
                               ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-500/20 ring-1 ring-emerald-700'
-                              : 'bg-white text-stone-600 border border-stone-200/80 hover:border-stone-300 hover:bg-stone-50'
+                              : 'bg-white dark:bg-[#161616] text-stone-600 dark:text-stone-300 border border-stone-200/80 dark:border-[#2a2a2a]/80 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-[#222222]'
                           }`}
                         >
                           {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -1103,7 +1108,7 @@ export default function AdminProperties() {
                     value={selfCheckIn} 
                     onChange={e => setSelfCheckIn(e.target.value)}
                     placeholder="e.g. Smart digital keybox on main front deck. Code dispatched via SMS 3 hours prior."
-                    className="py-5 rounded-xl border-stone-200 text-xs"
+                    className="py-5 rounded-xl border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] text-stone-900 dark:text-white text-xs"
                   />
                 </div>
 
@@ -1138,7 +1143,7 @@ export default function AdminProperties() {
                   className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer select-none ${
                     petsAllowed 
                       ? 'border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500/20' 
-                      : 'border-stone-200 bg-stone-50/50 hover:bg-stone-50'
+                      : 'border-stone-200 dark:border-[#262626] bg-stone-50/50 dark:bg-[#161616]/60 hover:bg-stone-50 dark:hover:bg-[#222222]/80'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -1206,9 +1211,9 @@ export default function AdminProperties() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-72 overflow-y-auto p-2 bg-stone-50/70 border border-stone-200/80 rounded-2xl">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-72 overflow-y-auto p-2 bg-stone-50/70 dark:bg-[#161616]/80 border border-stone-200/80 dark:border-[#262626] rounded-2xl">
                       {imagesInput.split('\n').filter(s => s.trim().length > 0).map((url, idx) => (
-                        <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border border-stone-200 bg-white group shadow-2xs">
+                        <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] group shadow-2xs">
                           <img src={url} alt={`Property photo ${idx + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
                           
                           {/* Top Actions */}
@@ -1246,7 +1251,7 @@ export default function AdminProperties() {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-8 text-center bg-stone-50/50 rounded-2xl border border-dashed border-stone-200">
+                  <div className="py-8 text-center bg-stone-50/50 dark:bg-[#161616]/40 rounded-2xl border border-dashed border-stone-200 dark:border-[#262626]">
                     <ImageIcon className="w-8 h-8 text-stone-300 mx-auto mb-2" />
                     <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">No photos attached yet</p>
                     <p className="text-[11px] text-stone-400 mt-0.5">Upload photos above to give guests an inspiring preview of the stay</p>
@@ -1263,7 +1268,7 @@ export default function AdminProperties() {
                     onChange={e => setImagesInput(e.target.value)}
                     placeholder="https://ik.imagekit.io/skhds42rl/... (one per line)"
                     rows={3}
-                    className="mt-2 text-xs font-mono rounded-xl border-stone-200"
+                    className="mt-2 text-xs font-mono rounded-xl border-stone-200 dark:border-[#2a2a2a] bg-white dark:bg-[#161616] text-stone-900 dark:text-white"
                   />
                 </details>
 
@@ -1271,7 +1276,7 @@ export default function AdminProperties() {
             )}
 
             {/* Bottom Form Actions - Sticky Footer */}
-            <div className="sticky -bottom-8 -mx-8 -mb-8 px-8 py-4 bg-white/95 backdrop-blur-md border-t border-stone-200 flex items-center justify-between shrink-0 shadow-lg">
+            <div className="sticky -bottom-8 -mx-8 -mb-8 px-8 py-4 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border-t border-stone-200 dark:border-[#262626] flex items-center justify-between shrink-0 shadow-lg">
               <div className="flex items-center gap-2 text-stone-500">
                 <span className="text-xs font-bold text-stone-900">Step {formStep} of 4</span>
                 <span className="text-stone-300">•</span>
@@ -1283,7 +1288,7 @@ export default function AdminProperties() {
                   type="button" 
                   variant="ghost" 
                   onClick={() => setIsOpenForm(false)}
-                  className="rounded-xl border border-stone-200 text-stone-500 hover:text-stone-800 font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer"
+                  className="rounded-xl border border-stone-200 dark:border-[#2a2a2a] text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer"
                 >
                   Cancel
                 </Button>
@@ -1293,7 +1298,7 @@ export default function AdminProperties() {
                     type="button"
                     variant="outline"
                     onClick={() => setFormStep(prev => prev - 1)}
-                    className="rounded-xl border-stone-200 text-stone-700 font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer flex items-center gap-1.5"
+                    className="rounded-xl border border-stone-200 dark:border-[#2a2a2a] text-stone-700 dark:text-stone-300 bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222] font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer flex items-center gap-1.5"
                   >
                     <ChevronLeft className="w-4 h-4" /> Back
                   </Button>
@@ -1341,25 +1346,25 @@ export default function AdminProperties() {
 
       {/* Delete Confirmation Alert Dialog Modal */}
       <Dialog open={isOpenDeleteConfirm} onOpenChange={setIsOpenDeleteConfirm}>
-        <DialogContent className="sm:max-w-md bg-white border border-stone-200 rounded-2xl shadow-2xl p-6 font-sans">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-[#121212] border border-stone-200 dark:border-[#262626] text-stone-900 dark:text-stone-100 rounded-2xl shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-2">
-            <DialogTitle className="text-base font-extrabold tracking-wider text-rose-600 uppercase">
+            <DialogTitle className="text-base font-extrabold tracking-wider text-rose-600 dark:text-rose-400 uppercase">
               CONFIRM DWELLING DELETE
             </DialogTitle>
-            <DialogDescription className="text-xs uppercase font-bold text-stone-400 tracking-wider">
+            <DialogDescription className="text-xs uppercase font-bold text-stone-400 dark:text-stone-500 tracking-wider">
               This action is permanent and cannot be undone
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 text-xs text-stone-600 leading-relaxed border-t border-b border-stone-100">
-            Are you sure you want to delete <strong className="text-stone-900">{propertyToDelete?.title}</strong>? All booking histories linked to this stay in the database will be permanently affected.
+          <div className="py-4 text-xs text-stone-600 dark:text-stone-300 leading-relaxed border-t border-b border-stone-100 dark:border-[#262626]">
+            Are you sure you want to delete <strong className="text-stone-900 dark:text-stone-100">{propertyToDelete?.title}</strong>? All booking histories linked to this stay in the database will be permanently affected.
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button 
               onClick={() => setIsOpenDeleteConfirm(false)} 
               variant="ghost"
-              className="rounded-xl border border-stone-200 text-stone-600 font-bold text-xs uppercase tracking-wider py-4 px-5 cursor-pointer"
+              className="rounded-xl border border-stone-200 dark:border-[#262626] text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#222222] font-bold text-xs uppercase tracking-wider py-4 px-5 cursor-pointer"
             >
               Cancel
             </Button>

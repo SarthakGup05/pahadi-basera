@@ -75,6 +75,11 @@ export default function AdminBookings() {
 
   useEffect(() => {
     fetchBookings();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q') || params.get('search');
+      if (q) setSearchQuery(q);
+    }
   }, []);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
@@ -126,13 +131,13 @@ export default function AdminBookings() {
   const getStatusClass = (status: string) => {
     switch (status.toUpperCase()) {
       case 'CONFIRMED':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60 shadow-[0_0_10px_rgba(16,185,129,0.15)]';
       case 'COMPLETED':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/60';
       case 'CANCELLED':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/60';
       default:
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60';
     }
   };
 
@@ -141,8 +146,8 @@ export default function AdminBookings() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">BOOKINGS LEDGER</h1>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-0.5">Control transaction states & invoices ledger</p>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">BOOKINGS LEDGER</h1>
+          <p className="text-[10px] text-gray-500 dark:text-neutral-400 uppercase tracking-widest font-semibold mt-0.5">Control transaction states & invoices ledger</p>
         </div>
 
         {/* Search & Actions */}
@@ -153,7 +158,7 @@ export default function AdminBookings() {
               placeholder="Search property, guest email, or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white border-gray-200/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 rounded-xl pl-9 text-xs transition-all font-sans"
+              className="bg-white dark:bg-[#161616] border-gray-200/80 dark:border-[#2a2a2a] text-stone-900 dark:text-stone-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 rounded-xl pl-9 text-xs transition-all font-sans"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           </div>
@@ -161,7 +166,7 @@ export default function AdminBookings() {
           <Button 
             variant="outline" 
             onClick={fetchBookings}
-            className="rounded-xl border-gray-200 bg-[#fcfbf9] hover:bg-gray-50 text-gray-600 gap-1.5 font-bold text-xs uppercase tracking-wider py-4 shrink-0"
+            className="rounded-xl border-gray-200 dark:border-[#262626] bg-[#fcfbf9] dark:bg-[#161616] hover:bg-gray-50 dark:hover:bg-[#222222] text-gray-600 dark:text-stone-300 gap-1.5 font-bold text-xs uppercase tracking-wider py-4 shrink-0"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
@@ -169,7 +174,7 @@ export default function AdminBookings() {
       </div>
 
       {/* Ledger Table Card */}
-      <Card className="bg-white border-gray-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+      <Card className="bg-white dark:bg-[#121212] border border-gray-200/80 dark:border-[#262626] shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden transition-colors">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="py-24 flex flex-col items-center justify-center">
@@ -179,12 +184,12 @@ export default function AdminBookings() {
           ) : filteredBookings.length === 0 ? (
             <div className="py-24 text-center">
               <FileSpreadsheet className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-gray-900 font-bold text-xs uppercase tracking-wider mb-1">No bookings recorded</h3>
+              <h3 className="text-gray-900 dark:text-stone-100 font-bold text-xs uppercase tracking-wider mb-1">No bookings recorded</h3>
               <p className="text-gray-400 text-[10px]">No reservation parameters match this search query.</p>
             </div>
           ) : (
             <Table>
-              <TableHeader className="bg-gray-50/50">
+              <TableHeader className="bg-gray-50/50 dark:bg-[#161616]/80 border-b border-gray-100 dark:border-[#262626]">
                 <TableRow className="hover:bg-transparent border-gray-100">
                   <TableHead className="text-[9px] font-bold uppercase text-gray-400 tracking-wider pl-6 py-4">Dwelling Stay</TableHead>
                   <TableHead className="text-[9px] font-bold uppercase text-gray-400 tracking-wider py-4">Guest Info</TableHead>
@@ -197,9 +202,9 @@ export default function AdminBookings() {
               </TableHeader>
               <TableBody>
                 {filteredBookings.map((b) => (
-                  <TableRow key={b.id} className="hover:bg-gray-50/50 transition-colors border-gray-100">
+                  <TableRow key={b.id} className="hover:bg-gray-50/50 dark:hover:bg-[#222222]/40 transition-colors border-b border-gray-100 dark:border-[#262626]/70">
                     {/* Stay details */}
-                    <TableCell className="pl-6 py-4 font-bold text-gray-900 text-xs">
+                    <TableCell className="pl-6 py-4 font-bold text-gray-900 dark:text-stone-100 text-xs">
                       <div>{b.property?.title || b.package?.title || 'Mountain Expedition'}</div>
                       <div className="flex items-center gap-1 text-[9px] font-medium text-gray-400 mt-1">
                         <MapPin className="w-3 h-3 text-gray-400" />
@@ -208,7 +213,7 @@ export default function AdminBookings() {
                     </TableCell>
 
                     {/* Guest info */}
-                    <TableCell className="py-4 text-xs text-gray-600">
+                    <TableCell className="py-4 text-xs text-gray-600 dark:text-stone-300">
                       <div className="flex items-center gap-1.5 font-mono font-medium">
                         <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span>{b.guest.email}</span>
@@ -217,7 +222,7 @@ export default function AdminBookings() {
                     </TableCell>
 
                     {/* Dates */}
-                    <TableCell className="py-4 text-xs text-gray-600">
+                    <TableCell className="py-4 text-xs text-gray-600 dark:text-stone-300">
                       <div className="flex items-center gap-1.5">
                         <CalendarDays className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span>{formatDate(b.checkIn)} - {formatDate(b.checkOut)}</span>
@@ -229,7 +234,7 @@ export default function AdminBookings() {
 
                     {/* Total cost */}
                     <TableCell className="py-4 text-xs">
-                      <div className="font-extrabold text-gray-900">{formatCurrency(b.totalCost)}</div>
+                      <div className="font-extrabold text-gray-900 dark:text-stone-100">{formatCurrency(b.totalCost)}</div>
                       <div className="text-[9px] text-gray-400 mt-0.5">including GST and deposit</div>
                     </TableCell>
 
@@ -317,8 +322,8 @@ export default function AdminBookings() {
       {/* Invoice Details Dialog Modal */}
       {selectedBooking && (
         <Dialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen}>
-          <DialogContent className="sm:max-w-md bg-white border border-gray-200 rounded-2xl shadow-2xl p-6 font-sans">
-            <DialogHeader className="border-b border-gray-100 pb-4">
+          <DialogContent className="sm:max-w-md bg-white dark:bg-[#121212] border border-gray-200 dark:border-[#262626] text-stone-900 dark:text-stone-100 rounded-2xl shadow-2xl p-6 font-sans">
+            <DialogHeader className="border-b border-gray-100 dark:border-[#262626] pb-4">
               <DialogTitle className="text-base font-extrabold tracking-wider text-gray-900 uppercase flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-emerald-600" /> STAY INVOICE SUMMARY
               </DialogTitle>
@@ -329,14 +334,14 @@ export default function AdminBookings() {
 
             <div className="py-4 space-y-4 text-gray-800 text-xs">
               {/* Core Information */}
-              <div className="grid grid-cols-2 gap-4 bg-gray-50/50 border border-gray-100 rounded-xl p-4">
+              <div className="grid grid-cols-2 gap-4 bg-gray-50/50 dark:bg-[#161616]/60 border border-gray-100 dark:border-[#262626] rounded-xl p-4">
                 <div>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 block">Dwelling</span>
-                  <span className="font-bold text-gray-900">{selectedBooking.property?.title || selectedBooking.package?.title || 'Mountain Expedition'}</span>
+                  <span className="font-bold text-gray-900 dark:text-stone-100">{selectedBooking.property?.title || selectedBooking.package?.title || 'Mountain Expedition'}</span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 block">Guest Profile</span>
-                  <span className="font-medium truncate block">{selectedBooking.guest.email}</span>
+                  <span className="font-medium text-gray-800 dark:text-stone-200 truncate block">{selectedBooking.guest.email}</span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 block mt-2">Nights booked</span>
@@ -344,7 +349,7 @@ export default function AdminBookings() {
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 block mt-2">Registration Status</span>
-                  <span className="font-bold uppercase tracking-wider text-[10px] text-gray-900 block">{selectedBooking.status}</span>
+                  <span className="font-bold uppercase tracking-wider text-[10px] text-gray-900 dark:text-stone-100 block">{selectedBooking.status}</span>
                 </div>
               </div>
 
@@ -354,8 +359,8 @@ export default function AdminBookings() {
                 
                 {/* Base Stay */}
                 <div className="flex justify-between items-center py-1">
-                  <span className="text-gray-500">Base Stay Cost ({getNights(selectedBooking.checkIn, selectedBooking.checkOut)} nights)</span>
-                  <span className="font-bold text-gray-900">{formatCurrency(selectedBooking.baseStayCost)}</span>
+                  <span className="text-gray-500 dark:text-stone-400">Base Stay Cost ({getNights(selectedBooking.checkIn, selectedBooking.checkOut)} nights)</span>
+                  <span className="font-bold text-gray-900 dark:text-stone-100">{formatCurrency(selectedBooking.baseStayCost)}</span>
                 </div>
 
                 {/* Selected Addons */}
@@ -374,31 +379,31 @@ export default function AdminBookings() {
                 )}
 
                 {/* Refundable Security Deposit */}
-                <div className="flex justify-between items-center py-2 border-t border-gray-100">
-                  <span className="text-gray-500">Refundable Damage Deposit</span>
-                  <span className="font-bold text-gray-900">{formatCurrency(selectedBooking.securityDeposit)}</span>
+                <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-[#262626]">
+                  <span className="text-gray-500 dark:text-stone-400">Refundable Damage Deposit</span>
+                  <span className="font-bold text-gray-900 dark:text-stone-100">{formatCurrency(selectedBooking.securityDeposit)}</span>
                 </div>
 
                 {/* Subtotals & Taxes */}
-                <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-xl p-4 mt-3 space-y-2">
-                  <div className="flex justify-between text-xs text-emerald-800">
+                <div className="bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-100/50 dark:border-emerald-800/40 rounded-xl p-4 mt-3 space-y-2">
+                  <div className="flex justify-between text-xs text-emerald-800 dark:text-emerald-300">
                     <span>Taxable Value (Stay + Services):</span>
                     <span className="font-bold">{formatCurrency(selectedBooking.baseStayCost + selectedBooking.servicesCost)}</span>
                   </div>
                   
                   {/* GST (5% of stay + services) */}
-                  <div className="flex justify-between text-xs text-emerald-800">
+                  <div className="flex justify-between text-xs text-emerald-800 dark:text-emerald-300">
                     <span>5% Tourist VAT / GST:</span>
                     <span className="font-bold">{formatCurrency((selectedBooking.baseStayCost + selectedBooking.servicesCost) * 0.05)}</span>
                   </div>
 
-                  <div className="flex justify-between text-xs text-emerald-800">
+                  <div className="flex justify-between text-xs text-emerald-800 dark:text-emerald-300">
                     <span>Refundable Deposit (Tax Exempt):</span>
                     <span className="font-bold">{formatCurrency(selectedBooking.securityDeposit)}</span>
                   </div>
 
                   {/* Grand total */}
-                  <div className="flex justify-between text-sm font-black text-emerald-950 pt-2 border-t border-emerald-200/50">
+                  <div className="flex justify-between text-sm font-black text-emerald-950 dark:text-emerald-200 pt-2 border-t border-emerald-200/50 dark:border-emerald-800/50">
                     <span className="uppercase tracking-wide">Grand Total:</span>
                     <span>{formatCurrency(selectedBooking.totalCost)}</span>
                   </div>
@@ -407,7 +412,7 @@ export default function AdminBookings() {
             </div>
 
             {/* Modal Footer Close */}
-            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-[#262626] flex justify-end">
               <Button 
                 onClick={() => setIsInvoiceOpen(false)}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest px-6 rounded-xl cursor-pointer"

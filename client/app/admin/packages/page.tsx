@@ -125,6 +125,11 @@ export default function AdminPackages() {
 
   useEffect(() => {
     fetchPackages();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q') || params.get('search');
+      if (q) setSearchQuery(q);
+    }
   }, []);
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
@@ -358,13 +363,13 @@ export default function AdminPackages() {
     <div className="space-y-6 font-sans animate-fade-in">
       
       {/* Search and Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-stone-200/80 rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.015)]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#121212] border border-stone-200/80 dark:border-[#262626] rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.015)] transition-colors">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <h1 className="text-xl font-black text-stone-900 tracking-tight uppercase">Packages & Expeditions</h1>
+            <h1 className="text-xl font-black text-stone-900 dark:text-stone-100 tracking-tight uppercase">Packages & Expeditions</h1>
           </div>
-          <p className="text-xs text-stone-500 mt-1">Curate high-altitude trekking, wellness journeys, and celestial experiences</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Curate high-altitude trekking, wellness journeys, and celestial experiences</p>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
@@ -382,7 +387,7 @@ export default function AdminPackages() {
               placeholder="Search packages by title, region..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-xl bg-stone-50/70 border-stone-200 focus:bg-white text-xs py-4"
+              className="pl-10 rounded-xl bg-stone-50/70 dark:bg-[#161616]/80 border-stone-200 dark:border-[#262626] focus:bg-white dark:focus:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 text-xs py-4"
             />
           </div>
 
@@ -390,7 +395,7 @@ export default function AdminPackages() {
             variant="outline" 
             onClick={fetchPackages}
             title="Refresh Ledger"
-            className="rounded-xl border-stone-200 bg-white hover:bg-stone-50 text-stone-600 gap-1.5 font-bold text-xs uppercase tracking-wider py-4 shrink-0 cursor-pointer"
+            className="rounded-xl border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 gap-1.5 font-bold text-xs uppercase tracking-wider py-4 shrink-0 cursor-pointer"
           >
             <Loader2 className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
           </Button>
@@ -398,10 +403,10 @@ export default function AdminPackages() {
       </div>
 
       {/* Main Grid Ledger Card */}
-      <Card className="bg-white border-stone-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.015)] overflow-hidden rounded-2xl">
-        <CardHeader className="px-6 py-5 border-b border-stone-100 flex flex-row items-center justify-between">
+      <Card className="bg-white dark:bg-[#121212] border-stone-200/80 dark:border-[#262626] shadow-[0_4px_25px_rgba(0,0,0,0.015)] overflow-hidden rounded-2xl transition-colors">
+        <CardHeader className="px-6 py-5 border-b border-stone-100 dark:border-[#262626] flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-sm font-black tracking-wider text-stone-900 uppercase">Himalayan Packages Ledger</CardTitle>
+            <CardTitle className="text-sm font-black tracking-wider text-stone-900 dark:text-stone-100 uppercase">Himalayan Packages Ledger</CardTitle>
             <CardDescription className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">
               Active expeditions on the Pahadi Basera platform
             </CardDescription>
@@ -424,7 +429,7 @@ export default function AdminPackages() {
             </div>
           ) : (
             <Table>
-              <TableHeader className="bg-stone-50/70 border-b border-stone-100">
+              <TableHeader className="bg-stone-50/70 dark:bg-[#161616]/80 border-b border-stone-100 dark:border-[#262626]">
                 <TableRow>
                   <TableHead className="w-20 pl-6 text-[10px] font-bold text-stone-400 uppercase tracking-wider">Cover</TableHead>
                   <TableHead className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Expedition Details</TableHead>
@@ -437,7 +442,7 @@ export default function AdminPackages() {
               </TableHeader>
               <TableBody>
                 {filteredList.map((pkg: any) => (
-                  <TableRow key={pkg.id} className="hover:bg-stone-50/40 transition-colors border-b border-stone-100/60">
+                  <TableRow key={pkg.id} className="hover:bg-stone-50/40 dark:hover:bg-[#222222]/40 transition-colors border-b border-stone-100/60 dark:border-[#262626]/60">
                     
                     {/* Thumbnail image */}
                     <TableCell className="pl-6 py-4">
@@ -451,7 +456,7 @@ export default function AdminPackages() {
                     </TableCell>
 
                     {/* Title details */}
-                    <TableCell className="py-4 font-bold text-stone-900 text-xs">
+                    <TableCell className="py-4 font-bold text-stone-900 dark:text-stone-100 text-xs">
                       <div className="flex items-center gap-1.5">
                         {pkg.title}
                         <a href={`/packages/${pkg.id}`} target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-emerald-600 transition-colors">
@@ -464,7 +469,7 @@ export default function AdminPackages() {
                     </TableCell>
 
                     {/* Region */}
-                    <TableCell className="py-4 text-xs text-stone-600">
+                    <TableCell className="py-4 text-xs text-stone-600 dark:text-stone-300">
                       <div className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                         <span>{pkg.location || pkg.region}</span>
@@ -488,7 +493,7 @@ export default function AdminPackages() {
                     </TableCell>
 
                     {/* Pricing */}
-                    <TableCell className="py-4 text-xs text-stone-800">
+                    <TableCell className="py-4 text-xs text-stone-800 dark:text-stone-200">
                       <div className="font-extrabold">{formatCurrency(pkg.price)}</div>
                       <div className="flex items-center gap-1 mt-0.5 text-[9px] text-stone-400 uppercase tracking-wider font-semibold">
                         <Clock className="w-3 h-3 text-stone-400" />
@@ -499,9 +504,9 @@ export default function AdminPackages() {
                     {/* Publish toggle */}
                     <TableCell className="py-4 text-center">
                       {pkg.isActive ? (
-                        <Badge className="bg-emerald-50 text-emerald-800 border-emerald-100 hover:bg-emerald-50">Active</Badge>
+                        <Badge className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60 hover:bg-emerald-50 text-[10px] shadow-[0_0_10px_rgba(16,185,129,0.15)] font-bold">Active</Badge>
                       ) : (
-                        <Badge className="bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-100">Inactive</Badge>
+                        <Badge className="bg-stone-100 dark:bg-[#1f1f1f] text-stone-600 dark:text-neutral-400 border border-stone-200 dark:border-[#333333] hover:bg-stone-100 text-[10px] font-medium">Inactive</Badge>
                       )}
                     </TableCell>
 
@@ -516,8 +521,8 @@ export default function AdminPackages() {
                           onClick={() => handleToggleActive(pkg.id, pkg.isActive)}
                           className={`rounded-lg font-bold text-[10px] uppercase tracking-widest px-2.5 py-1.5 h-8 transition-all cursor-pointer ${
                             pkg.isActive 
-                              ? 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 hover:text-amber-700' 
-                              : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700'
+                              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/50 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50' 
+                              : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
                           }`}
                         >
                           {updatingId === pkg.id ? (
@@ -533,7 +538,7 @@ export default function AdminPackages() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenEditForm(pkg)}
-                          className="bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100 rounded-lg p-1.5 h-8 w-8 cursor-pointer"
+                          className="bg-stone-50 dark:bg-[#202020] text-stone-600 dark:text-stone-300 border-stone-200 dark:border-[#2a2a2a] hover:bg-stone-100 dark:hover:bg-[#282828] rounded-lg p-1.5 h-8 w-8 cursor-pointer"
                           title="Edit Package"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -543,7 +548,7 @@ export default function AdminPackages() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenDelete(pkg)}
-                          className="bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200 rounded-lg p-1.5 h-8 w-8 cursor-pointer"
+                          className="bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/50 rounded-lg p-1.5 h-8 w-8 cursor-pointer"
                           title="Delete Package"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -561,28 +566,28 @@ export default function AdminPackages() {
 
       {/* Modern 3-Step Creation / Edit Modal Dialog */}
       <Dialog open={isOpenForm} onOpenChange={setIsOpenForm}>
-        <DialogContent showCloseButton={false} className="sm:max-w-3xl lg:max-w-4xl w-full p-0 bg-white border border-stone-200/90 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col font-sans">
+        <DialogContent showCloseButton={false} className="sm:max-w-3xl lg:max-w-4xl w-full p-0 bg-white dark:bg-[#121212] border border-stone-200/90 dark:border-[#262626] text-stone-900 dark:text-stone-100 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col font-sans transition-colors">
           
           {/* Glowing Top Accent Bar */}
           <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 shrink-0" />
 
           {/* Dialog Header */}
-          <div className="px-8 pt-6 pb-5 border-b border-stone-100 shrink-0 bg-stone-50/40">
+          <div className="px-8 pt-6 pb-5 border-b border-stone-100 dark:border-[#262626] shrink-0 bg-stone-50/40 dark:bg-[#161616]/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center shrink-0 shadow-2xs">
                   <Compass className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <DialogTitle className="text-lg font-black tracking-tight text-stone-900">
+                    <DialogTitle className="text-lg font-black tracking-tight text-stone-900 dark:text-stone-100">
                       {editingPackage ? `Modify Package: ${editingPackage.title}` : 'List New Experiential Tour'}
                     </DialogTitle>
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-100/70 text-emerald-800 border border-emerald-200">
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-100/70 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                       {editingPackage ? 'Live Edit' : 'New Package'}
                     </span>
                   </div>
-                  <DialogDescription className="text-xs text-stone-500 mt-0.5">
+                  <DialogDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                     Define target regions, durations, mountain itineraries, and comprehensive inclusions
                   </DialogDescription>
                 </div>
@@ -591,7 +596,7 @@ export default function AdminPackages() {
               <button
                 type="button"
                 onClick={() => setIsOpenForm(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-stone-100 dark:bg-[#202020] hover:bg-stone-200 dark:hover:bg-[#282828] text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -610,23 +615,23 @@ export default function AdminPackages() {
                     onClick={() => setFormStep(s.id)}
                     className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       isCurrent
-                        ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+                        ? 'bg-white dark:bg-[#161616] border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs text-stone-900 dark:text-stone-100'
                         : isPassed
-                          ? 'bg-emerald-50/40 border-emerald-200/70 text-emerald-800 hover:bg-emerald-50'
-                          : 'bg-white/60 border-stone-200/70 text-stone-400 hover:border-stone-300'
+                          ? 'bg-emerald-50/40 dark:bg-emerald-950/30 border-emerald-200/70 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50'
+                          : 'bg-white/60 dark:bg-[#161616]/40 border-stone-200/70 dark:border-[#262626] text-stone-400 dark:text-stone-500 hover:border-stone-300 dark:hover:border-stone-700'
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
                       isCurrent
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : isPassed
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-stone-100 text-stone-400'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-stone-100 dark:bg-[#202020] text-stone-400 dark:text-neutral-500'
                     }`}>
                       {isPassed ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.id}
                     </div>
                     <div className="min-w-0">
-                      <p className={`text-xs font-bold truncate leading-tight ${isCurrent ? 'text-stone-900' : isPassed ? 'text-emerald-900' : 'text-stone-500'}`}>
+                      <p className={`text-xs font-bold truncate leading-tight ${isCurrent ? 'text-stone-900 dark:text-white' : isPassed ? 'text-emerald-900 dark:text-emerald-300' : 'text-stone-500 dark:text-neutral-400'}`}>
                         {s.title}
                       </p>
                       <p className="text-[10px] text-stone-400 truncate mt-0.5">{s.subtitle}</p>
@@ -659,29 +664,29 @@ export default function AdminPackages() {
             {formStep === 1 && (
               <div className="space-y-6 animate-fade-in">
                 
-                <div className="border-b border-stone-100 pb-3">
-                  <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2">
+                <div className="border-b border-stone-100 dark:border-[#262626] pb-3">
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 uppercase tracking-wider flex items-center gap-2">
                     <Compass className="w-4 h-4 text-emerald-600" /> 1. General Specifications & Region
                   </h3>
-                  <p className="text-stone-400 text-[11px] mt-0.5">Expedition title, geography, base pricing, duration, and difficulty theme</p>
+                  <p className="text-stone-400 dark:text-stone-500 text-[11px] mt-0.5">Expedition title, geography, base pricing, duration, and difficulty theme</p>
                 </div>
 
                 {/* Package Title */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Package Title *</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">Package Title *</label>
                   <Input 
                     type="text" 
                     value={title} 
                     onChange={e => setTitle(e.target.value)}
                     placeholder="e.g. Kedarnath Valley Spiritual Ridge Trek & Astrostay"
-                    className="text-sm py-5 rounded-xl border-stone-200 focus:border-emerald-500 bg-stone-50/30 focus:bg-white"
+                    className="text-sm py-5 rounded-xl border-stone-200 dark:border-[#262626] focus:border-emerald-500 bg-stone-50/30 dark:bg-[#161616]/60 focus:bg-white dark:focus:bg-stone-900 text-stone-900 dark:text-stone-100"
                   />
                 </div>
 
                 {/* Region & Specific Location */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Target Himalayan Region *</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Target Himalayan Region *</label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {['Uttarakhand', 'Himachal', 'Kashmir', 'Sikkim'].map((r) => (
                         <button
@@ -691,7 +696,7 @@ export default function AdminPackages() {
                           className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                             region === r
                               ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-1 ring-emerald-700'
-                              : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                              : 'bg-white dark:bg-[#161616] text-stone-600 dark:text-stone-300 border-stone-200 dark:border-[#262626] hover:bg-stone-50 dark:hover:bg-[#222222]'
                           }`}
                         >
                           {r}
@@ -701,14 +706,14 @@ export default function AdminPackages() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Specific Location / Trailhead *</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Specific Location / Trailhead *</label>
                     <div className="relative">
                       <Input 
                         type="text" 
                         value={locationName} 
                         onChange={e => setLocationName(e.target.value)}
                         placeholder="e.g. Kedarnath Valley, Garhwal"
-                        className="pl-9 py-5 rounded-xl border-stone-200 text-xs"
+                        className="pl-9 py-5 rounded-xl border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] text-stone-900 dark:text-stone-100 text-xs"
                       />
                       <MapPin className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     </div>
@@ -718,24 +723,24 @@ export default function AdminPackages() {
                 {/* Duration & Pricing Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Duration Label *</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Duration Label *</label>
                     <Input 
                       type="text" 
                       value={duration} 
                       onChange={e => setDuration(e.target.value)}
                       placeholder="e.g. 5 Days / 4 Nights"
-                      className="py-5 rounded-xl border-stone-200 text-xs"
+                      className="py-5 rounded-xl border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] text-stone-900 dark:text-stone-100 text-xs"
                     />
                   </div>
 
                   {/* Duration Days Counter */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Duration (Days) *</label>
-                    <div className="flex items-center justify-between p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
+                    <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Duration (Days) *</label>
+                    <div className="flex items-center justify-between p-2.5 bg-stone-50 dark:bg-[#161616] border border-stone-200 dark:border-[#262626] rounded-xl">
                       <button
                         type="button"
                         onClick={() => setDurationDays(prev => Math.max(1, (parseInt(prev) || 1) - 1).toString())}
-                        className="w-7 h-7 rounded-lg bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-100 cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-white dark:bg-[#161616] border border-stone-200 dark:border-[#2a2a2a] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 cursor-pointer"
                       >
                         <Minus className="w-3 h-3 text-stone-600" />
                       </button>
@@ -743,9 +748,9 @@ export default function AdminPackages() {
                       <button
                         type="button"
                         onClick={() => setDurationDays(prev => ((parseInt(prev) || 1) + 1).toString())}
-                        className="w-7 h-7 rounded-lg bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-100 cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-white dark:bg-[#161616] border border-stone-200 dark:border-[#2a2a2a] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#222222] text-stone-600 dark:text-stone-300 cursor-pointer"
                       >
-                        <Plus className="w-3 h-3 text-stone-600" />
+                        <Plus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
                     </div>
                   </div>
@@ -786,12 +791,12 @@ export default function AdminPackages() {
                           onClick={() => setVibe(vo.value)}
                           className={`p-3 rounded-2xl border transition-all cursor-pointer select-none ${
                             isSelected 
-                              ? 'border-emerald-500 bg-emerald-50/50 shadow-xs ring-2 ring-emerald-500/20' 
-                              : 'border-stone-200 hover:border-stone-300 bg-white hover:bg-stone-50/50'
+                              ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-xs ring-2 ring-emerald-500/20' 
+                              : 'border-stone-200 dark:border-[#262626] hover:border-stone-300 dark:hover:border-stone-700 bg-white dark:bg-[#161616] hover:bg-stone-50/50 dark:hover:bg-[#222222]/40'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1.5">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-emerald-600 text-white' : 'bg-stone-100 dark:bg-[#202020] text-stone-600 dark:text-stone-300'}`}>
                               <VibeIcon className="w-4 h-4" />
                             </div>
                             {isSelected && (
@@ -800,7 +805,7 @@ export default function AdminPackages() {
                               </span>
                             )}
                           </div>
-                          <p className="font-bold text-xs text-stone-900">{vo.label}</p>
+                          <p className="font-bold text-xs text-stone-900 dark:text-stone-100">{vo.label}</p>
                           <p className="text-[10px] text-stone-400 line-clamp-1 mt-0.5">{vo.desc}</p>
                         </div>
                       );
@@ -825,7 +830,7 @@ export default function AdminPackages() {
                                 : diff === 'Moderate'
                                   ? 'bg-amber-600 text-white border-amber-600'
                                   : 'bg-rose-600 text-white border-rose-600'
-                              : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                              : 'bg-white dark:bg-[#161616] text-stone-600 dark:text-stone-300 border-stone-200 dark:border-[#262626] hover:bg-stone-50 dark:hover:bg-[#222222]'
                           }`}
                         >
                           {diff}
@@ -835,22 +840,22 @@ export default function AdminPackages() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-wider">Max Group Size</label>
-                    <div className="flex items-center justify-between p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
+                    <label className="text-xs font-bold text-stone-700 dark:text-neutral-200 uppercase tracking-wider">Max Group Size</label>
+                    <div className="flex items-center justify-between p-2.5 bg-stone-50 dark:bg-[#161616] border border-stone-200 dark:border-[#262626] rounded-xl">
                       <button
                         type="button"
                         onClick={() => setMaxGuests(prev => Math.max(1, (parseInt(prev) || 1) - 1).toString())}
-                        className="w-7 h-7 rounded-lg bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-100 cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-white dark:bg-[#202020] border border-stone-200 dark:border-[#2a2a2a] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#282828] text-stone-600 dark:text-stone-300 cursor-pointer"
                       >
-                        <Minus className="w-3 h-3 text-stone-600" />
+                        <Minus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
-                      <span className="font-bold text-sm text-stone-900">{maxGuests} Explorers</span>
+                      <span className="font-bold text-sm text-stone-900 dark:text-stone-100">{maxGuests} Explorers</span>
                       <button
                         type="button"
                         onClick={() => setMaxGuests(prev => ((parseInt(prev) || 1) + 1).toString())}
-                        className="w-7 h-7 rounded-lg bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-100 cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-white dark:bg-[#202020] border border-stone-200 dark:border-[#2a2a2a] flex items-center justify-center hover:bg-stone-100 dark:hover:bg-[#282828] text-stone-600 dark:text-stone-300 cursor-pointer"
                       >
-                        <Plus className="w-3 h-3 text-stone-600" />
+                        <Plus className="w-3 h-3 text-stone-600 dark:text-stone-300" />
                       </button>
                     </div>
                   </div>
@@ -1018,8 +1023,8 @@ export default function AdminPackages() {
                       onClick={() => setIncludeTransit(!includeTransit)}
                       className={`p-3 rounded-2xl border transition-all cursor-pointer select-none flex items-center gap-2.5 ${
                         includeTransit 
-                          ? 'border-emerald-500 bg-emerald-50/50 shadow-2xs ring-1 ring-emerald-500/20' 
-                          : 'border-stone-200 bg-white hover:bg-stone-50'
+                          ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-2xs ring-1 ring-emerald-500/20' 
+                          : 'border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222]/40'
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${includeTransit ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
@@ -1035,8 +1040,8 @@ export default function AdminPackages() {
                       onClick={() => setIncludeMeals(!includeMeals)}
                       className={`p-3 rounded-2xl border transition-all cursor-pointer select-none flex items-center gap-2.5 ${
                         includeMeals 
-                          ? 'border-emerald-500 bg-emerald-50/50 shadow-2xs ring-1 ring-emerald-500/20' 
-                          : 'border-stone-200 bg-white hover:bg-stone-50'
+                          ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-2xs ring-1 ring-emerald-500/20' 
+                          : 'border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222]/40'
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${includeMeals ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
@@ -1052,8 +1057,8 @@ export default function AdminPackages() {
                       onClick={() => setIncludeShelter(!includeShelter)}
                       className={`p-3 rounded-2xl border transition-all cursor-pointer select-none flex items-center gap-2.5 ${
                         includeShelter 
-                          ? 'border-emerald-500 bg-emerald-50/50 shadow-2xs ring-1 ring-emerald-500/20' 
-                          : 'border-stone-200 bg-white hover:bg-stone-50'
+                          ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-2xs ring-1 ring-emerald-500/20' 
+                          : 'border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222]/40'
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${includeShelter ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
@@ -1069,8 +1074,8 @@ export default function AdminPackages() {
                       onClick={() => setIncludeGuide(!includeGuide)}
                       className={`p-3 rounded-2xl border transition-all cursor-pointer select-none flex items-center gap-2.5 ${
                         includeGuide 
-                          ? 'border-emerald-500 bg-emerald-50/50 shadow-2xs ring-1 ring-emerald-500/20' 
-                          : 'border-stone-200 bg-white hover:bg-stone-50'
+                          ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-2xs ring-1 ring-emerald-500/20' 
+                          : 'border-stone-200 dark:border-[#262626] bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222]/40'
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${includeGuide ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
@@ -1096,7 +1101,7 @@ export default function AdminPackages() {
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 p-4 bg-stone-50/70 border border-stone-200/70 rounded-2xl">
+                  <div className="flex flex-wrap gap-2 p-4 bg-stone-50/70 dark:bg-[#161616]/60 border border-stone-200/70 dark:border-[#262626] rounded-2xl">
                     {POPULAR_PACKAGE_AMENITIES.map((item) => {
                       const isSelected = amenitiesList.includes(item);
                       return (
@@ -1107,7 +1112,7 @@ export default function AdminPackages() {
                           className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none flex items-center gap-1.5 ${
                             isSelected
                               ? 'bg-emerald-600 text-white shadow-xs shadow-emerald-500/20 ring-1 ring-emerald-700'
-                              : 'bg-white text-stone-600 border border-stone-200/80 hover:border-stone-300 hover:bg-stone-50'
+                              : 'bg-white dark:bg-[#161616] text-stone-600 dark:text-stone-300 border border-stone-200/80 dark:border-[#2a2a2a]/80 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-[#222222]'
                           }`}
                         >
                           {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -1162,7 +1167,7 @@ export default function AdminPackages() {
 
                   <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
                     {itinerary.map((dayPlan, index) => (
-                      <div key={index} className="bg-stone-50/70 border border-stone-200 rounded-2xl p-4 space-y-3 relative group">
+                      <div key={index} className="bg-stone-50/70 dark:bg-[#161616] border border-stone-200 dark:border-[#262626] rounded-2xl p-4 space-y-3 relative group">
                         
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2 flex-1">
@@ -1174,7 +1179,7 @@ export default function AdminPackages() {
                               value={dayPlan.title}
                               onChange={e => handleItineraryChange(index, 'title', e.target.value)}
                               placeholder={`Day ${index + 1} title (e.g. Trek from Sari to Deoriatal Lake)`}
-                              className="py-4 rounded-xl border-stone-200 text-xs font-bold bg-white"
+                              className="py-4 rounded-xl border-stone-200 dark:border-[#2a2a2a] text-xs font-bold bg-white dark:bg-[#181818] text-stone-900 dark:text-stone-100"
                             />
                           </div>
 
@@ -1194,7 +1199,7 @@ export default function AdminPackages() {
                           value={dayPlan.desc}
                           onChange={e => handleItineraryChange(index, 'desc', e.target.value)}
                           placeholder="Detail distance covered, elevation gain, meals, photography stops, and overnight campsite location..."
-                          className="rounded-xl border-stone-200 text-xs bg-white p-3"
+                          className="rounded-xl border-stone-200 dark:border-[#2a2a2a] text-xs bg-white dark:bg-[#181818] text-stone-900 dark:text-stone-100 p-3"
                           rows={2}
                         />
                       </div>
@@ -1206,7 +1211,7 @@ export default function AdminPackages() {
             )}
 
             {/* Bottom Form Actions - Sticky Footer */}
-            <div className="sticky -bottom-8 -mx-8 -mb-8 px-8 py-4 bg-white/95 backdrop-blur-md border-t border-stone-200 flex items-center justify-between shrink-0 shadow-lg">
+            <div className="sticky -bottom-8 -mx-8 -mb-8 px-8 py-4 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border-t border-stone-200 dark:border-[#262626] flex items-center justify-between shrink-0 shadow-lg">
               <div className="flex items-center gap-2 text-stone-500">
                 <span className="text-xs font-bold text-stone-900">Step {formStep} of 3</span>
                 <span className="text-stone-300">•</span>
@@ -1218,7 +1223,7 @@ export default function AdminPackages() {
                   type="button" 
                   variant="ghost" 
                   onClick={() => setIsOpenForm(false)}
-                  className="rounded-xl border border-stone-200 text-stone-500 hover:text-stone-800 font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer"
+                  className="rounded-xl border border-stone-200 dark:border-[#2a2a2a] text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer"
                 >
                   Cancel
                 </Button>
@@ -1228,7 +1233,7 @@ export default function AdminPackages() {
                     type="button"
                     variant="outline"
                     onClick={() => setFormStep(prev => prev - 1)}
-                    className="rounded-xl border-stone-200 text-stone-700 font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer flex items-center gap-1.5"
+                    className="rounded-xl border border-stone-200 dark:border-[#2a2a2a] text-stone-700 dark:text-stone-300 bg-white dark:bg-[#161616] hover:bg-stone-50 dark:hover:bg-[#222222] font-bold text-xs uppercase tracking-wider py-4 px-4 cursor-pointer flex items-center gap-1.5"
                   >
                     <ChevronLeft className="w-4 h-4" /> Back
                   </Button>
@@ -1267,25 +1272,25 @@ export default function AdminPackages() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isOpenDeleteConfirm} onOpenChange={setIsOpenDeleteConfirm}>
-        <DialogContent className="sm:max-w-md bg-white border border-stone-200 rounded-2xl shadow-2xl p-6 font-sans">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-[#121212] border border-stone-200 dark:border-[#262626] text-stone-900 dark:text-stone-100 rounded-2xl shadow-2xl p-6 font-sans">
           <DialogHeader className="pb-2">
-            <DialogTitle className="text-base font-extrabold tracking-wider text-rose-600 uppercase">
+            <DialogTitle className="text-base font-extrabold tracking-wider text-rose-600 dark:text-rose-400 uppercase">
               CONFIRM PACKAGE DELETE
             </DialogTitle>
-            <DialogDescription className="text-xs uppercase font-bold text-stone-400 tracking-wider">
+            <DialogDescription className="text-xs uppercase font-bold text-stone-400 dark:text-stone-500 tracking-wider">
               This action is permanent and cannot be undone
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 text-xs text-stone-600 leading-relaxed border-t border-b border-stone-100">
-            Are you sure you want to delete the package <strong className="text-stone-900">{packageToDelete?.title}</strong>? All public descriptions and bookings attached to this listing will be permanently removed.
+          <div className="py-4 text-xs text-stone-600 dark:text-stone-300 leading-relaxed border-t border-b border-stone-100 dark:border-[#262626]">
+            Are you sure you want to delete the package <strong className="text-stone-900 dark:text-stone-100">{packageToDelete?.title}</strong>? All public descriptions and bookings attached to this listing will be permanently removed.
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
             <Button 
               onClick={() => setIsOpenDeleteConfirm(false)} 
               variant="ghost"
-              className="rounded-xl border border-stone-200 text-stone-600 font-bold text-xs uppercase tracking-wider py-4 px-5 cursor-pointer"
+              className="rounded-xl border border-stone-200 dark:border-[#262626] text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-[#222222] font-bold text-xs uppercase tracking-wider py-4 px-5 cursor-pointer"
             >
               Cancel
             </Button>
