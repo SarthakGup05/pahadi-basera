@@ -22,25 +22,108 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => {
-    // Check if token exists in localStorage
-    const token = localStorage.getItem('pb_admin_token');
-    const role = localStorage.getItem('pb_admin_role');
-    if (token && role === 'ADMIN') {
-      setIsAuthenticated(true);
+  // Helper to test if a JWT is expired
+  const isTokenExpired = (jwtToken: string): boolean => {
+    try {
+      const parts = jwtToken.split('.');
+      if (parts.length !== 3) return true;
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const decoded = JSON.parse(jsonPayload);
+      if (!decoded.exp) return false;
+      return Date.now() >= decoded.exp * 1000;
+    } catch {
+      return true;
     }
-    setIsLoading(false);
+  };
 
+  const getTokenExpMs = (jwtToken: string): number | null => {
+    try {
+      const parts = jwtToken.split('.');
+      if (parts.length !== 3) return null;
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const decoded = JSON.parse(jsonPayload);
+      return decoded.exp ? decoded.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  };
+
+  useEffect(() => {
     const handleUnauthorized = () => {
       localStorage.removeItem('pb_admin_token');
       localStorage.removeItem('pb_admin_role');
       setIsAuthenticated(false);
-      toast.error('Admin session expired or invalid. Please log in again.');
+      toast.error('Admin session expired. Please log in again.');
+      if (pathname !== '/admin') {
+        router.replace('/admin');
+      }
     };
 
+    // Check if redirected with expired query flag
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('expired') === 'true') {
+        localStorage.removeItem('pb_admin_token');
+        localStorage.removeItem('pb_admin_role');
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        toast.error('Admin session expired. Please log in again.');
+        window.history.replaceState({}, '', '/admin');
+        return;
+      }
+    }
+
+    // Check if token exists in localStorage
+    const token = localStorage.getItem('pb_admin_token');
+    const role = localStorage.getItem('pb_admin_role');
+
+    let expiryTimer: NodeJS.Timeout | undefined;
+
+    if (token && role === 'ADMIN') {
+      if (isTokenExpired(token)) {
+        handleUnauthorized();
+      } else {
+        setIsAuthenticated(true);
+        // Schedule auto-logout when token hits its 24h expiration timestamp
+        const expMs = getTokenExpMs(token);
+        if (expMs) {
+          const remainingMs = expMs - Date.now();
+          if (remainingMs > 0) {
+            expiryTimer = setTimeout(() => {
+              handleUnauthorized();
+            }, remainingMs);
+          } else {
+            handleUnauthorized();
+          }
+        }
+      }
+    } else {
+      setIsAuthenticated(false);
+      if (pathname !== '/admin') {
+        router.replace('/admin');
+      }
+    }
+
+    setIsLoading(false);
+
     window.addEventListener('pb:unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('pb:unauthorized', handleUnauthorized);
-  }, []);
+    return () => {
+      if (expiryTimer) clearTimeout(expiryTimer);
+      window.removeEventListener('pb:unauthorized', handleUnauthorized);
+    };
+  }, [pathname, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

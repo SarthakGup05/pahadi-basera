@@ -64,6 +64,30 @@ api.interceptors.response.use(
     // Handle token expiration or unauthorized access
     if (typeof window !== 'undefined' && error.response?.status === 401) {
       console.warn('⚠️ 401 Unauthorized received from API:', error.config?.url);
+
+      const isAdminContext =
+        window.location.pathname.startsWith('/admin') ||
+        Boolean(
+          error.config?.url &&
+            (error.config.url.startsWith('/api/admin') ||
+              error.config.url.includes('/admin/'))
+        );
+
+      if (isAdminContext) {
+        localStorage.removeItem('pb_admin_token');
+        localStorage.removeItem('pb_admin_role');
+        window.dispatchEvent(new CustomEvent('pb:unauthorized'));
+
+        // If not already at /admin login, redirect to admin login page
+        if (window.location.pathname !== '/admin') {
+          window.location.href = '/admin?expired=true';
+        }
+      } else {
+        localStorage.removeItem('pb_token');
+        localStorage.removeItem('token');
+        localStorage.removeItem('pb_user');
+        window.dispatchEvent(new Event('pb:auth-change'));
+      }
     }
 
     // Attach human-readable message on error object for downstream catch blocks

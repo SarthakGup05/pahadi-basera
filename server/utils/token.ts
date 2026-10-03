@@ -59,7 +59,7 @@ interface UserPayload {
 export const generateTokens = (user: UserPayload) => {
   const payload = { userId: user.id, role: user.role, kycStatus: user.kycStatus };
 
-  const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+  const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
   const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
 
   return { accessToken, refreshToken };
