@@ -563,7 +563,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Donut Chart with Centered Total */}
-          <div className="h-52 w-full relative flex items-center justify-center my-2">
+          <div className="h-44 w-full relative flex items-center justify-center my-1">
             {isMounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -571,8 +571,8 @@ export default function AdminDashboard() {
                     data={activeDonutData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={75}
+                    innerRadius={48}
+                    outerRadius={68}
                     paddingAngle={3}
                     dataKey="value"
                   >
@@ -606,18 +606,25 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Compact Minimal Legend */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-2 border-t border-stone-100 dark:border-[#262626] max-h-28 overflow-y-auto">
+          {/* Compact Minimal Legend with Sleek Layout */}
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-3 border-t border-stone-100 dark:border-[#262626] max-h-44 overflow-y-auto pr-1">
             {activeDonutData.map((entry, index) => (
-              <div key={entry.name} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 truncate">
+              <div 
+                key={entry.name} 
+                className="flex items-center justify-between text-xs py-1 px-1.5 rounded-lg hover:bg-stone-50 dark:hover:bg-[#181818] transition-colors group"
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span 
-                    className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" 
+                    className="w-2 h-2 rounded-full shrink-0 shadow-xs ring-1 ring-black/5 dark:ring-white/10" 
                     style={{ backgroundColor: (isDark ? CHARCOAL_CHART_COLORS : LIGHT_CHART_COLORS)[index % (isDark ? CHARCOAL_CHART_COLORS : LIGHT_CHART_COLORS).length] }} 
                   />
-                  <span className="text-stone-600 dark:text-stone-300 truncate text-[11px] font-medium">{entry.name}</span>
+                  <span className="text-stone-600 dark:text-stone-300 truncate text-[11px] font-medium group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors">
+                    {entry.name}
+                  </span>
                 </div>
-                <span className="text-stone-400 dark:text-stone-500 font-mono text-[11px] ml-1">{entry.value}</span>
+                <span className="text-stone-500 dark:text-stone-400 font-mono text-[11px] font-semibold shrink-0 ml-1 px-1.5 py-0.5 rounded bg-stone-100 dark:bg-[#1a1a1a] border border-transparent dark:border-[#262626]">
+                  {entry.value}
+                </span>
               </div>
             ))}
           </div>

@@ -147,3 +147,39 @@
 .animate-tooltip-bounce {
   animation: tooltip-bounce 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* Modern Sleek Scrollbars (Replaces chunky OS/browser scrollbars) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 160, 0.28);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 160, 0.45);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(160, 160, 160, 0.28) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
